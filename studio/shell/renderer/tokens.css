@@ -9,6 +9,8 @@
   --accent: #a5b4fc;
   --accent-ink: #12131a;
   --online: #86efac;
+  --warn: #fbbf24;
+  --err: #f87171;
   --human: rgba(165, 180, 252, 0.08);
   --danger: #e85d5d;
 }

@@ -4,7 +4,8 @@ Live chrome follows **quiet-studio** + the reconciled spec: **Chat | Board** def
 
 | File | Use |
 | --- | --- |
-| `PRODUCT-NARRATIVE.md` | Eng Grok Bot caps; stranger homebase |
+| `PRODUCT-NARRATIVE.md` | UI coverage + stranger homebase |
+| `SHELL-IA.md` | Chrome / panes / Code drawer fences |
 | `LAYOUT-LOCK.md` | Chat \| Board default; Code on demand |
 | `STUDIO-SHELL-SPEC.md` | IA, cutover, acceptance (Code not always-on) |
 | `quiet-studio.html` | Visual + layout mock |

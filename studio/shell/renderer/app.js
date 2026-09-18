@@ -6,13 +6,13 @@
   document.body.dataset.host = host;
 
   const FALLBACK_P0 = [
-    { id: "github", label: "GitHub", status: "needs-auth" },
-    { id: "cursor", label: "Cursor", status: "needs-auth" },
-    { id: "claude", label: "Claude", status: "needs-auth" },
-    { id: "grok", label: "Grok", status: "needs-auth" },
-    { id: "linear", label: "Linear", status: "needs-auth" },
-    { id: "sentry", label: "Sentry", status: "needs-auth" },
-    { id: "vercel", label: "Vercel", status: "needs-auth" },
+    { id: "github", label: "GitHub", status: "needs_auth" },
+    { id: "cursor", label: "Cursor", status: "needs_auth" },
+    { id: "claude", label: "Claude", status: "needs_auth" },
+    { id: "grok", label: "Grok", status: "needs_auth" },
+    { id: "linear", label: "Linear", status: "needs_auth" },
+    { id: "sentry", label: "Sentry", status: "needs_auth" },
+    { id: "vercel", label: "Vercel", status: "needs_auth" },
   ];
 
   const els = {
@@ -54,7 +54,7 @@
     pendingCutover: null,
     presenceOpen: false,
     codeOpen: false,
-    mode: "build",
+    mode: "eng",
   };
 
   const chatHandlers = {
@@ -70,6 +70,10 @@
 
   const boardHandlers = {
     resolveGate,
+    openDiff() {
+      Studio.panes.setCodeOpen(els, state, true);
+      Studio.panes.renderBoard(els, state, boardHandlers);
+    },
   };
 
   function setPresenceOpen(open) {
@@ -83,8 +87,7 @@
     Studio.chrome.renderConnectors(els, state, onConnector);
     Studio.chrome.renderPresence(els, state);
     Studio.panes.renderSeats(els, state, chatHandlers);
-    Studio.panes.renderThread(els, state);
-    Studio.panes.renderWatches(els, state);
+    Studio.panes.renderThread(els, state, chatHandlers);
     Studio.panes.renderBoard(els, state, boardHandlers);
   }
 
@@ -110,27 +113,30 @@
   }
 
   function onConnector(id) {
+    if (id === "add") {
+      openCutover({
+        kind: "connector",
+        id: "add",
+        title: "Connect a provider",
+        copy: "Connect GitHub / an agent provider. This seat works in Studio only while connected.",
+      });
+      return;
+    }
     const connector = state.connectors.find((item) => item.id === id);
     if (!connector) {
       return;
     }
     switch (connector.status) {
-      case "connected":
+      case "live":
         return;
-      case "needs-auth":
+      case "needs_auth":
+      case "disconnected":
+      case "error":
         openCutover({
           kind: "connector",
           id: connector.id,
           title: `Connect ${connector.label}`,
           copy: "This seat works in Studio only while connected.",
-        });
-        return;
-      case "add":
-        openCutover({
-          kind: "connector",
-          id: "add",
-          title: "Connect a provider",
-          copy: "Connect GitHub / an agent provider. This seat works in Studio only while connected.",
         });
         return;
       default:
@@ -163,7 +169,7 @@
         if (pending.id !== "add") {
           const connector = state.connectors.find((item) => item.id === pending.id);
           if (connector) {
-            connector.status = "connected";
+            connector.status = "live";
           }
         }
         break;
@@ -226,7 +232,7 @@
         me: false,
       });
       els.composerInput.value = "";
-      Studio.panes.renderThread(els, state);
+      Studio.panes.renderThread(els, state, chatHandlers);
     });
     els.composerInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
@@ -237,8 +243,16 @@
     els.cutoverCancel.addEventListener("click", closeCutover);
     els.cutoverConfirm.addEventListener("click", confirmCutover);
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !els.cutoverSheet.hidden) {
+      if (event.key !== "Escape") {
+        return;
+      }
+      if (!els.cutoverSheet.hidden) {
         closeCutover();
+        return;
+      }
+      if (state.codeOpen) {
+        Studio.panes.setCodeOpen(els, state, false);
+        Studio.panes.renderBoard(els, state, boardHandlers);
       }
     });
   }
@@ -273,7 +287,7 @@
           state.connectors = rows.map((row) => ({
             id: row.id,
             label: row.label,
-            status: "needs-auth",
+            status: "needs_auth",
           }));
         }
         return;
@@ -287,7 +301,7 @@
         state.connectors = rows.map((row) => ({
           id: row.id,
           label: row.label,
-          status: "needs-auth",
+          status: "needs_auth",
         }));
       }
     } catch (_err) {

@@ -5,12 +5,10 @@
 
   function modeLabel(mode) {
     switch (mode) {
-      case "build":
-        return "build";
-      case "proof":
-        return "proof";
-      case "review":
-        return "review";
+      case "eng":
+        return "eng ▾";
+      case "design":
+        return "design ▾";
       default:
         return assertNever(mode);
     }
@@ -18,12 +16,10 @@
 
   function nextMode(mode) {
     switch (mode) {
-      case "build":
-        return "proof";
-      case "proof":
-        return "review";
-      case "review":
-        return "build";
+      case "eng":
+        return "design";
+      case "design":
+        return "eng";
       default:
         return assertNever(mode);
     }
@@ -31,6 +27,7 @@
 
   function renderMode(els, state) {
     els.modeChip.textContent = modeLabel(state.mode);
+    els.modeChip.dataset.mode = state.mode;
   }
 
   Studio.chrome = Studio.chrome || {};

@@ -2,7 +2,7 @@
 
 Homebase for any AI developer: Grok Bot caps **optimized for engineering**, multi-provider, stranger cold-open. Waiting-table-as-home is dead.
 
-Default chrome is **Chat + Board**. **Code is on demand** (not always-on). Titlebar: eng **mode** (build / proof / review) + **connectors tray** (catalog P0). Board: **agent map**, **Proof** gates, and **watches**.
+Default chrome is **Chat + Board**. **Code is on demand** (not always-on). Titlebar: **mode** rail (eng / design) + **connectors tray** (catalog P0, `needs_auth` | `live` | `disconnected` | `error`). Board: **gates**, **CA map**, and **watches**.
 
 This package is Electron so the same stranger path runs on **macOS and Windows**. Linux can use the same commands.
 

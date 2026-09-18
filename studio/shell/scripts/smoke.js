@@ -46,7 +46,9 @@ assert.match(html, /id="instruments"/);
 assert.match(html, /id="presence-btn"/);
 assert.match(html, /id="cutover-sheet"/);
 assert.match(html, /This seat works in Studio only while connected/);
-assert.match(html, /Message You/);
+assert.match(html, /Connect a seat to start/);
+assert.match(html, /Message seat or #room/);
+assert.match(html, /eng ▾/);
 assert.match(html, /your-repo/);
 assert.match(html, /code-pane/);
 assert.match(html, /hidden/);
@@ -61,6 +63,8 @@ assert.doesNotMatch(html, /nyfeblade\/rd-os/);
 assert.match(css, /\.code-pane\s*\{\s*display:\s*none/);
 assert.match(css, /\.main\.code-open \.code-pane/);
 assert.match(css, /grid-template-columns:\s*1\.35fr 0\.9fr/);
+assert.match(css, /\.chip\.conn\.auth/);
+assert.match(css, /\.chip\.conn\.live/);
 assert.doesNotMatch(css, /minmax\(280px,\s*1\.05fr\).*minmax\(360px/);
 
 assert.match(js, /codeOpen:\s*false/);
@@ -69,6 +73,9 @@ assert.match(js, /attention\.empty\.json/);
 assert.match(js, /attention\.(human|dump)/);
 assert.match(js, /loadCatalog/);
 assert.match(js, /FALLBACK_P0/);
+assert.match(js, /mode: "eng"/);
+assert.match(js, /needs_auth/);
+assert.match(js, /Escape/);
 assert.doesNotMatch(js, /Eng Lead/);
 assert.doesNotMatch(js, /nyfeblade\/rd-os/);
 assert.doesNotMatch(js, /integrate/);
@@ -79,6 +86,7 @@ assert.match(chat, /id: "claude"/);
 assert.match(chat, /id: "cursor"/);
 assert.match(chat, /room:chat/);
 assert.match(chat, /Talk to agents/);
+assert.match(chat, /Connect a seat to start/);
 assert.match(chat, /in-studio-only/);
 assert.doesNotMatch(chat, /Eng Lead/);
 
@@ -86,13 +94,17 @@ assert.match(board, /Nothing blocked on you/);
 assert.match(board, /instrumentFor/);
 assert.match(board, /nightly proof packet/);
 assert.match(board, /Agent map/);
+assert.match(board, /CA map/);
+assert.match(board, /Open diff/);
 assert.doesNotMatch(board, /nyfeblade\/rd-os/);
 assert.doesNotMatch(board, /PR#11/);
 
 assert.match(code, /setCodeOpen/);
 assert.match(tray, /Connect GitHub \/ an agent provider/);
 assert.match(modes, /nextMode/);
-assert.match(modes, /review/);
+assert.match(modes, /case "eng"/);
+assert.match(modes, /case "design"/);
+assert.doesNotMatch(modes, /review/);
 assert.match(presence, /in-studio-only/);
 
 assert.match(tokens, /--bg:\s*#111113/);
@@ -115,6 +127,7 @@ assert.doesNotMatch(readme, /always visible/);
 assert.ok(fs.existsSync(path.join(root, "design", "quiet-studio.html")));
 assert.ok(fs.existsSync(path.join(root, "design", "PRODUCT-NARRATIVE.md")));
 assert.ok(fs.existsSync(path.join(root, "design", "LAYOUT-LOCK.md")));
+assert.ok(fs.existsSync(path.join(root, "design", "SHELL-IA.md")));
 assert.ok(fs.existsSync(path.join(root, "renderer", "chrome", "connectors-tray.js")));
 assert.ok(fs.existsSync(path.join(root, "renderer", "chrome", "modes-rail.js")));
 assert.ok(fs.existsSync(path.join(root, "renderer", "chrome", "presence-bar.js")));
@@ -158,7 +171,7 @@ if (catalogPresent()) {
   assert.ok(p0.length >= 5, "catalog P0 should be multi-provider when present");
   for (const row of p0) {
     assert.match(js, new RegExp(`id: "${row.id}"`), `fallback missing catalog P0 ${row.id}`);
-    assert.equal(row.status, "needs-auth");
+    assert.equal(row.status, "needs_auth");
   }
   assert.ok(p0.some((row) => row.id === "github"));
   assert.ok(p0.some((row) => row.id === "claude"));

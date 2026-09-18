@@ -29,6 +29,14 @@
     return state.seats.find((seat) => seat.id === state.selectedSeat) || state.seats[0];
   }
 
+  function firstUnconnectedBot(state) {
+    return state.seats.find((seat) => seat.kind === "bot" && !seat.cutover) || null;
+  }
+
+  function anyBotConnected(state) {
+    return state.seats.some((seat) => seat.kind === "bot" && seat.cutover);
+  }
+
   function renderSeats(els, state, handlers) {
     const presenceDotClass = Studio.chrome.presenceDotClass;
     els.seatList.replaceChildren();
@@ -36,6 +44,9 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = seat.id === state.selectedSeat ? "seat on" : "seat";
+      if (seat.kind === "room") {
+        button.classList.add("room-seat");
+      }
       button.dataset.seat = seat.id;
       const row = document.createElement("div");
       row.className = "row";
@@ -56,15 +67,15 @@
         }
         state.selectedSeat = seat.id;
         renderSeats(els, state, handlers);
-        renderThread(els, state);
+        renderThread(els, state, handlers);
       });
       els.seatList.appendChild(button);
     }
   }
 
-  function renderThread(els, state) {
+  function renderThread(els, state, handlers) {
     const seat = selectedSeat(state);
-    els.composerInput.placeholder = `Message ${seat.name}…`;
+    els.composerInput.placeholder = "Message seat or #room… @ to address";
     const messages = THREADS[seat.id] || [];
     els.messages.replaceChildren();
     for (const message of messages) {
@@ -78,6 +89,24 @@
       body.textContent = message.body;
       wrap.append(who, body);
       els.messages.appendChild(wrap);
+    }
+    if (seat.id === "human" && !anyBotConnected(state)) {
+      const empty = document.createElement("div");
+      empty.className = "empty-cta";
+      empty.id = "connect-seat-cta";
+      const copy = document.createElement("p");
+      copy.textContent = "Connect a seat to start. GitHub plus one AI seat is enough to see the Board.";
+      const start = document.createElement("button");
+      start.type = "button";
+      start.textContent = "Connect a seat to start";
+      start.addEventListener("click", () => {
+        const bot = firstUnconnectedBot(state);
+        if (bot) {
+          handlers.onConnectSeat(bot);
+        }
+      });
+      empty.append(copy, start);
+      els.messages.appendChild(empty);
     }
     els.messages.scrollTop = els.messages.scrollHeight;
   }

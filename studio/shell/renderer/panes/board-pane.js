@@ -47,92 +47,49 @@
     return rest ? `${hours}h ${rest}m` : `${hours}h`;
   }
 
-  function boardRows(dump) {
-    const rows = [];
-    if (dump && dump.p0 && dump.p0.waiting_on === "human") {
-      rows.push({
-        id: dump.p0.id,
-        what: "Merge gate",
-        sub: "Needs a human",
-        waitingOn: "human",
-        ageS: dump.p0.age_s,
-      });
-    }
-    const ca = instrumentFor("ca", dump);
-    const proof = instrumentFor("proof", dump);
-    rows.push({
-      id: "ca",
-      what: "Agent map",
-      sub: ca.detail,
-      waitingOn: "agent",
-      ageS: dump && dump.p0 && dump.p0.waiting_on === "agent" ? dump.p0.age_s : 0,
-    });
-    rows.push({
-      id: "proof",
-      what: "Proof",
-      sub: proof.detail,
-      waitingOn: "proof",
-      ageS: dump && dump.p0 && dump.p0.waiting_on === "proof" ? dump.p0.age_s : 240,
-    });
-    return rows;
+  function sectionHead(title) {
+    const head = document.createElement("div");
+    head.className = "sec";
+    head.textContent = title;
+    return head;
   }
 
   function renderInstruments(els, state) {
     els.instruments.replaceChildren();
-    for (const kind of ["ca", "proof"]) {
-      const item = instrumentFor(kind, state.dump);
-      const card = document.createElement("div");
-      card.className = "instrument";
-      card.dataset.instrument = kind;
-      const k = document.createElement("div");
-      k.className = "k";
-      k.textContent = item.label;
-      const v = document.createElement("div");
-      v.className = "v";
-      v.textContent = item.state;
-      const d = document.createElement("div");
-      d.className = "d";
-      d.textContent = item.detail;
-      card.append(k, v, d);
-      els.instruments.appendChild(card);
-    }
+    els.instruments.appendChild(sectionHead("CA map"));
+    const item = instrumentFor("ca", state.dump);
+    const card = document.createElement("div");
+    card.className = "ca-card";
+    card.dataset.instrument = "ca";
+    const title = document.createElement("b");
+    title.textContent = item.label;
+    card.append(title, document.createTextNode(` · ${item.state} · ${item.detail}`));
+    els.instruments.appendChild(card);
   }
 
   function renderWatches(els, state) {
     els.watches.replaceChildren();
-    const head = document.createElement("div");
-    head.className = "k";
-    head.textContent = "Watches";
-    els.watches.appendChild(head);
+    els.watches.appendChild(sectionHead("Watches"));
     const items = state.dump && state.dump.p0 ? ["nightly proof packet", "merge-gate age"] : [];
     if (!items.length) {
       const empty = document.createElement("div");
-      empty.className = "watch";
+      empty.className = "ca-card";
       empty.textContent = "No watches yet. Add a check after you connect a provider.";
       els.watches.appendChild(empty);
       return;
     }
     for (const item of items) {
       const row = document.createElement("div");
-      row.className = "watch";
+      row.className = "ca-card";
       row.textContent = item;
       els.watches.appendChild(row);
     }
   }
 
-  function renderBoard(els, state, handlers) {
-    renderInstruments(els, state);
-    els.boardBody.replaceChildren();
-
-    if (!state.dump) {
-      const empty = document.createElement("p");
-      empty.className = "foot";
-      empty.textContent = "Can't reach the board stub.";
-      els.boardBody.appendChild(empty);
-      return;
-    }
-
-    if (!state.dump.p0) {
+  function renderGateTable(els, state, handlers) {
+    const dump = state.dump;
+    const humanGate = dump && dump.p0 && dump.p0.waiting_on === "human";
+    if (!humanGate) {
       const empty = document.createElement("p");
       empty.className = "foot";
       empty.id = "board-empty";
@@ -146,55 +103,62 @@
     thead.innerHTML = "<tr><th>What</th><th>On</th><th>Age</th></tr>";
     table.appendChild(thead);
     const tbody = document.createElement("tbody");
-    for (const row of boardRows(state.dump)) {
-      const tr = document.createElement("tr");
-      if (row.waitingOn === "human") {
-        tr.className = "need";
-      }
-      const what = document.createElement("td");
-      if (row.waitingOn !== "human") {
-        what.className = "mute";
-      }
-      const title = document.createElement("div");
-      title.className = "what";
-      title.textContent = row.what;
-      what.appendChild(title);
-      if (row.sub) {
-        const sub = document.createElement("div");
-        sub.className = "sub";
-        sub.textContent = row.sub;
-        what.appendChild(sub);
-      }
-      if (row.waitingOn === "human") {
-        const acts = document.createElement("div");
-        acts.className = "acts";
-        const approve = document.createElement("button");
-        approve.type = "button";
-        approve.className = "go";
-        approve.textContent = "Approve";
-        approve.addEventListener("click", () => handlers.resolveGate("approve"));
-        const reject = document.createElement("button");
-        reject.type = "button";
-        reject.className = "no";
-        reject.textContent = "Reject";
-        reject.addEventListener("click", () => handlers.resolveGate("reject"));
-        acts.append(approve, reject);
-        what.appendChild(acts);
-      }
-      const on = document.createElement("td");
-      on.className = row.waitingOn === "human" ? "" : "mute";
-      on.textContent = waitingLabel(row.waitingOn);
-      const age = document.createElement("td");
-      age.className = row.waitingOn === "human" ? "" : "mute";
-      age.textContent = row.ageS > 0 ? formatAge(row.ageS) : "—";
-      tr.append(what, on, age);
-      tbody.appendChild(tr);
-    }
+    const tr = document.createElement("tr");
+    tr.className = "need";
+    const what = document.createElement("td");
+    const title = document.createElement("div");
+    title.className = "what";
+    title.textContent = "Merge gate";
+    const sub = document.createElement("div");
+    sub.className = "sub";
+    sub.textContent = "Needs a human";
+    const acts = document.createElement("div");
+    acts.className = "acts";
+    const approve = document.createElement("button");
+    approve.type = "button";
+    approve.className = "go";
+    approve.textContent = "Approve";
+    approve.addEventListener("click", () => handlers.resolveGate("approve"));
+    const reject = document.createElement("button");
+    reject.type = "button";
+    reject.className = "no";
+    reject.textContent = "Reject";
+    reject.addEventListener("click", () => handlers.resolveGate("reject"));
+    const openDiff = document.createElement("button");
+    openDiff.type = "button";
+    openDiff.className = "no";
+    openDiff.textContent = "Open diff";
+    openDiff.addEventListener("click", () => handlers.openDiff());
+    acts.append(approve, reject, openDiff);
+    what.append(title, sub, acts);
+    const on = document.createElement("td");
+    on.textContent = waitingLabel("human");
+    const age = document.createElement("td");
+    age.textContent = formatAge(dump.p0.age_s);
+    tr.append(what, on, age);
+    tbody.appendChild(tr);
     table.appendChild(tbody);
     els.boardBody.appendChild(table);
+  }
+
+  function renderBoard(els, state, handlers) {
+    els.boardBody.replaceChildren();
+    els.boardBody.appendChild(sectionHead("Gates"));
+
+    if (!state.dump) {
+      const empty = document.createElement("p");
+      empty.className = "foot";
+      empty.textContent = "Can't reach the board stub.";
+      els.boardBody.appendChild(empty);
+    } else {
+      renderGateTable(els, state, handlers);
+    }
+
+    renderInstruments(els, state);
+    renderWatches(els, state);
 
     const dump = state.dump;
-    const gates = dump.open_gates && dump.open_gates.length ? dump.open_gates.join(" · ") : "none";
+    const gates = dump && dump.open_gates && dump.open_gates.length ? dump.open_gates.join(" · ") : "none";
     const cutoverCount = state.seats.filter((seat) => seat.cutover).length;
     const foot = document.createElement("p");
     foot.className = "foot";

@@ -106,8 +106,23 @@ body[data-host="electron"][data-platform="mac"] .bar {
   cursor: pointer;
 }
 
-.chip.on {
-  color: var(--ink);
+.chip.on,
+.chip.conn.live {
+  color: var(--online);
+  border-color: rgba(134, 239, 172, 0.25);
+}
+
+.chip.conn.auth {
+  color: var(--warn);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.chip.conn.off {
+  opacity: 0.55;
+}
+
+.chip.conn.err {
+  color: var(--err);
 }
 
 .right {
@@ -463,56 +478,53 @@ pre {
   padding: 4px 8px;
 }
 
-.instruments {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 0 16px 10px;
-}
-
-.instrument {
-  background: var(--elev);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 8px 10px;
-}
-
-.instrument .k {
+.sec {
+  margin: 4px 8px 6px;
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--faint);
 }
 
-.instrument .v {
-  margin-top: 3px;
-  font-size: 13px;
+.instruments,
+.watches {
+  padding: 0 16px 10px;
+}
+
+.ca-card {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--mute);
+}
+
+.ca-card b {
+  color: var(--ink);
   font-weight: 560;
 }
 
-.instrument .d {
-  margin-top: 2px;
-  font-size: 11px;
-  color: var(--mute);
+.empty-cta {
+  padding: 8px 0 16px;
 }
 
-.watches {
-  padding: 0 16px 10px;
+.empty-cta p {
+  margin: 0 0 10px;
   color: var(--mute);
+  font-size: 13px;
+}
+
+.empty-cta button {
+  font: inherit;
   font-size: 12px;
-}
-
-.watches .k {
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--faint);
-  margin-bottom: 6px;
-}
-
-.watch {
-  padding: 6px 0;
-  border-top: 1px solid var(--line);
+  font-weight: 600;
+  padding: 7px 11px;
+  border-radius: 8px;
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
 }
 
 .board {

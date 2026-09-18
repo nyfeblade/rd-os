@@ -94,7 +94,7 @@ function parsePrioritySection(markdown, priority) {
       catalogName: cells[0],
       type: cells[2],
       priority,
-      status: "needs-auth",
+      status: "needs_auth",
     });
   }
   return rows;

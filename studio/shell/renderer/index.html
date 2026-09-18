@@ -14,9 +14,9 @@
     <div class="frame" role="application" aria-label="AI Coding Studio">
       <header class="bar">
         <div class="name">Studio</div>
-        <button type="button" class="bar-btn mode" id="mode-chip" data-chrome="modes-rail" aria-label="Eng mode">build</button>
-        <button type="button" class="bar-btn" id="btn-code" aria-pressed="false">Code</button>
+        <button type="button" class="bar-btn mode" id="mode-chip" data-chrome="modes-rail" aria-label="Eng mode">eng ▾</button>
         <div class="tray" id="connectors-tray" data-chrome="connectors-tray" aria-label="Connectors"></div>
+        <button type="button" class="bar-btn" id="btn-code" aria-pressed="false">Code</button>
         <div class="right">
           <button type="button" class="whisper" id="presence-btn" data-chrome="presence-bar" aria-expanded="false" aria-controls="presence-list">
             <span class="dot" aria-hidden="true"></span>
@@ -29,7 +29,7 @@
       <main class="main" id="main">
         <section class="pane" data-pane="chat" data-module="chat-pane" id="pane-chat" aria-label="Chat">
           <div class="label">Chat</div>
-          <p class="onboard" id="chat-onboard">Talk to agents here. What’s blocked on you sits on the Board.</p>
+          <p class="onboard" id="chat-onboard">Connect a seat to start. What’s blocked on you sits on the Board.</p>
           <div class="chat-body">
             <aside class="seats" id="seat-list" aria-label="Seats and rooms"></aside>
             <div class="thread">
@@ -39,7 +39,7 @@
               </p>
               <form class="composer" id="composer">
                 <div class="composer-box">
-                  <textarea id="composer-input" rows="2" placeholder="Message You…" aria-label="Message"></textarea>
+                  <textarea id="composer-input" rows="2" placeholder="Message seat or #room… @ to address" aria-label="Message"></textarea>
                   <button class="send" type="submit">Send</button>
                 </div>
               </form>
@@ -65,9 +65,9 @@
         <section class="pane" data-pane="board" data-module="board-pane" id="pane-board" aria-label="Board">
           <div class="label">Board</div>
           <p class="onboard">What’s blocked on you</p>
-          <div class="instruments" id="instruments" aria-label="CloudAgent and Proof"></div>
-          <div class="watches" id="watches" aria-label="Routines and watches"></div>
           <div class="board" id="board-body"></div>
+          <div class="instruments" id="instruments" aria-label="CA map"></div>
+          <div class="watches" id="watches" aria-label="Routines and watches"></div>
         </section>
       </main>
     </div>
