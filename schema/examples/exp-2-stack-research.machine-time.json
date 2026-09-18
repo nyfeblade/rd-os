@@ -1,0 +1,18 @@
+{
+  "experiment_id": "exp-2-stack-research",
+  "title": "R&D OS HARD LAW + 14d kill (docs only)",
+  "estimate_ca_hours": 1.5,
+  "estimate_proof_min": 20,
+  "human_gates": [
+    {
+      "kind": "merge",
+      "reason": "playbook: human-owned merges; bots never merge"
+    }
+  ],
+  "actuals": {
+    "ca_hours": null,
+    "proof_min": null,
+    "human_hours": null,
+    "finished_at": null
+  }
+}
