@@ -796,3 +796,35 @@ textarea:focus-visible {
     transition: none !important;
   }
 }
+
+
+/* Critiquito: demote git bind; wrap HITL; no mid-token clip */
+#bind-status,
+.bind {
+  font-size: 11px !important;
+  color: var(--faint) !important;
+  max-width: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.with {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.pane.chat > .ctx:empty,
+.pane.chat .onboard:empty {
+  display: none;
+}
+.gate pre.payload,
+.gate pre.diff {
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  overflow: auto !important;
+  text-overflow: clip !important;
+}
+.board-h[hidden] {
+  display: none !important;
+}
