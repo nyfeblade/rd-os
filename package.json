@@ -20,7 +20,8 @@
     "wedge-measure": "./scripts/wedge-measure.sh",
     "ui-smoke": "./scripts/ui-smoke.sh",
     "mcp-smoke": "node ./bin/mcp-smoke.js",
-    "consumer:cursor-mcp": "npm --prefix ./consumers/cursor-mcp test"
+    "consumer:cursor-mcp": "npm --prefix ./consumers/cursor-mcp test",
+    "test": "bash scripts/test-all.sh"
   },
   "engines": {
     "node": ">=18"
