@@ -8,10 +8,11 @@
     "start": "electron .",
     "preview": "node ./scripts/preview.js",
     "smoke": "node ./scripts/smoke.js",
-    "prove": "node ./scripts/prove-chat.js && node ./scripts/prove-seat-connect.js",
+    "prove": "node ./scripts/prove-chat.js && node ./scripts/prove-seat-connect.js && node ./scripts/prove-live.js",
     "prove:chat": "node ./scripts/prove-chat.js",
     "prove:seats": "node ./scripts/prove-seat-connect.js",
-    "test": "node ./scripts/smoke.js && node ./scripts/prove-chat.js && node ./scripts/prove-seat-connect.js"
+    "prove:live": "node ./scripts/prove-live.js",
+    "test": "node ./scripts/smoke.js && node ./scripts/prove-chat.js && node ./scripts/prove-seat-connect.js && node ./scripts/prove-live.js"
   },
   "engines": {
     "node": ">=18"

@@ -19,7 +19,7 @@ npm install
 npm start
 ```
 
-A 1440×900 window titled **AI Coding Studio** should open on Chat + Board with a stranger empty state: Connect GitHub and an agent. Code stays closed. Roster / full tray / idle CA are hidden. Sample gate: `npm run preview` then [http://127.0.0.1:5173/?fixture=human](http://127.0.0.1:5173/?fixture=human).
+A 1440×900 window titled **AI Coding Studio** should open on Chat + Board with a stranger empty state: **GitHub**, **Import team**, and the **Team** rail. One-click **Connect** attaches a seat — no CLI, no paste-key toast. Agents (Grok / Claude / Gemini / Cursor) attach by pointing their MCP client at Studio (`studio/mcp` stdio). Code stays closed. Idle catalog / CA stay hidden until needed. Preview: `npm run preview` then [http://127.0.0.1:5173](http://127.0.0.1:5173).
 
 | Platform | Command | What you get |
 | --- | --- | --- |
@@ -27,11 +27,11 @@ A 1440×900 window titled **AI Coding Studio** should open on Chat + Board with 
 | Windows | `npm start` | native window, 1440×900, min 1200×720 |
 | either, browser chrome | `npm run preview` | same renderer at [http://127.0.0.1:5173](http://127.0.0.1:5173) |
 
-`npm test` is a fence/smoke check plus two proves. It does not launch Electron. `prove-chat` **fails** if Chat is still fixture-only (no bind, no `memory.write` persist). `prove-seat-connect` **fails** if Add seat → Connect is a no-op or still flips local renderer flags instead of `studio/seats` register + connect + cutover.attach.
+`npm test` is a fence/smoke check plus three proves. It does not launch Electron. `prove-chat` **fails** if Chat is still fixture-only (no bind, no `memory.write` persist). `prove-seat-connect` **fails** if Add seat → Connect is a no-op or still flips local renderer flags instead of `studio/seats` register + connect + cutover.attach. `prove-live` **fails** if Connect still requires a provider API key, if Confirm is a local status flip, or if Board HITL is fixture-only.
 
 Chat is **engine-backed**. On shell start / Chat pane mount the main process `require`s `studio/chat-engine`, binds the rd-os git toplevel (or a user-picked folder from the bind chip), restores or opens a thread, and paints `repo · branch · dirty` from the live snapshot. Composer send writes thread memory through the engine and survives reopen. Inbox-bound GitHub/Slack replies stay on the two-way path. Code remains a drawer; opening it pushes `focus.source = "code"` into the bound thread.
 
-**Add seat is seats-backed.** Cold-open **Seat** opens a provider picker (`claude`, `grok`, `cursor`, `codex`, `gemini`, `chatgpt`). **Connect** calls `studio/seats` register → connect → cutover.attach. Success paints presence **online** + **in-studio-only**. Missing provider secrets (`ANTHROPIC_API_KEY`, `XAI_API_KEY`, `CURSOR_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY` / `GOOGLE_API_KEY`) surface a toast and the connect sheet — never a silent no-op. The shell does not invent tokens and does not call vendor APIs without those env keys.
+**Connect is MCP-attach, not a key paste.** Team-rail **Connect** / hidden `#cta-seat` **Connect** calls `studio/seats` register → connect → cutover.attach and returns `mcp_attach: "studio/mcp"`. No `MISSING_SECRET`. No `set XAI_API_KEY` toast. No CLI happy path. Grok / Claude / Gemini / Cursor / Codex / ChatGPT attach by pointing their MCP client at Studio (stdio `initialize` **is** connect). **Import team** registers the eng roster (`studio/seats` importRoster). Confirm GitHub calls `studio/auth.start` — never a local `status = "live"` flip. Failures stay on screen (`CODE: …`) — never sheet-only close.
 
 ## What should be on screen
 
@@ -39,7 +39,7 @@ Chat is **engine-backed**. On shell start / Chat pane mount the main process `re
 2. **Board** — human gates only (“Needs you”). Idle CA map and disconnected watches are hidden
 3. Toolbar **Code** (off) · **ConnectorsTray** for P0 GitHub + Slack: `live` / `error` are inbox filters; `needs_auth` opens connect; `disconnected` is hidden. Catalog **P0** is consumed read-only from `studio/connectors/CATALOG.md` when present. Slack is P1 in the catalog table and `p0_wire` yes. Idle catalog stays hidden
 4. **Inbox** — GitHub comments + Slack `app_mention`/DM in Chat. Composer `bound_to` the active item — **low-risk replies skip the HITL card**. Board **pending-approval** card (kind, destination, actor, payload + diff, Approve send / Deny) before high-risk egress. Bot high-risk also needs in-studio-only cutover
-5. Connecting a seat or provider asks once: *This seat works in Studio only while connected.* After a real connect, presence lists the seat as online · in-studio-only. Auth/secret failures stay on screen.
+5. Connecting a seat asks once: *This seat works in Studio only while connected.* After a real connect, presence lists the seat as online · in-studio-only. Auth failures stay on screen. Provider API keys are not the Connect happy path.
 
 Code opens from the Code button or Close to put it away.
 
@@ -53,10 +53,11 @@ studio/shell/
   renderer/chrome/          ConnectorsTray, ModesRail, PresenceBar
   renderer/panes/           ChatPane, BoardPane, CodeDrawer
   renderer/fixtures/        attention.dump stubs (board/inbox only)
-  scripts/preview.js        browser path (+ /catalog.json + /chat/* + /seats/*)
+  scripts/preview.js        browser path (+ /catalog.json + /chat/* + /seats/* + /auth/* + /hitl/*)
   scripts/smoke.js
   scripts/prove-chat.js     bind + send must persist; fails on fixture-only Chat
-  scripts/prove-seat-connect.js  Add seat → Connect must mutate studio/seats or show an error
+  scripts/prove-seat-connect.js  Add seat → Connect must mutate studio/seats without API keys
+  scripts/prove-live.js     auth + seats.connect + HITL + no-key Connect; fails on key-gate theater
 ```
 
 Reconciled Designer SoT lives in [`design/`](./design/) (`quiet-studio.html`, narrative, spec, layout lock). `studio/design/` and `studio/connectors/**` are consumed read-only — this lane does not write those paths.

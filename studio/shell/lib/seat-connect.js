@@ -10,6 +10,7 @@ const {
   KNOWN_PROVIDERS,
   createSeatsSession,
   isKnownProvider,
+  resolveProvider,
   providers,
 } = require("./seats-bridge");
 
@@ -27,7 +28,8 @@ function openAddSeat() {
 }
 
 function pickProvider(provider) {
-  if (!isKnownProvider(provider)) {
+  const id = resolveProvider(provider);
+  if (!isKnownProvider(id)) {
     return {
       ok: false,
       phase: "pick",
@@ -36,13 +38,13 @@ function pickProvider(provider) {
       visible_error: true,
     };
   }
-  const row = providers().find((item) => item.id === provider);
+  const row = providers().find((item) => item.id === id);
   return {
     ok: true,
     phase: "pick",
     kind: "seat",
     pick: true,
-    id: provider,
+    id,
     title: `Connect ${row.label}`,
     copy: CONNECT_ACK,
     providers: providers(),
@@ -78,7 +80,7 @@ function runSeatConnectClick(options) {
     return Object.assign({ phase: "connect", sheet: opened }, picked);
   }
 
-  const connected = session.connect(opts.provider);
+  const connected = session.connect(picked.id);
   return Object.assign(
     {
       phase: "connect",

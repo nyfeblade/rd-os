@@ -178,7 +178,7 @@
     if (!els.inboxCtx || !els.composeHint) {
       return;
     }
-    if (state.view === "cold" || !bound) {
+    if (!bound) {
       els.inboxCtx.hidden = true;
       els.composeHint.hidden = true;
       return;
@@ -243,7 +243,7 @@
     const inbox = inboxForChat(state);
     els.messages.replaceChildren();
 
-    if (state.view === "live" && inbox.length) {
+    if (state.githubSession && inbox.length) {
       for (const item of inbox) {
         const wrap = document.createElement("button");
         wrap.type = "button";

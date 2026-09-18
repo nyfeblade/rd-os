@@ -19,8 +19,6 @@ const {
   KNOWN_PROVIDERS,
   SEATS_REL,
   createSeatsSession,
-  missingSecret,
-  secretKeysFor,
 } = require("../lib/seats-bridge");
 const { openAddSeat, pickProvider, runSeatConnectClick } = require("../lib/seat-connect");
 const ui = require("../renderer/seat-connect.js");
@@ -46,14 +44,6 @@ function tmpHome() {
 
 function emptyEnv() {
   return {};
-}
-
-function envFor(provider) {
-  const env = {};
-  for (const key of secretKeysFor(provider)) {
-    env[key] = `prove-${provider}-${key.toLowerCase()}`;
-  }
-  return env;
 }
 
 function sourceFence() {
@@ -102,6 +92,18 @@ function sourceFence() {
   if (!readme.includes("prove-seat-connect") || !readme.includes("studio/seats")) {
     fail("readme", "README must document seats connect + prove");
   }
+  const bridge = read("lib/seats-bridge.js");
+  const connectStart = bridge.indexOf("function connect(");
+  const listStart = bridge.indexOf("function list(");
+  const connectBody = connectStart >= 0 && listStart > connectStart
+    ? bridge.slice(connectStart, listStart)
+    : "";
+  if (!connectBody || connectBody.includes("MISSING_SECRET") || connectBody.includes("API_KEY")) {
+    fail("key-gate", "Connect must attach without a provider API key");
+  }
+  if (!bridge.includes("mcp_attach") || !bridge.includes("studio/mcp")) {
+    fail("mcp-attach", "Connect must return mcp_attach studio/mcp");
+  }
   if (app.includes("function confirmCutover") && /connector\.status = \"live\"/.test(app) && !app.includes("isKnownProvider")) {
     fail("renderer", "Connect still treats seat providers as tray theater");
   }
@@ -145,35 +147,27 @@ function proveClickPath() {
   }
   pass("unknown provider is a visible error");
 
-  const missing = runSeatConnectClick({
+  const noKey = runSeatConnectClick({
     home: tmpHome(),
     env: emptyEnv(),
     provider: "grok",
   });
-  if (missing.ok || missing.code !== "MISSING_SECRET" || missing.visible_error !== true) {
-    fail("missing secret", `expected visible MISSING_SECRET, got ${JSON.stringify(missing)}`);
+  if (!noKey.ok || noKey.code === "MISSING_SECRET") {
+    fail("no-key connect", `Connect must attach without API keys, got ${JSON.stringify(noKey)}`);
   }
-  if (!/XAI_API_KEY/.test(missing.detail || "")) {
-    fail("missing secret copy", `error must name the secret, got ${missing.detail}`);
+  if (!noKey.seat || noKey.seat.presence !== "online" || noKey.in_studio_only !== true) {
+    fail("no-key presence", `expected grok online + in-studio, got ${JSON.stringify(noKey.seat)}`);
   }
-  if (missing.mutated === true) {
-    fail("missing secret", "seats state must not mutate when auth is missing");
+  if (noKey.mcp_attach !== "studio/mcp") {
+    fail("no-key mcp", `expected mcp_attach studio/mcp, got ${noKey.mcp_attach}`);
   }
-  pass("missing XAI_API_KEY is a visible MISSING_SECRET");
-
-  for (const provider of KNOWN_PROVIDERS) {
-    const denied = missingSecret(provider, emptyEnv());
-    if (!denied || denied.code !== "MISSING_SECRET") {
-      fail(`${provider} secret`, `expected MISSING_SECRET, got ${JSON.stringify(denied)}`);
-    }
-  }
-  pass("every known provider fail-closes without secrets");
+  pass("Connect grok with empty env attaches (no XAI_API_KEY)");
 }
 
 function proveMutatesSeats() {
   for (const provider of KNOWN_PROVIDERS) {
     const home = tmpHome();
-    const session = createSeatsSession({ home, env: envFor(provider) });
+    const session = createSeatsSession({ home, env: emptyEnv() });
     const result = runSeatConnectClick({
       session,
       provider,
@@ -203,7 +197,7 @@ function proveMutatesSeats() {
       fail(`presence persist ${provider}`, JSON.stringify(listed));
     }
 
-    const reopened = createSeatsSession({ home, env: envFor(provider) });
+    const reopened = createSeatsSession({ home, env: emptyEnv() });
     const again = reopened.presence();
     const persisted = again.ok && again.presence.find((item) => item.id === provider);
     if (!persisted || persisted.state !== "online" || persisted.in_studio_only !== true) {
@@ -224,7 +218,7 @@ function proveHandlerNotNoop() {
 
   const live = runSeatConnectClick({
     home: tmpHome(),
-    env: envFor("claude"),
+    env: emptyEnv(),
     provider: "claude",
   });
   if (live == null || live.ok !== true || live.mutated !== true) {
@@ -248,8 +242,8 @@ function proveUiApply() {
     { id: "grok", name: "Grok", kind: "bot", presence: "offline", cutover: false },
     { id: "room:chat", name: "Agents", kind: "room", presence: "offline", cutover: false },
   ];
-  const failed = ui.applyConnectResult(cold, { ok: false, code: "MISSING_SECRET", detail: "XAI_API_KEY is missing" });
-  if (failed.ok || failed.detail.indexOf("XAI_API_KEY") === -1) {
+  const failed = ui.applyConnectResult(cold, { ok: false, code: "UNKNOWN_PROVIDER", detail: "Pick a provider: grok" });
+  if (failed.ok || failed.detail.indexOf("Pick a provider") === -1) {
     fail("ui error", JSON.stringify(failed));
   }
   const silent = ui.applyConnectResult(cold, undefined);

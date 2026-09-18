@@ -1,25 +1,43 @@
 "use strict";
 
-const { app, BrowserWindow, dialog, ipcMain } = require("electron");
-const fs = require("node:fs");
+const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
 const path = require("node:path");
 const { createChatSession, defaultRepoPath } = require("../lib/chat-bridge");
 const { tryReadCatalogP0 } = require("../lib/read-catalog");
+const { mergeWireConnectors, sendReply } = require("../lib/two-way");
+const { createStudioLive, TRAFFIC_LIGHT_POSITION } = require("../lib/studio-live");
 const { createSeatsSession } = require("../lib/seats-bridge");
 const { runSeatConnectClick } = require("../lib/seat-connect");
-const { demoInbox, mergeWireConnectors, sendReply } = require("../lib/two-way");
 
 const MIN_WIDTH = 1200;
 const MIN_HEIGHT = 720;
 const DEFAULT_WIDTH = 1440;
 const DEFAULT_HEIGHT = 900;
 
-function fixturePath(name) {
-  return path.join(__dirname, "..", "renderer", "fixtures", name);
+let live = null;
+let chatSession = null;
+let seatsSession = null;
+
+function catalogRows() {
+  return mergeWireConnectors(tryReadCatalogP0());
 }
 
-function readFixture(name) {
-  return JSON.parse(fs.readFileSync(fixturePath(name), "utf8"));
+function liveState() {
+  return live.snapshot(catalogRows());
+}
+
+function seats() {
+  if (!seatsSession) {
+    throw new Error("seats session not started");
+  }
+  return seatsSession;
+}
+
+function chat() {
+  if (!chatSession) {
+    throw new Error("chat session not started");
+  }
+  return chatSession;
 }
 
 function createWindow() {
@@ -35,7 +53,7 @@ function createWindow() {
     backgroundColor: "#ffffff",
     show: false,
     titleBarStyle: isMac ? "hiddenInset" : "default",
-    ...(isMac ? { trafficLightPosition: { x: 16, y: 18 } } : {}),
+    ...(isMac ? { trafficLightPosition: TRAFFIC_LIGHT_POSITION } : {}),
     ...(isWin
       ? {
           titleBarOverlay: {
@@ -75,37 +93,104 @@ ipcMain.handle("studio:platform", () => {
 });
 
 ipcMain.handle("studio:catalog", () => {
-  return mergeWireConnectors(tryReadCatalogP0());
+  return catalogRows();
 });
 
 ipcMain.handle("studio:inbox", () => {
-  return demoInbox();
+  return live.inbox();
 });
 
 ipcMain.handle("studio:reply", (_event, draft) => {
   return sendReply(draft);
 });
 
-ipcMain.handle("studio:loadDump", (_event, name) => {
-  const allowed = new Set([
-    "attention.dump.json",
-    "attention.empty.json",
-    "attention.human.json",
-  ]);
-  if (!allowed.has(name)) {
-    throw new Error(`unknown stub dump: ${name}`);
-  }
-  return readFixture(name);
+ipcMain.handle("studio:live.state", () => {
+  return liveState();
 });
 
-let chatSession = null;
-
-function chat() {
-  if (!chatSession) {
-    throw new Error("chat session not started");
+ipcMain.handle("studio:auth.start", async () => {
+  const started = live.startOAuth();
+  if (!started.ok) {
+    return started;
   }
-  return chatSession;
-}
+  if (started.url) {
+    await shell.openExternal(started.url);
+    started.opened = true;
+  }
+  return started;
+});
+
+ipcMain.handle("studio:auth.session", () => {
+  return live.session();
+});
+
+ipcMain.handle("studio:auth.signOut", () => {
+  return live.signOut();
+});
+
+ipcMain.handle("studio:auth.callback", async (_event, payload) => {
+  return live.handleCallback(payload);
+});
+
+ipcMain.handle("studio:seats.connect", (_event, provider) => {
+  return runSeatConnectClick({ session: seats(), provider });
+});
+
+ipcMain.handle("studio:seats.dump", () => {
+  return live.dumpSeats();
+});
+
+ipcMain.handle("studio:seats.list", () => {
+  return seats().list();
+});
+
+ipcMain.handle("studio:seats.presence", () => {
+  return seats().presence();
+});
+
+ipcMain.handle("studio:seats.providers", () => {
+  return { ok: true, providers: seats().providers() };
+});
+
+ipcMain.handle("studio:seats.import", () => {
+  return seats().importTeam();
+});
+
+ipcMain.handle("studio:hitl.create", (_event, input) => {
+  return live.createGate(input);
+});
+
+ipcMain.handle("studio:hitl.needYou", () => {
+  return live.listNeedYou();
+});
+
+ipcMain.handle("studio:hitl.resolve", (_event, input) => {
+  return live.resolveGate(input);
+});
+
+ipcMain.handle("studio:market.browse", (_event, query) => {
+  return live.browseMarket(query);
+});
+
+ipcMain.handle("studio:market.install", (_event, id) => {
+  return live.installMarket(id);
+});
+
+ipcMain.handle("studio:market.connect", (_event, id) => {
+  return live.connectMarket(id);
+});
+
+ipcMain.handle("studio:modes.list", () => {
+  return live.listModes();
+});
+
+ipcMain.handle("studio:modes.enable", (_event, id) => {
+  return live.enableMode(id);
+});
+
+ipcMain.handle("studio:mcp.surface", () => {
+  return live.mcpSurface();
+});
 
 ipcMain.handle("studio:chat.bind", (_event, repo) => {
   return chat().bind(repo);
@@ -139,40 +224,20 @@ ipcMain.handle("studio:chat.selectRepo", async (event) => {
   return chat().bind(picked.filePaths[0]);
 });
 
-let seatsSession = null;
-
-function seats() {
-  if (!seatsSession) {
-    throw new Error("seats session not started");
-  }
-  return seatsSession;
-}
-
-ipcMain.handle("studio:seats.connect", (_event, provider) => {
-  return runSeatConnectClick({ session: seats(), provider });
-});
-
-ipcMain.handle("studio:seats.list", () => {
-  return seats().list();
-});
-
-ipcMain.handle("studio:seats.presence", () => {
-  return seats().presence();
-});
-
-ipcMain.handle("studio:seats.providers", () => {
-  return seats().providers();
-});
-
 app.whenReady().then(() => {
   const studioHome = path.join(app.getPath("userData"), "studio");
+  live = createStudioLive({
+    varDir: studioHome,
+    platform: process.platform,
+  });
+  seatsSession = createSeatsSession({
+    studio: live.seats,
+    home: path.join(studioHome, "seats"),
+    env: process.env,
+  });
   chatSession = createChatSession({
     varDir: studioHome,
     repo: defaultRepoPath(),
-  });
-  seatsSession = createSeatsSession({
-    home: path.join(studioHome, "seats"),
-    env: process.env,
   });
   chatSession.bind().catch((err) => {
     process.stderr.write(`chat bind: ${err && err.message ? err.message : String(err)}\n`);
@@ -187,6 +252,9 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => {
+  if (live) {
+    live.close();
+  }
   if (process.platform !== "darwin") {
     app.quit();
   }
