@@ -1,0 +1,15 @@
+{
+  "id": "pack.studio.chrome.v1",
+  "events": {
+    "ui.send": { "file": "ui_send.wav", "gain": 0.7, "cooldown_ms": 80, "reduced_motion_mute": false },
+    "ui.need_you": { "file": "ui_need_you.wav", "gain": 0.55, "cooldown_ms": 120, "reduced_motion_mute": false },
+    "ui.approve": { "file": "ui_approve.wav", "gain": 0.65, "cooldown_ms": 80, "reduced_motion_mute": false },
+    "ui.deny": { "file": "ui_deny.wav", "gain": 0.6, "cooldown_ms": 80, "reduced_motion_mute": false },
+    "ui.connect_ok": { "file": "ui_connect_ok.wav", "gain": 0.6, "cooldown_ms": 100, "reduced_motion_mute": false },
+    "ui.error": { "file": "ui_error.wav", "gain": 0.55, "cooldown_ms": 160, "reduced_motion_mute": false },
+    "ui.code_open": { "file": "ui_code_open.wav", "gain": 0.5, "cooldown_ms": 120, "reduced_motion_mute": true },
+    "ui.expand": { "file": "ui_expand.wav", "gain": 0.45, "cooldown_ms": 80, "reduced_motion_mute": true },
+    "ui.craft_gen_done": { "file": "ui_craft_gen_done.wav", "gain": 0.6, "cooldown_ms": 200, "reduced_motion_mute": false }
+  },
+  "patches": {}
+}

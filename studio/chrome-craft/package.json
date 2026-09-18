@@ -1,0 +1,15 @@
+{
+  "name": "@rd-os/studio-chrome-craft",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Studio chrome consume: motion helpers + event SFX player for pack.studio.chrome.v1. Not sfx-engine authoring.",
+  "main": "./index.js",
+  "types": "./types.d.ts",
+  "scripts": {
+    "test": "node smoke.js",
+    "smoke": "node smoke.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
