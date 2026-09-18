@@ -1,0 +1,17 @@
+{
+  "name": "rd-os-cursor-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cursor MCP attach consumer: measure stdio attach to existing bin/mcp.js. Not the kernel. Not a 14d verdict.",
+  "scripts": {
+    "test": "node ./bin/smoke.js",
+    "smoke": "node ./bin/smoke.js",
+    "attach": "node ./bin/install-mcp.js"
+  },
+  "dependencies": {
+    "rd-os": "file:../.."
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
