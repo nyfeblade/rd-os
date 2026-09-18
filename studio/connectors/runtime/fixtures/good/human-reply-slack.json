@@ -1,0 +1,20 @@
+{
+  "op": "reply",
+  "expect": {
+    "ok": true,
+    "outbound_op": "post_message",
+    "actor": "human"
+  },
+  "draft": {
+    "provider": "slack",
+    "actor": "human",
+    "kind": "message",
+    "tray_state": "live",
+    "bound_to": "slack:mention:Ceng:1726665600.000100",
+    "body": "acked from studio",
+    "thread_ref": {
+      "channel": "Ceng",
+      "thread_ts": "1726665600.000100"
+    }
+  }
+}

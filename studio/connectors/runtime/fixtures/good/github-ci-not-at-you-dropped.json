@@ -1,0 +1,23 @@
+{
+  "op": "ingest",
+  "expect": { "ok": true, "dropped": true },
+  "envelope": {
+    "provider": "github",
+    "event": "check_suite",
+    "tray_state": "live",
+    "at_you": false,
+    "payload": {
+      "action": "completed",
+      "check_suite": {
+        "conclusion": "failure",
+        "head_sha": "b65aac42",
+        "updated_at": "2026-09-18T12:03:00Z"
+      },
+      "repository": {
+        "name": "rd-os",
+        "full_name": "nyfeblade/rd-os",
+        "owner": { "login": "nyfeblade" }
+      }
+    }
+  }
+}

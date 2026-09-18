@@ -1,0 +1,22 @@
+{
+  "op": "reply",
+  "expect": {
+    "ok": true,
+    "outbound_op": "create_pull_request_review_comment",
+    "actor": "human"
+  },
+  "draft": {
+    "provider": "github",
+    "actor": "human",
+    "kind": "pull_request_review_comment",
+    "tray_state": "live",
+    "bound_to": "github:review_comment:nyfeblade/rd-os:18:99",
+    "body": "inline reply from studio",
+    "thread_ref": {
+      "owner": "nyfeblade",
+      "repo": "rd-os",
+      "pull_number": 18,
+      "comment_id": 99
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "op": "ingest",
+  "expect": {
+    "ok": true,
+    "dropped": false,
+    "kind": "mention",
+    "need_you": true,
+    "dest": "chat",
+    "provider": "slack"
+  },
+  "envelope": {
+    "provider": "slack",
+    "event": "event_callback",
+    "tray_state": "live",
+    "payload": {
+      "type": "event_callback",
+      "event": {
+        "type": "app_mention",
+        "user": "U123",
+        "text": "<@Ubot> status on the runtime?",
+        "ts": "1726665600.000100",
+        "channel": "Ceng",
+        "team": "T1"
+      }
+    }
+  }
+}

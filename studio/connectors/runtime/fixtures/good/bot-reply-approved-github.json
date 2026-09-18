@@ -1,0 +1,23 @@
+{
+  "op": "reply",
+  "expect": {
+    "ok": true,
+    "outbound_op": "create_pull_request_review",
+    "actor": "bot"
+  },
+  "draft": {
+    "provider": "github",
+    "actor": "bot",
+    "kind": "pull_request_review",
+    "tray_state": "live",
+    "bound_to": "github:review_request:nyfeblade/rd-os:18:luke",
+    "body": "bot summary after human gate",
+    "cutover": { "status": "attached", "in_studio_only": true },
+    "human_gate": { "status": "approved", "by": "luke" },
+    "thread_ref": {
+      "owner": "nyfeblade",
+      "repo": "rd-os",
+      "pull_number": 18
+    }
+  }
+}
