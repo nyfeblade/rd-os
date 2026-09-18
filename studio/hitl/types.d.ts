@@ -14,7 +14,8 @@ export type RejectCode =
   | "HUMAN_REQUIRED"
   | "AUTO_APPROVE_FORBIDDEN"
   | "ALREADY_RESOLVED"
-  | "INVALID_GATE";
+  | "INVALID_GATE"
+  | "UNKNOWN_STATUS";
 
 export type ChatThreadId = string;
 export type BoardCardId = string;
@@ -54,9 +55,19 @@ export type HitlOk<T> = { ok: true; data: T };
 export type HitlErr = { ok: false; code: RejectCode; detail: string };
 export type HitlResult<T> = HitlOk<T> | HitlErr;
 
+export interface GetGateInput {
+  id: string;
+}
+
+export interface ListGatesInput {
+  status?: GateStatus;
+}
+
 export interface HitlKernel {
   createGate(input: CreateGateInput): HitlResult<{ gate: Gate }>;
   listNeedYou(): HitlResult<{ gates: Gate[] }>;
+  getGate(input: GetGateInput): HitlResult<{ gate: Gate }>;
+  listGates(input?: ListGatesInput): HitlResult<{ gates: Gate[] }>;
   resolveGate(input: ResolveGateInput): HitlResult<{ gate: Gate }>;
 }
 

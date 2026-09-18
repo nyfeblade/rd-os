@@ -3,6 +3,7 @@
 const { ok, reject } = require("./codes");
 const {
   GATE_KINDS,
+  GATE_STATUSES,
   HUMAN_ACTOR,
   isGateKind,
   isHighRiskKind,
@@ -82,6 +83,35 @@ function createHitlKernel(opts) {
     return ok({ gates });
   }
 
+  function getGate(input) {
+    const fields = input && typeof input === "object" ? input : {};
+    const id = typeof fields.id === "string" ? fields.id : "";
+    if (!id) {
+      return reject("MISSING_FIELD", "getGate requires id");
+    }
+    const row = rows.get(id);
+    if (!row) {
+      return reject("UNKNOWN_GATE", `no gate ${id}`);
+    }
+    return ok({ gate: snapshot(row) });
+  }
+
+  function listGates(input) {
+    const fields = input && typeof input === "object" ? input : {};
+    let status = null;
+    if (Object.prototype.hasOwnProperty.call(fields, "status") && fields.status != null) {
+      if (!GATE_STATUSES.includes(fields.status)) {
+        return reject("UNKNOWN_STATUS", `status must be one of ${GATE_STATUSES.join("|")}`);
+      }
+      status = fields.status;
+    }
+    const gates = Array.from(rows.values())
+      .filter((row) => (status ? row.status === status : true))
+      .sort((a, b) => (a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0))
+      .map(snapshot);
+    return ok({ gates });
+  }
+
   function resolveGate(input) {
     const fields = input && typeof input === "object" ? input : {};
     const id = typeof fields.id === "string" ? fields.id : "";
@@ -119,6 +149,8 @@ function createHitlKernel(opts) {
   return {
     createGate,
     listNeedYou,
+    getGate,
+    listGates,
     resolveGate,
   };
 }

@@ -41,7 +41,17 @@ hitl.listNeedYou();
 
 hitl.resolveGate({ id: created.data.gate.id, decision: "approve", actor: "human" });
 // status approved, need_you false
+
+// Read a specific gate after it leaves the need-you list:
+hitl.getGate({ id: created.data.gate.id });
+// { ok: true, data: { gate: { ...status: "approved", need_you: false } } }
+
+// Full history / audit (all statuses), optionally filtered:
+hitl.listGates();                       // every gate, oldest first
+hitl.listGates({ status: "approved" }); // resolved-approved only
 ```
+
+`listNeedYou()` returns only open gates. `getGate({ id })` reads any gate by id (`UNKNOWN_GATE` if absent). `listGates({ status? })` returns all gates, optionally filtered by a valid `status` (`UNKNOWN_STATUS` otherwise).
 
 `GateBindNotes` names `chat_thread_id` and `board_card_id` for Chat and Board. This kernel does not store those ids.
 
