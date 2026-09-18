@@ -1,0 +1,21 @@
+{
+  "op": "reply",
+  "expect": {
+    "ok": true,
+    "outbound_op": "create_comment",
+    "actor": "human"
+  },
+  "draft": {
+    "provider": "linear",
+    "actor": "human",
+    "kind": "comment",
+    "tray_state": "live",
+    "bound_to": "linear:comment:539068e2-ae88-4d09-bd75-22eb4a59612f:2174add1-f7c8-44e3-bbf3-2d60b5ea8bc9",
+    "body": "acked from studio",
+    "thread_ref": {
+      "issue_id": "539068e2-ae88-4d09-bd75-22eb4a59612f",
+      "identifier": "LIN-18",
+      "comment_id": "2174add1-f7c8-44e3-bbf3-2d60b5ea8bc9"
+    }
+  }
+}

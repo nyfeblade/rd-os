@@ -8,8 +8,21 @@ const {
   createStudioSeats,
   buildDemoDump,
   classifyDestination,
+  authorizeTool,
+  toolsAllowedFor,
+  toolRequiresHitl,
+  isToolAllowed,
   SEAT_IDS,
   BOT_SEAT_IDS,
+  KNOWN_PROVIDERS,
+  IMPORTABLE_IDS,
+  SKIPPED_IDS,
+  listImportableSeats,
+  importRoster,
+  listImported,
+  resolveGrokProvider,
+  DEFAULT_TOOLS_ALLOWED,
+  HIGH_RISK_TOOLS,
   PRODUCT_LOCK,
   DUMP_SCHEMA,
 } = require("..");
@@ -101,15 +114,65 @@ function cases() {
         return connected;
       }
       const seat = connected.data.seat;
+      const connection = connected.data.connection;
       if (
         seat.presence !== "online" ||
         seat.cutover !== "attached" ||
         seat.in_studio_only !== true ||
-        connected.data.ack !== "This seat works in Studio only while connected."
+        connected.data.ack !== "This seat works in Studio only while connected." ||
+        !connection ||
+        connection.provider !== "grok" ||
+        connection.cutover !== true ||
+        !connection.connected_at ||
+        !eq(connection.tools_allowed, DEFAULT_TOOLS_ALLOWED.slice())
       ) {
         return { ok: false, error: JSON.stringify(connected.data) };
       }
-      return { ok: true };
+      const presence = expectOk(studio.presence.get("grok"));
+      if (!presence.ok) {
+        return presence;
+      }
+      if (presence.data.state !== "online" || presence.data.in_studio_only !== true) {
+        return { ok: false, error: JSON.stringify(presence.data) };
+      }
+      return { ok: true, extra: { connect_in_studio_only: 1 } };
+    })
+  );
+
+  rows.push(
+    runCase("connect(provider) registers known providers and returns connection record", () => {
+      const studio = fresh();
+      let connects = 0;
+      for (const provider of KNOWN_PROVIDERS) {
+        const connected = expectOk(studio.connect(provider));
+        if (!connected.ok) {
+          return connected;
+        }
+        const rec = connected.data.connection;
+        if (
+          !rec ||
+          rec.provider !== provider ||
+          rec.cutover !== true ||
+          !rec.connected_at ||
+          !eq(rec.tools_allowed, ["chat.emit", "board.read", "repo.read"]) ||
+          connected.data.cutover !== true ||
+          connected.data.in_studio_only !== true
+        ) {
+          return { ok: false, error: JSON.stringify(connected.data) };
+        }
+        const presence = expectOk(studio.presence.get(provider));
+        if (!presence.ok) {
+          return presence;
+        }
+        if (presence.data.in_studio_only !== true || presence.data.state !== "online") {
+          return { ok: false, error: `${provider} presence ${JSON.stringify(presence.data)}` };
+        }
+        connects += 1;
+      }
+      if (connects !== 6) {
+        return { ok: false, error: `connected ${connects}` };
+      }
+      return { ok: true, extra: { connect_in_studio_only: connects, connection_records: connects } };
     })
   );
 
@@ -247,6 +310,78 @@ function cases() {
   );
 
   rows.push(
+    runCase("disconnect goes offline; detach while online stays CUTOVER_LOCKED", () => {
+      const studio = fresh();
+      const connected = expectOk(studio.connect("claude"));
+      if (!connected.ok) {
+        return connected;
+      }
+      const locked = expectReject(studio.cutover.detach("claude"), "CUTOVER_LOCKED");
+      if (!locked.ok) {
+        return locked;
+      }
+      const disconnected = expectOk(studio.disconnect("claude"));
+      if (!disconnected.ok) {
+        return disconnected;
+      }
+      if (disconnected.data.seat.presence !== "offline") {
+        return { ok: false, error: JSON.stringify(disconnected.data.seat) };
+      }
+      const blocked = expectReject(studio.emit({ from: "claude", dest: "room:bots", body: "after hangup" }), "SEAT_DISCONNECTED");
+      if (!blocked.ok) {
+        return blocked;
+      }
+      const stillLocked = expectReject(studio.cutover.detach("claude"), "CUTOVER_LOCKED");
+      if (!stillLocked.ok) {
+        return stillLocked;
+      }
+      const reconnected = expectOk(studio.connect("claude"));
+      if (!reconnected.ok) {
+        return reconnected;
+      }
+      if (reconnected.data.connection.cutover !== true || reconnected.data.seat.in_studio_only !== true) {
+        return { ok: false, error: JSON.stringify(reconnected.data) };
+      }
+      return { ok: true, extra: { connect_in_studio_only: 1 } };
+    })
+  );
+
+  rows.push(
+    runCase("permission matrix defaults + high-risk always HITL", () => {
+      if (!eq(toolsAllowedFor("claude"), ["chat.emit", "board.read", "repo.read"])) {
+        return { ok: false, error: `default ${toolsAllowedFor("claude")}` };
+      }
+      if (!eq(toolsAllowedFor("chatgpt", { hitl: true }), ["chat.emit", "board.read", "repo.read", "merge", "deploy", "public"])) {
+        return { ok: false, error: `hitl ${toolsAllowedFor("chatgpt", { hitl: true })}` };
+      }
+      for (const tool of HIGH_RISK_TOOLS) {
+        if (toolRequiresHitl(tool) !== true || isToolAllowed("grok", tool) !== false) {
+          return { ok: false, error: `${tool} leaked without HITL` };
+        }
+        const denied = expectReject(authorizeTool("grok", tool), "TOOL_REQUIRES_HITL");
+        if (!denied.ok) {
+          return denied;
+        }
+        const granted = expectOk(authorizeTool("grok", tool, { hitl: true }));
+        if (!granted.ok) {
+          return granted;
+        }
+        if (granted.data.hitl !== true) {
+          return { ok: false, error: `${tool} missing hitl flag` };
+        }
+      }
+      const emitGrant = expectOk(authorizeTool("cursor", "chat.emit"));
+      if (!emitGrant.ok) {
+        return emitGrant;
+      }
+      if (emitGrant.data.scope !== "room-only" || emitGrant.data.hitl !== false) {
+        return { ok: false, error: JSON.stringify(emitGrant.data) };
+      }
+      return expectReject(authorizeTool("claude", "exfiltrate"), "TOOL_NOT_ALLOWED");
+    })
+  );
+
+  rows.push(
     runCase("unknown dest fails closed (not a studio room)", () => {
       const studio = fresh();
       studio.seats.connect("grok");
@@ -355,6 +490,20 @@ function cases() {
       ) {
         return { ok: false, error: "dump north star" };
       }
+      if (
+        !dumped.data.permissions ||
+        !eq(dumped.data.permissions.default_tools_allowed, DEFAULT_TOOLS_ALLOWED.slice()) ||
+        dumped.data.permissions.chat_emit_scope !== "room-only" ||
+        !eq(dumped.data.permissions.high_risk, HIGH_RISK_TOOLS.slice()) ||
+        dumped.data.permissions.high_risk_requires_hitl !== true ||
+        !eq(dumped.data.permissions.providers, KNOWN_PROVIDERS.slice())
+      ) {
+        return { ok: false, error: "dump permissions" };
+      }
+      const grokTools = dumped.data.seats.find((seat) => seat.id === "grok");
+      if (!grokTools || !eq(grokTools.tools_allowed, DEFAULT_TOOLS_ALLOWED.slice())) {
+        return { ok: false, error: "dump tools_allowed" };
+      }
       const grok = dumped.data.seats.find((seat) => seat.id === "grok");
       if (!grok || grok.surface !== "eng" || grok.agent !== "coding_agent") {
         return { ok: false, error: "coding_agent surface" };
@@ -366,7 +515,53 @@ function cases() {
       if (demo.rooms.some((room) => room.id === "room:desk" || room.title === "Studio floor")) {
         return { ok: false, error: "Waiting/desk room language leaked" };
       }
-      return { ok: true };
+      return { ok: true, extra: { stranger_usable: 1 } };
+    })
+  );
+
+  rows.push(
+    runCase("connect then external + operator 1:1 fail; dump stranger_usable stays true", () => {
+      const studio = fresh();
+      const connected = expectOk(studio.connect("chatgpt"));
+      if (!connected.ok) {
+        return connected;
+      }
+      if (connected.data.connection.cutover !== true || connected.data.in_studio_only !== true) {
+        return { ok: false, error: JSON.stringify(connected.data.connection) };
+      }
+      const external = expectReject(
+        studio.emit({ from: "chatgpt", dest: "slack:eng", body: "leak" }),
+        "EXTERNAL_CHANNEL_FORBIDDEN"
+      );
+      if (!external.ok) {
+        return external;
+      }
+      const operator = expectReject(
+        studio.emit({ from: "chatgpt", dest: "operator", body: "status ping" }),
+        "OPERATOR_1TO1_FORBIDDEN"
+      );
+      if (!operator.ok) {
+        return operator;
+      }
+      const dumped = expectOk(studio.dump());
+      if (!dumped.ok) {
+        return dumped;
+      }
+      if (dumped.data.north_star.stranger_usable !== true || dumped.data.north_star.luke_fleet_only !== false) {
+        return { ok: false, error: JSON.stringify(dumped.data.north_star) };
+      }
+      return {
+        ok: true,
+        extra: {
+          connect_in_studio_only: 1,
+          external_attempts: 1,
+          external_rejects: 1,
+          operator_1to1_attempts: 1,
+          operator_1to1_rejects: 1,
+          operator_1to1_leaks: 0,
+          stranger_usable: 1,
+        },
+      };
     })
   );
 
@@ -485,6 +680,152 @@ function cases() {
   );
 
   rows.push(
+    runCase("importable roster matches Luke team (skip ctm/lingxi/eggbot)", () => {
+      const catalog = expectOk(listImportableSeats());
+      if (!catalog.ok) {
+        return catalog;
+      }
+      if (!eq(catalog.data.seats.map((row) => row.id), IMPORTABLE_IDS)) {
+        return { ok: false, error: `importable ${catalog.data.seats.map((row) => row.id).join(",")}` };
+      }
+      if (!eq(catalog.data.skipped.map((row) => row.id), SKIPPED_IDS)) {
+        return { ok: false, error: `skipped ${catalog.data.skipped.map((row) => row.id).join(",")}` };
+      }
+      const elon = catalog.data.seats.find((row) => row.id === "elon");
+      if (!elon || elon.provider !== "grok" || elon.seat_id !== "grok" || elon.aliased !== true || elon.team !== "eng") {
+        return { ok: false, error: JSON.stringify(elon) };
+      }
+      if (catalog.data.seats.some((row) => row.kind !== "bot" || row.cutover.protocol !== "hard")) {
+        return { ok: false, error: "roster cutover" };
+      }
+      if (catalog.data.seats.some((row) => row.id === "elon" ? false : row.provider === "grok")) {
+        return { ok: false, error: "imported a new Grok Bot" };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("importRoster registers team; listImported matches; stranger dump stays four until import", () => {
+      const studio = fresh();
+      const before = expectOk(studio.dump());
+      if (!before.ok) {
+        return before;
+      }
+      if (before.data.seats.length !== 4 || before.data.north_star.stranger_usable !== true) {
+        return { ok: false, error: "stranger dump drifted before import" };
+      }
+      const empty = expectOk(studio.listImported());
+      if (!empty.ok) {
+        return empty;
+      }
+      if (empty.data.seats.length !== 0) {
+        return { ok: false, error: "auto-imported" };
+      }
+      const imported = expectOk(studio.importRoster());
+      if (!imported.ok) {
+        return imported;
+      }
+      if (!eq(imported.data.seats.map((row) => row.id), IMPORTABLE_IDS)) {
+        return { ok: false, error: `imported ${imported.data.seats.map((row) => row.id).join(",")}` };
+      }
+      const listed = expectOk(listImported(studio));
+      if (!listed.ok) {
+        return listed;
+      }
+      if (!eq(listed.data.seats.map((row) => row.id), IMPORTABLE_IDS)) {
+        return { ok: false, error: "listImported mismatch" };
+      }
+      const viaModule = expectOk(importRoster(studio));
+      if (!viaModule.ok) {
+        return viaModule;
+      }
+      const dumped = expectOk(studio.dump());
+      if (!dumped.ok) {
+        return dumped;
+      }
+      if (dumped.data.north_star.stranger_usable !== true || dumped.data.north_star.luke_fleet_only !== false) {
+        return { ok: false, error: JSON.stringify(dumped.data.north_star) };
+      }
+      if (dumped.data.seats.length !== 4 + (IMPORTABLE_IDS.length - 1)) {
+        return { ok: false, error: `dump seats ${dumped.data.seats.length}` };
+      }
+      if (dumped.data.seats.some((seat) => seat.id === "elon")) {
+        return { ok: false, error: "elon must alias onto grok, not a second seat" };
+      }
+      const lead = dumped.data.seats.find((seat) => seat.id === "eng-lead");
+      if (!lead || lead.kind !== "bot" || lead.agent !== "coding_agent") {
+        return { ok: false, error: "eng-lead missing" };
+      }
+      return { ok: true, extra: { stranger_usable: 1 } };
+    })
+  );
+
+  rows.push(
+    runCase("imported seat connect is in-studio-only; cutover rejects external/operator 1:1", () => {
+      const studio = fresh();
+      const imported = expectOk(studio.importRoster());
+      if (!imported.ok) {
+        return imported;
+      }
+      const connected = expectOk(studio.connect("eng-proof"));
+      if (!connected.ok) {
+        return connected;
+      }
+      if (
+        connected.data.connection.provider !== "eng-proof" ||
+        connected.data.in_studio_only !== true ||
+        connected.data.seat.presence !== "online" ||
+        connected.data.seat.cutover !== "attached"
+      ) {
+        return { ok: false, error: JSON.stringify(connected.data) };
+      }
+      const external = expectReject(
+        studio.emit({ from: "eng-proof", dest: "slack:eng", body: "leak" }),
+        "EXTERNAL_CHANNEL_FORBIDDEN"
+      );
+      if (!external.ok) {
+        return external;
+      }
+      const operator = expectReject(
+        studio.emit({ from: "eng-proof", dest: "operator", body: "status ping" }),
+        "OPERATOR_1TO1_FORBIDDEN"
+      );
+      if (!operator.ok) {
+        return operator;
+      }
+      const skipped = expectReject(studio.registerImportedSeat("eggbot"), "SKIPPED_ROSTER");
+      if (!skipped.ok) {
+        return skipped;
+      }
+      return {
+        ok: true,
+        extra: {
+          connect_in_studio_only: 1,
+          external_attempts: 1,
+          external_rejects: 1,
+          operator_1to1_attempts: 1,
+          operator_1to1_rejects: 1,
+          operator_1to1_leaks: 0,
+        },
+      };
+    })
+  );
+
+  rows.push(
+    runCase("elon alias resolves to grok without registering a stranger elon seat", () => {
+      const resolved = expectOk(resolveGrokProvider("elon"));
+      if (!resolved.ok) {
+        return resolved;
+      }
+      if (resolved.data.provider !== "grok" || resolved.data.alias !== "elon") {
+        return { ok: false, error: JSON.stringify(resolved.data) };
+      }
+      return expectReject(fresh().seats.connect("elon"), "UNKNOWN_SEAT");
+    })
+  );
+
+  rows.push(
     runCase("committed demo.dump.json matches generator", () => {
       const committed = JSON.parse(
         fs.readFileSync(path.join(__dirname, "..", "fixtures", "demo.dump.json"), "utf8")
@@ -528,6 +869,9 @@ function main() {
     external_attempts: sumExtra(rows, "external_attempts"),
     external_rejects: sumExtra(rows, "external_rejects"),
     studio_room_delivers: sumExtra(rows, "studio_room_delivers"),
+    connect_in_studio_only: sumExtra(rows, "connect_in_studio_only"),
+    connection_records: sumExtra(rows, "connection_records"),
+    stranger_usable: sumExtra(rows, "stranger_usable"),
     clock_started: false,
     verdict: null,
     failures: failed.map((row) => ({ name: row.name, detail: row.detail })),

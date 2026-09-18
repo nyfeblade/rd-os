@@ -41,6 +41,43 @@ body[data-host="electron"] .frame {
   border: 0;
 }
 
+/* Product: no demo pantheon */
+.demo.switcher,
+#view-switcher {
+  display: none !important;
+}
+
+/* macOS traffic lights — content never under lights */
+body[data-host="electron"][data-platform="mac"] .frame {
+  /* top inset when titleBarStyle hiddenInset */
+  padding-top: 0;
+}
+body[data-host="electron"][data-platform="mac"] .bar {
+  height: 52px;
+  padding-left: 86px;
+  padding-right: 14px;
+  padding-top: 0;
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+body[data-host="electron"][data-platform="mac"] .bar button,
+body[data-host="electron"][data-platform="mac"] .bar a,
+body[data-host="electron"][data-platform="mac"] .bar input,
+body[data-host="electron"][data-platform="mac"] .bar textarea,
+body[data-host="electron"][data-platform="mac"] .bar .tray,
+body[data-host="electron"][data-platform="mac"] .bar .popover {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.cold-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  justify-content: center;
+}
+
+
 /* Demo switcher — quiet meta strip */
 .demo,
 .switcher {
@@ -85,8 +122,9 @@ body[data-host="electron"] .frame {
   font-size: 13px;
 }
 
+/* mac bar rules expanded below */
 body[data-host="electron"][data-platform="mac"] .bar {
-  padding-left: 78px;
+  padding-left: 86px;
 }
 
 .name {
@@ -98,6 +136,26 @@ body[data-host="electron"][data-platform="mac"] .bar {
 .with {
   color: var(--mute);
   font-size: 12px;
+}
+
+.bind,
+#bind-status {
+  font: inherit;
+  font-size: 12px;
+  color: var(--mute);
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.bind:hover,
+#bind-status:hover {
+  color: var(--ink);
+}
+
+#bind-status[hidden] {
+  display: none;
 }
 
 .grow {
@@ -246,8 +304,84 @@ body[data-host="electron"][data-platform="mac"] .bar {
 }
 
 .seats {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--line);
+  background: var(--bg);
+  overflow: auto;
 }
+.seats[hidden] {
+  display: none !important;
+}
+.seats-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--line);
+}
+.seats-import {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+.seats-import:hover {
+  border-color: var(--ink);
+}
+.seat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.seat-row.on {
+  background: var(--hover);
+}
+.seat-name {
+  flex: 1;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  border: 0;
+  background: 0;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+.seat-connect {
+  font: inherit;
+  font-size: 11px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--accent-ink, #fff);
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+.seat-connect.done {
+  border-color: var(--line);
+  background: var(--bg);
+  color: var(--mute);
+  cursor: default;
+}
+
 
 #chat-live {
   flex: 1;
@@ -258,6 +392,16 @@ body[data-host="electron"][data-platform="mac"] .bar {
 
 #chat-live[hidden] {
   display: none;
+}
+
+.pane.chat > #chat-cold.empty {
+  flex: 0 0 auto;
+  padding: 16px 16px 8px;
+}
+
+.pane.chat > #chat-cold.empty h1 {
+  font-size: 16px;
+  margin-bottom: 8px;
 }
 
 /* Chat — plain Grok-like thread */
@@ -692,6 +836,78 @@ pre {
   color: var(--mute);
 }
 
+.sheet-error {
+  color: var(--slate);
+  font-size: 12px;
+}
+
+.seat-providers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.seat-providers button {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.seat-providers button.on {
+  background: var(--ink);
+  color: var(--accent-ink);
+  border-color: var(--ink);
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--ink);
+  max-width: min(420px, calc(100% - 32px));
+}
+
+.toast[data-kind="error"] {
+  color: var(--slate);
+  border-color: var(--slate);
+}
+
+.presence-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+}
+
+.presence-row .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--online);
+  flex-shrink: 0;
+}
+
+.presence-row .dot.away {
+  background: var(--warn);
+}
+
+.presence-row .dot.off {
+  background: var(--faint);
+}
+
 .dialog-actions {
   justify-content: flex-end;
 }
@@ -727,4 +943,42 @@ textarea:focus-visible {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* Critiquito: demote git bind; wrap HITL; no mid-token clip */
+#bind-status,
+.bind {
+  font-size: 11px !important;
+  color: var(--faint) !important;
+  max-width: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.with {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.pane.chat > .ctx:empty,
+.pane.chat .onboard:empty {
+  display: none;
+}
+.gate pre.payload,
+.gate pre.diff {
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  overflow: auto !important;
+  text-overflow: clip !important;
+}
+.board-h[hidden] {
+  display: none !important;
+}
+
+/* one-click connect roster — no CLI empty states */
+.empty code,
+.empty pre,
+.empty .cli {
+  display: none !important;
 }

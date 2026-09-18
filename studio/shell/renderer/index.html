@@ -12,14 +12,14 @@
   </head>
   <body data-host="preview">
     <div class="frame" role="application" aria-label="Studio">
-      <div class="demo switcher" id="view-switcher" aria-label="Coverage states">
-        demo
-        <button type="button" id="view-live">working</button>
-        <button type="button" class="on" id="view-cold">first open</button>
+      <div class="demo switcher" id="view-switcher" hidden aria-hidden="true">
+        <button type="button" id="view-live" tabindex="-1">working</button>
+        <button type="button" id="view-cold" tabindex="-1">first open</button>
       </div>
       <header class="bar">
         <b class="name">Studio</b>
         <span class="with" id="with"></span>
+        <button type="button" class="bind" id="bind-status" hidden aria-label="Bound repo"></button>
         <div class="modes" id="mode-chip" data-chrome="modes-rail" hidden aria-hidden="true"></div>
         <div class="tray" id="connectors-tray" data-chrome="connectors-tray" aria-label="Connectors"></div>
         <span class="grow"></span>
@@ -34,7 +34,15 @@
 
       <main class="main" id="main">
         <section class="pane chat" data-pane="chat" data-module="chat-pane" id="pane-chat" aria-label="Chat">
-          <aside class="seats" id="seat-list" hidden aria-hidden="true" aria-label="Seats"></aside>
+          <aside class="seats" id="seat-list" aria-label="Team"></aside>
+          <div id="chat-cold" class="empty" hidden>
+            <h1>Connect</h1>
+            <div class="cold-actions">
+              <button class="ok" type="button" id="cta-github">GitHub</button>
+              <button type="button" id="cta-import">Import team</button>
+              <button type="button" id="cta-seat" hidden tabindex="-1">Connect</button>
+            </div>
+          </div>
           <div id="chat-live">
             <p class="onboard" id="chat-onboard" hidden></p>
             <div class="ctx" id="inbox-ctx" hidden></div>
@@ -47,11 +55,6 @@
               <textarea id="composer-input" rows="2" placeholder="Message…" aria-label="Message"></textarea>
               <button class="send" type="submit" id="compose-send">Send</button>
             </form>
-          </div>
-          <div id="chat-cold" class="empty" hidden>
-            <h1>Connect GitHub</h1>
-            <button class="ok" type="button" id="cta-github">Connect</button>
-            <button type="button" id="cta-seat">Add seat</button>
           </div>
         </section>
 
@@ -82,14 +85,18 @@
       <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="cutover-title">
         <h2 id="cutover-title">Connect</h2>
         <p id="cutover-copy"></p>
+        <div id="seat-providers" class="seat-providers" hidden></div>
+        <p id="cutover-error" class="sheet-error" hidden></p>
         <div class="dialog-actions">
           <button type="button" class="no" id="cutover-cancel">Cancel</button>
           <button type="button" class="go" id="cutover-confirm">Connect</button>
         </div>
       </div>
     </div>
+    <div id="shell-toast" class="toast" hidden role="status" aria-live="assertive"></div>
 
     <script src="./assert.js"></script>
+    <script src="./seat-connect.js"></script>
     <script src="./chrome/modes-rail.js"></script>
     <script src="./chrome/presence-bar.js"></script>
     <script src="./chrome/connectors-tray.js"></script>

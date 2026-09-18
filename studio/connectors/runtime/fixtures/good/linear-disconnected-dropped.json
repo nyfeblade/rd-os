@@ -1,0 +1,10 @@
+{
+  "op": "ingest",
+  "expect": { "ok": true, "dropped": true },
+  "envelope": {
+    "provider": "linear",
+    "event": "Issue",
+    "tray_state": "disconnected",
+    "payload": {}
+  }
+}

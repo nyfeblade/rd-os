@@ -1,0 +1,16 @@
+{
+  "op": "ingest",
+  "expect": { "ok": false, "code": "INVALID_EVENT" },
+  "envelope": {
+    "provider": "linear",
+    "event": "Comment",
+    "tray_state": "live",
+    "payload": {
+      "action": "create",
+      "type": "Comment",
+      "data": {
+        "body": "missing ids"
+      }
+    }
+  }
+}

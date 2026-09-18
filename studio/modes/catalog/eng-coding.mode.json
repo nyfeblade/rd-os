@@ -1,0 +1,11 @@
+{
+  "id": "eng-coding",
+  "rail": "multi-lane-awareness",
+  "lane": "studio-d-modes",
+  "falsifier": "A coding run that edits studio/shell/ trips LANE_COLLISION.",
+  "fences": ["studio/modes/"],
+  "planted": {
+    "file": "fixtures/planted/lane-collision.json",
+    "expect_code": "LANE_COLLISION"
+  }
+}

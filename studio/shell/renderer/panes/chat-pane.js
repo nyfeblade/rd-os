@@ -3,19 +3,23 @@
 (function attachChatPane(Studio) {
   const THREADS = {
     human: [],
-    grok: [{ who: "Grok", body: "Connect to chat.", me: false }],
-    claude: [{ who: "Claude", body: "Connect to chat.", me: false }],
-    cursor: [{ who: "Cursor", body: "Connect to chat.", me: false }],
-    "room:chat": [{ who: "Agents", body: "Connect to chat.", me: false }],
   };
 
   function coldOpenSeats() {
+    /* Live imported bot team — paint names from studio registry (Luke lock) */
     return [
       { id: "human", name: "You", kind: "human", presence: "online", cutover: true },
-      { id: "grok", name: "Grok", kind: "bot", presence: "offline", cutover: false },
-      { id: "claude", name: "Claude", kind: "bot", presence: "offline", cutover: false },
-      { id: "cursor", name: "Cursor", kind: "bot", presence: "offline", cutover: false },
-      { id: "room:chat", name: "Agents", kind: "room", presence: "offline", cutover: false },
+      { id: "elon", name: "Elon", kind: "bot", presence: "online", cutover: false },
+      { id: "eng-lead", name: "Eng Lead", kind: "bot", presence: "online", cutover: false },
+      { id: "eng-proof", name: "Proof", kind: "bot", presence: "online", cutover: false },
+      { id: "eng-ops", name: "Ops", kind: "bot", presence: "away", cutover: false },
+      { id: "eng-integrator", name: "Integrator", kind: "bot", presence: "online", cutover: false },
+      { id: "eng-nightly", name: "Nightly", kind: "bot", presence: "offline", cutover: false },
+      { id: "studio-designer", name: "Designer", kind: "bot", presence: "online", cutover: false },
+      { id: "critiquito", name: "Critiquito", kind: "bot", presence: "online", cutover: false },
+      { id: "skillwright", name: "Skillwright", kind: "bot", presence: "away", cutover: false },
+      { id: "token-officer", name: "Token Officer", kind: "bot", presence: "online", cutover: false },
+      { id: "sota", name: "SOTA", kind: "bot", presence: "online", cutover: false },
     ];
   }
 
@@ -96,11 +100,77 @@
     }
   }
 
-  function renderSeats(els, _state, _handlers) {
+
+  function bindColdImport(handlers) {
+    const btn = document.getElementById("cta-import");
+    if (!btn || btn.dataset.bound === "1") return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => {
+      if (handlers && typeof handlers.importTeam === "function") {
+        handlers.importTeam();
+        return;
+      }
+      if (handlers && typeof handlers.onConnectSeat === "function") {
+        /* one-click Import team — eng fills real import; UI never shows CLI */
+        const fake = { id: "import-team", name: "Import team", kind: "bot", cutover: false };
+        handlers.onConnectSeat(fake);
+      }
+    });
+  }
+
+  function renderSeats(els, state, handlers) {
     els.seatList.replaceChildren();
-    els.seatList.hidden = true;
+    els.seatList.hidden = false;
     els.seatList.dataset.cutover = "in-studio-only";
-    els.seatList.setAttribute("aria-hidden", "true");
+    els.seatList.setAttribute("aria-hidden", "false");
+
+    const head = document.createElement("div");
+    head.className = "seats-h";
+    const title = document.createElement("span");
+    title.textContent = "Team";
+    const importBtn = document.createElement("button");
+    importBtn.type = "button";
+    importBtn.className = "seats-import";
+    importBtn.textContent = "Import team";
+    importBtn.addEventListener("click", () => {
+      if (handlers && typeof handlers.importTeam === "function") {
+        handlers.importTeam();
+      } else if (handlers && typeof handlers.onConnectSeat === "function") {
+        /* one-click: eng wires import; UI never shows CLI */
+        const first = (state.seats || []).find((s) => s.kind === "bot" && !s.cutover);
+        if (first) handlers.onConnectSeat(first);
+      }
+    });
+    head.append(title, importBtn);
+    els.seatList.appendChild(head);
+
+    for (const seat of state.seats || []) {
+      if (seat.kind === "human") continue;
+      const row = document.createElement("div");
+      row.className = seat.id === state.selectedSeat ? "seat-row on" : "seat-row";
+      const name = document.createElement("button");
+      name.type = "button";
+      name.className = "seat-name";
+      name.textContent = seat.name;
+      name.addEventListener("click", () => {
+        if (handlers && typeof handlers.selectSeat === "function") {
+          handlers.selectSeat(seat.id);
+        }
+      });
+      const connect = document.createElement("button");
+      connect.type = "button";
+      connect.className = seat.cutover ? "seat-connect done" : "seat-connect";
+      connect.textContent = seat.cutover ? "Connected" : "Connect";
+      connect.disabled = Boolean(seat.cutover);
+      connect.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        if (handlers && typeof handlers.onConnectSeat === "function") {
+          handlers.onConnectSeat(seat);
+        }
+      });
+      row.append(name, connect);
+      els.seatList.appendChild(row);
+    }
   }
 
   function renderInboxContext(els, state) {
@@ -108,7 +178,7 @@
     if (!els.inboxCtx || !els.composeHint) {
       return;
     }
-    if (state.view === "cold" || !bound) {
+    if (!bound) {
       els.inboxCtx.hidden = true;
       els.composeHint.hidden = true;
       return;
@@ -131,13 +201,49 @@
     }
   }
 
+  function appendMessage(els, message) {
+    if (!message || !message.body) {
+      return;
+    }
+    const wrap = document.createElement("div");
+    wrap.className = "msg";
+    if (message.kind) {
+      wrap.dataset.kind = message.kind;
+    }
+    const who = document.createElement("div");
+    who.className = "who";
+    who.textContent = message.who;
+    const body = document.createElement("div");
+    body.className = "txt";
+    body.textContent = message.body;
+    wrap.append(who, body);
+    els.messages.appendChild(wrap);
+  }
+
+
+  function isChromeInstruction(message) {
+    if (!message) return true;
+    if (message.kind === "system" || message.kind === "coding_mode" || message.kind === "context") {
+      return true;
+    }
+    const body = String(message.body || "");
+    if (/assume workspace context/i.test(body)) return true;
+    if (/do not ask user to paste/i.test(body)) return true;
+    if (/coding mode:/i.test(body)) return true;
+    return false;
+  }
+
+  function engineMessages(state) {
+    return state.engine && Array.isArray(state.engine.messages) ? state.engine.messages : [];
+  }
+
   function renderThread(els, state, handlers) {
     const seat = selectedSeat(state);
     const bound = boundItem(state);
     const inbox = inboxForChat(state);
     els.messages.replaceChildren();
 
-    if (state.view === "live" && inbox.length) {
+    if (state.githubSession && inbox.length) {
       for (const item of inbox) {
         const wrap = document.createElement("button");
         wrap.type = "button";
@@ -158,45 +264,44 @@
         });
         els.messages.appendChild(wrap);
       }
+      for (const message of engineMessages(state)) {
+        if (isChromeInstruction(message)) {
+          continue;
+        }
+        appendMessage(els, message);
+      }
       if (state.outbox && state.outbox.length) {
         for (const sent of state.outbox) {
-          const wrap = document.createElement("div");
-          wrap.className = "msg";
-          const who = document.createElement("div");
-          who.className = "who";
-          who.textContent = sent.actor === "bot" ? "Bot" : "You";
-          const body = document.createElement("div");
-          body.className = "txt";
-          body.textContent = sent.body;
-          wrap.append(who, body);
-          els.messages.appendChild(wrap);
+          appendMessage(els, {
+            who: sent.actor === "bot" ? "Bot" : "You",
+            body: sent.body,
+            kind: "outbox",
+          });
         }
       } else if (bound) {
         /* composer is the draft — no essay bubble */
       }
       els.composerInput.placeholder = bound
         ? `${bound.provider === "github" ? "GitHub" : "Slack"}…`
-        : "Select thread…";
-      els.composerInput.disabled = !bound;
+        : `Message ${seat.name}…`;
+      els.composerInput.disabled = false;
       if (els.composeSend) {
         els.composeSend.textContent = "Send";
       }
     } else {
-      const messages = THREADS[seat.id] || [];
-      for (const message of messages) {
-        if (!message.body) {
-          continue;
+      const live = engineMessages(state);
+      if (live.length) {
+        for (const message of live) {
+          if (isChromeInstruction(message)) {
+            continue;
+          }
+          appendMessage(els, message);
         }
-        const wrap = document.createElement("div");
-        wrap.className = "msg";
-        const who = document.createElement("div");
-        who.className = "who";
-        who.textContent = message.who;
-        const body = document.createElement("div");
-        body.className = "txt";
-        body.textContent = message.body;
-        wrap.append(who, body);
-        els.messages.appendChild(wrap);
+      } else {
+        const messages = THREADS[seat.id] || [];
+        for (const message of messages) {
+          appendMessage(els, message);
+        }
       }
       els.composerInput.placeholder = `Message ${seat.name}…`;
       els.composerInput.disabled = false;
@@ -205,6 +310,7 @@
       }
     }
 
+    bindColdImport(handlers);
     renderInboxContext(els, state);
     els.messages.scrollTop = els.messages.scrollHeight;
   }

@@ -1,8 +1,9 @@
 # studio/modes — mode rails
 
-Three rails an AI coding lane has to stay inside, as an importable library plus fixtures plus a prove script. Node 18+, no npm install, no UI.
+Three rails an AI coding lane has to stay inside, plus a selectable registry chat-engine and seats can call later. Importable library, fixtures, and a prove script. Node 18+, no npm install, no UI.
 
 ```bash
+cd studio/modes && npm test                                    # exit 0
 node studio/modes/prove.js                                     # exit 0
 node studio/modes/prove.js --gate studio/modes/fixtures/good   # exit 0
 node studio/modes/prove.js --gate studio/modes/fixtures/planted # exit 2
@@ -18,7 +19,37 @@ The library grades rails, not work. Every report comes back with `verdict: null`
 | `multi-lane-awareness` | Fences are read from `lanes.json`, never from the lane's own run record. A lane may narrow its fence, never widen it, and never reach into another lane's paths. | `NO_FENCE` `FENCE_OVERLAP` `FENCE_ESCAPE` `LANE_COLLISION` |
 | `no-self-cert` | The verdict belongs to a proof seat and the clock to the kill harness. Claims report measurements; words like `verified` or `passes` are reserved vocabulary. | `SELF_CERT_VERDICT` `SELF_CERT_CLAIM` `CLOCK_STARTED_FORBIDDEN` |
 
-`VIOLATION_CODES` is a closed set — `rails.js` throws if code outside it is ever constructed.
+`VIOLATION_CODES` is a closed set. `rails.js` throws if code outside it is ever constructed.
+
+## Mode registry
+
+Marketplace cards and later chat-engine or seats callers use a live session, not a JSON listing.
+
+```js
+const { createModeRegistry } = require("./studio/modes");
+const studio = createModeRegistry();
+
+studio.listModes();
+// { ok: true, data: { modes: [{ id, rail, falsifier, fences, enabled }, ...] }, verdict: null, clock_started: false }
+
+studio.enableMode("eng-coding");
+studio.activeMode();                 // last successful enable
+studio.assertFalsifier("eng-coding"); // runs the planted fixture; expects LANE_COLLISION
+```
+
+`listModes`, `enableMode`, `activeMode`, and `assertFalsifier` also sit on the module default session.
+
+| Mode | Rail it forces | Fence | Falsifier |
+| --- | --- | --- | --- |
+| `eng-coding` | `multi-lane-awareness` | `studio/modes/` | A coding run that edits `studio/shell/` trips `LANE_COLLISION`. |
+| `research-before-claim` | `research-before-claim` | `studio/design/` | A claim that names no evidence trips `NO_EVIDENCE`. |
+| `no-self-cert` | `no-self-cert` | `studio/seats/` | A run record that writes a verdict trips `SELF_CERT_VERDICT`. |
+
+The three shipped fences do not overlap, so they can be enabled together. `enableMode` of a second mode whose fence sits inside or over an already-enabled fence returns `{ ok: false, code: "LANE_COLLISION" }` and leaves the first mode active. Life-OS ids (`life.food`, `life-flights`) return `LIFE_OS_DENIED`.
+
+`assertFalsifier(id)` grades that mode's planted run record through `evaluateRun`. If the expected violation is missing, the result is `FALSIFIER_MISSED`. The falsifier string is the human sentence. The planted file is the check.
+
+Closed registry codes: `LANE_COLLISION` `UNKNOWN_MODE` `FALSIFIER_MISSED` `BAD_ARGUMENT` `LIFE_OS_DENIED`.
 
 ## Recipes, routines, retained evidence
 
@@ -91,14 +122,20 @@ const modes = require("./studio/modes");
 
 modes.evaluateRun(record);            // -> { ok, violations[], counts, verdict: null, clock_started: false }
 modes.evaluateFile("run.json");       // same, plus file
-modes.loadMode("eng");                // mode profile (data)
+modes.loadMode("eng");                // rail-grading profile (data)
 modes.loadLanes();                    // lane registry
-modes.listModes();                    // ["design", "eng"]
+modes.listRailProfiles();             // ["design", "eng"]
+modes.createModeRegistry();           // session: listModes, enableMode, activeMode, assertFalsifier
+modes.listModes();                    // product catalog on the default session
+modes.enableMode("eng-coding");
+modes.activeMode();
+modes.assertFalsifier("no-self-cert");
 modes.loadRecipe("eng-rerunnable");   // base mode composed with the recipe's tightenings
 modes.runRoutine("planted-still-bite"); // -> { exit, expect_exit, ok, records, verdict: null, clock_started: false }
 modes.retainedRecord(record);         // -> { base, claims: [{ id, kill, rerun[], refs[] }], verdict: null }
 modes.RAILS;                          // the three rail names
-modes.VIOLATION_CODES;                // the closed code set
+modes.VIOLATION_CODES;                // the closed rail code set
+modes.REGISTRY_CODES;                 // the closed registry code set
 ```
 
 Each violation is `{ rail, code, where, detail }` — `where` is a JSON path into the record, `detail` is the sentence a human needs.
@@ -107,10 +144,12 @@ Each violation is `{ rail, code, where, detail }` — `where` is a JSON path int
 
 | Path | What |
 | --- | --- |
-| `index.js` | Public API; composes the rails a mode enables |
+| `index.js` | Public API; composes the rails a mode enables; default registry session |
+| `registry.js` | `createModeRegistry`: list / enable / active / assertFalsifier |
 | `rails.js` | The three rails as pure functions; the closed code set |
 | `recipes.js` | `composeMode`: recipe over base mode, tighten-only |
 | `routines.js` | Routine validation: cadence set, reserved fields, fence check |
+| `catalog/` | Selectable product modes (`eng-coding`, `research-before-claim`, `no-self-cert`) |
 | `recipes/` | Rail packs |
 | `routines/` | Standing rail checks |
 | `lanes.json` | Lane → owned path prefixes. Rail 2's source of truth |
@@ -118,9 +157,10 @@ Each violation is `{ rail, code, where, detail }` — `where` is a JSON path int
 | `modes/design.mode.json` | Design profile: a spec or artifact may stand in for a command |
 | `fixtures/good/` | Records that clear every rail |
 | `fixtures/planted/` | One record per violation, each declaring the codes it should trip |
+| `test/run.js` | Registry API cases (`npm test` runs this, then `prove.js`) |
 | `prove.js` | Expectation suite (default), gate (`--gate`), one routine (`--routine`) |
 
-Modes, lanes, recipes, and routines are data. Adding any of them is a new or edited JSON file; none needs a code change.
+Rail-grading profiles, lanes, recipes, and routines are data. Adding any of them is a new or edited JSON file; none needs a code change. Product modes live in `catalog/` and are executed by `createModeRegistry`. A new selectable mode is a catalog file plus a planted falsifier, not a dead listing.
 
 ## Adding a fixture
 
@@ -137,10 +177,10 @@ Drop a run record in `fixtures/good/` or `fixtures/planted/` with an `expect` bl
 ```bash
 git clone https://github.com/nyfeblade/rd-os.git
 cd rd-os
-node studio/modes/prove.js
+cd studio/modes && npm test
 ```
 
-Expect `mode rails 38 passed, 0 failed` and exit 0. No `npm install`, no server, no database, nothing written to disk. It does not touch `src/`, `consumers/`, `ui/`, or another studio lane, and it does not arm `KILL_14D.md`.
+Expect both `studio/modes registry` and `mode rails` lines to print `0 failed` and exit 0. No `npm install`, no server, no database, nothing written to disk. It does not touch `src/`, `consumers/`, `ui/`, or another studio lane, and it does not arm `KILL_14D.md`.
 
 To see the rails bite:
 

@@ -1,0 +1,179 @@
+{
+  "schema": "studio.seats.roster/v1",
+  "product_lock": "connected_bots_speak_only_in_studio",
+  "note": "Import existing bots as Studio seats. Not new Grok Bots. Opt-in — default stranger dump stays four seats.",
+  "importable": [
+    {
+      "id": "elon",
+      "label": "Elon",
+      "kind": "bot",
+      "team": "eng",
+      "role": "orchestrator",
+      "provider": "grok",
+      "alias": "grok",
+      "cutover": {
+        "protocol": "hard",
+        "on_connect": "in_studio_only",
+        "legal_channel": "studio_room",
+        "hitl": ["merge", "deploy", "public"]
+      }
+    },
+    {
+      "id": "eng-lead",
+      "label": "Eng Lead",
+      "kind": "bot",
+      "team": "eng",
+      "role": "lead",
+      "provider": "eng-lead",
+      "cutover": {
+        "protocol": "hard",
+        "on_connect": "in_studio_only",
+        "legal_channel": "studio_room",
+        "hitl": ["merge", "deploy", "public"]
+      }
+    },
+    {
+      "id": "eng-proof",
+      "label": "Eng Proof",
+      "kind": "bot",
+      "team": "eng",
+      "role": "proof",
+      "provider": "eng-proof",
+      "cutover": {
+        "protocol": "hard",
+        "on_connect": "in_studio_only",
+        "legal_channel": "studio_room",
+        "hitl": ["merge", "deploy", "public"]
+      }
+    },
+    {
+      "id": "eng-ops",
+      "label": "Eng Ops",
+      "kind": "bot",
+      "team": "eng",
+      "role": "ops",
+      "provider": "eng-ops",
+      "cutover": {
+        "protocol": "hard",
+        "on_connect": "in_studio_only",
+        "legal_channel": "studio_room",
+        "hitl": ["merge", "deploy", "public"]
+      }
+    },
+    {
+      "id": "eng-integrator",
+      "label": "Eng Integrator",
+      "kind": "bot",
+      "team": "eng",
+      "role": "integrator",
+      "provider": "eng-integrator",
+      "cutover": {
+        "protocol": "hard",
+        "on_connect": "in_studio_only",
+        "legal_channel": "studio_room",
+        "hitl": ["merge", "deploy", "public"]
+      }
+    },
+    {
+      "id": "eng-nightly",
+      "label": "Eng Nightly",
+      "kind": "bot",
+      "team": "eng",
+      "role": "nightly",
+      "provider": "eng-nightly",
+      "cutover": {
+        "protocol": "hard",
+        "on_connect": "in_studio_only",
+        "legal_channel": "studio_room",
+        "hitl": ["merge", "deploy", "public"]
+      }
+    },
+    {
+      "id": "studio-designer",
+      "label": "Studio Designer",
+      "kind": "bot",
+      "team": "design",
+      "role": "designer",
+      "provider": "studio-designer",
+      "cutover": {
+        "protocol": "hard",
+        "on_connect": "in_studio_only",
+        "legal_channel": "studio_room",
+        "hitl": ["merge", "deploy", "public"]
+      }
+    },
+    {
+      "id": "critiquito",
+      "label": "Critiquito",
+      "kind": "bot",
+      "team": "design",
+      "role": "critique",
+      "provider": "critiquito",
+      "cutover": {
+        "protocol": "hard",
+        "on_connect": "in_studio_only",
+        "legal_channel": "studio_room",
+        "hitl": ["merge", "deploy", "public"]
+      }
+    },
+    {
+      "id": "skillwright",
+      "label": "Skillwright",
+      "kind": "bot",
+      "team": "ops",
+      "role": "skills",
+      "provider": "skillwright",
+      "cutover": {
+        "protocol": "hard",
+        "on_connect": "in_studio_only",
+        "legal_channel": "studio_room",
+        "hitl": ["merge", "deploy", "public"]
+      }
+    },
+    {
+      "id": "token-officer",
+      "label": "Token Officer",
+      "kind": "bot",
+      "team": "ops",
+      "role": "tokens",
+      "provider": "token-officer",
+      "cutover": {
+        "protocol": "hard",
+        "on_connect": "in_studio_only",
+        "legal_channel": "studio_room",
+        "hitl": ["merge", "deploy", "public"]
+      }
+    },
+    {
+      "id": "sota-software-engineer",
+      "label": "SOTA Software Engineer",
+      "kind": "bot",
+      "team": "eng",
+      "role": "sota",
+      "provider": "sota-software-engineer",
+      "cutover": {
+        "protocol": "hard",
+        "on_connect": "in_studio_only",
+        "legal_channel": "studio_room",
+        "hitl": ["merge", "deploy", "public"]
+      }
+    }
+  ],
+  "skipped": [
+    {
+      "id": "ctm-rater",
+      "label": "CTM Rater",
+      "reason": "not_a_studio_seat"
+    },
+    {
+      "id": "lingxi-engineer",
+      "label": "Lingxi Engineer",
+      "reason": "not_a_studio_seat"
+    },
+    {
+      "id": "eggbot",
+      "label": "eggbot",
+      "reason": "not_a_studio_seat"
+    }
+  ]
+}

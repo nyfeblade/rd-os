@@ -69,8 +69,8 @@ function checkLibrary() {
   }
   pass(`closed violation set (${modes.VIOLATION_CODES.length} codes)`);
 
-  const names = modes.listModes();
-  if (names.length === 0) fail("modes", "no .mode.json files found");
+  const names = modes.listRailProfiles();
+  if (names.length === 0) fail("rail profiles", "no .mode.json files found");
   for (const name of names) {
     const mode = modes.loadMode(name);
     for (const rail of mode.rails) {
@@ -80,7 +80,7 @@ function checkLibrary() {
       fail(`mode ${name}`, `enables ${mode.rails.length}/${modes.RAILS.length} rails; all three are mandatory`);
     }
   }
-  pass(`modes load with all rails enabled (${names.join(", ")})`);
+  pass(`rail profiles load with all rails enabled (${names.join(", ")})`);
 
   // The registry must not hand the same path to two lanes, or rail 2 has nothing to say.
   const lanes = modes.loadLanes().lanes;
@@ -123,6 +123,90 @@ function mustThrow(label, fn, pattern) {
     return fail(label, `threw the wrong error: ${err.message}`);
   }
   fail(label, "was accepted");
+}
+
+const SHIPPED_MODE_IDS = ["eng-coding", "no-self-cert", "research-before-claim"];
+
+/** Product registry: selectable rails with falsifiers, callable by later seats/chat-engine. */
+function checkRegistry() {
+  const session = modes.createModeRegistry();
+  const listed = session.listModes();
+  if (!listed.ok || listed.verdict !== null || listed.clock_started !== false) {
+    return fail("registry list", JSON.stringify(listed));
+  }
+  const ids = listed.data.modes.map((row) => row.id);
+  if (ids.join(" ") !== SHIPPED_MODE_IDS.join(" ")) {
+    fail("registry catalog", `expected [${SHIPPED_MODE_IDS.join(",")}], got [${ids.join(",")}]`);
+  } else {
+    pass(`registry ships ${ids.join(", ")}`);
+  }
+
+  for (const row of listed.data.modes) {
+    if (!row.falsifier || !row.falsifier.trim()) {
+      fail(`registry ${row.id}`, "missing falsifier");
+    } else if (!Array.isArray(row.fences) || row.fences.length === 0) {
+      fail(`registry ${row.id}`, "missing lane fences");
+    } else if (!modes.RAILS.includes(row.rail)) {
+      fail(`registry ${row.id}`, `unknown rail ${row.rail}`);
+    } else {
+      pass(`registry ${row.id} has rail=${row.rail} fences=${row.fences.join("|")}`);
+    }
+  }
+
+  const catalog = listed.data.modes;
+  let catalogOverlap = 0;
+  for (let i = 0; i < catalog.length; i += 1) {
+    for (let j = i + 1; j < catalog.length; j += 1) {
+      if (modes.fencesOverlap(catalog[i].fences, catalog[j].fences)) {
+        fail("registry fences", `${catalog[i].id} overlaps ${catalog[j].id}`);
+        catalogOverlap += 1;
+      }
+    }
+  }
+  if (catalogOverlap === 0) pass("shipped catalog fences do not overlap");
+
+  for (const id of SHIPPED_MODE_IDS) {
+    const enabled = session.enableMode(id);
+    if (!enabled.ok) fail(`enable ${id}`, `${enabled.code} ${enabled.detail}`);
+  }
+  const active = session.activeMode();
+  if (!active.ok || !active.data.mode || active.data.mode.id !== "research-before-claim") {
+    fail("activeMode", JSON.stringify(active));
+  } else {
+    pass("three shipped modes enable without LANE_COLLISION");
+  }
+
+  for (const id of SHIPPED_MODE_IDS) {
+    const proof = session.assertFalsifier(id);
+    if (!proof.ok) fail(`assertFalsifier ${id}`, `${proof.code} ${proof.detail}`);
+    else pass(`assertFalsifier ${id} trips ${proof.data.code}`);
+  }
+
+  const collide = modes.createModeRegistry({
+    extra: [
+      {
+        id: "overlap-coding",
+        rail: "multi-lane-awareness",
+        falsifier: "Planted overlap used only to prove LANE_COLLISION on enable.",
+        fences: ["studio/modes/index.js"],
+        planted: { file: "fixtures/planted/lane-collision.json", expect_code: "LANE_COLLISION" },
+      },
+    ],
+  });
+  const first = collide.enableMode("eng-coding");
+  const second = collide.enableMode("overlap-coding");
+  if (!first.ok) fail("collision setup", first.detail);
+  else if (second.ok || second.code !== "LANE_COLLISION") {
+    fail("LANE_COLLISION", `expected LANE_COLLISION, got ${JSON.stringify(second)}`);
+  } else if (collide.activeMode().data.mode.id !== "eng-coding") {
+    fail("LANE_COLLISION", "failed enable mutated activeMode");
+  } else {
+    pass("overlapping fences reject enableMode with LANE_COLLISION");
+  }
+
+  const life = session.enableMode("life.food");
+  if (!life.ok && life.code === "LIFE_OS_DENIED") pass("life-OS mode id is refused");
+  else fail("life-OS", JSON.stringify(life));
 }
 
 /** Recipes compose modes; they may only tighten. */
@@ -305,6 +389,7 @@ function main() {
   }
 
   checkLibrary();
+  checkRegistry();
   checkRecipes();
   checkRoutines();
   checkRetained();

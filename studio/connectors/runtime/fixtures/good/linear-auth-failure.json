@@ -1,0 +1,17 @@
+{
+  "op": "ingest",
+  "expect": {
+    "ok": true,
+    "dropped": false,
+    "kind": "auth_failure",
+    "need_you": true,
+    "dest": "chat+board",
+    "provider": "linear"
+  },
+  "envelope": {
+    "provider": "linear",
+    "event": "Issue",
+    "tray_state": "needs_auth",
+    "payload": {}
+  }
+}

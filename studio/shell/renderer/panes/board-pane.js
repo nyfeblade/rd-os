@@ -146,124 +146,85 @@
     return `Bot${seat}`;
   }
 
-  function hitlPending(state) {
-    const pending = state.pendingHitl;
-    return Boolean(pending && pending.status !== "sent" && pending.status !== "denied");
+  function kernelGates(state) {
+    return (state.gates || []).filter((gate) => gate && gate.need_you);
   }
 
-  function renderHitlCard(els, state, handlers) {
-    const pending = state.pendingHitl;
-    if (!hitlPending(state)) {
-      return;
-    }
-    const gate = document.createElement("div");
-    gate.className = "gate row open";
-    gate.id = "hitl-pending";
-    gate.dataset.hitlKind = pending.kind;
+  function hitlPending(state) {
+    return kernelGates(state).length > 0;
+  }
+
+  function renderKernelGate(els, gate, handlers, index) {
+    const card = document.createElement("div");
+    card.className = "gate row open";
+    card.id = index === 0 ? "hitl-pending" : `hitl-${gate.id}`;
+    card.dataset.hitlKind = gate.kind;
+    card.dataset.gateId = gate.id;
     const label = document.createElement("div");
     label.className = "label";
     label.textContent = "HITL";
     const title = document.createElement("div");
     title.className = "title t";
-    title.textContent = pending.title || hitlKindLabel(pending.kind);
+    title.textContent = gate.title || (gate.kind === "merge" ? "Merge gate" : hitlKindLabel(gate.kind));
     const dest = document.createElement("div");
     dest.className = "label dest";
-    dest.textContent = pending.destination || "";
+    dest.textContent = gate.risk ? `destination · ${gate.risk}` : "destination";
     const actor = document.createElement("div");
     actor.className = "label actor";
-    actor.textContent = actorLabel(pending);
+    actor.textContent = actorLabel({ actor: "human" });
     const payloadLabel = document.createElement("div");
     payloadLabel.className = "label payload-label";
     payloadLabel.textContent = "Payload";
     const payload = document.createElement("pre");
     payload.className = "payload";
-    payload.textContent = pending.payload || "";
-    const diffLabel = document.createElement("div");
-    diffLabel.className = "label";
-    diffLabel.textContent = "Diff";
-    const diff = document.createElement("pre");
-    diff.className = "diff";
-    diff.textContent = pending.diff || "";
+    payload.textContent = gate.payload_summary || "";
     const acts = document.createElement("div");
     acts.className = "actions";
     const allow = document.createElement("button");
     allow.type = "button";
     allow.className = "ok";
     allow.textContent = "Approve";
-    allow.addEventListener("click", () => handlers.resolveHitl("approved"));
+    allow.addEventListener("click", () => handlers.resolveHitl("approved", gate.id));
     const deny = document.createElement("button");
     deny.type = "button";
     deny.textContent = "Deny";
-    deny.addEventListener("click", () => handlers.resolveHitl("rejected"));
-    acts.append(allow, deny);
-    gate.append(label, title, dest, actor, payloadLabel, payload, diffLabel, diff, acts);
-    els.boardBody.appendChild(gate);
-  }
-
-  function renderDumpGate(els, state, handlers) {
-    const dump = state.dump;
-    const humanGate = dump && dump.p0 && dump.p0.waiting_on === "human";
-    if (!humanGate || inboxGates(state).length) {
-      return;
-    }
-    const gate = document.createElement("div");
-    gate.className = "gate row";
-    gate.id = "human-gate";
-    const label = document.createElement("div");
-    label.className = "label";
-    label.textContent = "Needs you";
-    const title = document.createElement("div");
-    title.className = "title t";
-    title.textContent = dump.p0.why || "Merge gate";
-    const acts = document.createElement("div");
-    acts.className = "actions";
-    const approve = document.createElement("button");
-    approve.type = "button";
-    approve.className = "ok";
-    approve.textContent = "Approve";
-    approve.addEventListener("click", () => handlers.resolveGate("approve"));
-    const reject = document.createElement("button");
-    reject.type = "button";
-    reject.textContent = "Reject";
-    reject.addEventListener("click", () => handlers.resolveGate("reject"));
+    deny.addEventListener("click", () => handlers.resolveHitl("rejected", gate.id));
     const openDiff = document.createElement("button");
     openDiff.type = "button";
     openDiff.textContent = "Diff";
     openDiff.addEventListener("click", () => handlers.openDiff());
-    acts.append(approve, reject, openDiff);
-    gate.append(label, title, acts);
-    els.boardBody.appendChild(gate);
+    acts.append(allow, deny, openDiff);
+    card.append(label, title, dest, actor, payloadLabel, payload, acts);
+    els.boardBody.appendChild(card);
   }
 
   function renderBoard(els, state, handlers) {
     els.boardBody.replaceChildren();
 
-    if (state.view !== "cold") {
-      if (hitlPending(state)) {
-        renderHitlCard(els, state, handlers);
-      } else {
-        for (const item of inboxGates(state)) {
-          renderInboxGate(els, item, handlers);
-        }
+    const gates = kernelGates(state);
+    gates.forEach((gate, index) => {
+      renderKernelGate(els, gate, handlers, index);
+    });
+    if (!gates.length) {
+      for (const item of inboxGates(state)) {
+        renderInboxGate(els, item, handlers);
       }
     }
 
-    if (state.dump) {
-      renderDumpGate(els, state, handlers);
-    } else if (state.view !== "cold" && !inboxGates(state).length && !hitlPending(state)) {
-      const fail = document.createElement("p");
-      fail.className = "quiet";
-      fail.textContent = "Unreachable";
-      els.boardBody.appendChild(fail);
+    const hasGate = Boolean(els.boardBody.querySelector(".gate"));
+    const boardH = document.querySelector(".board-h");
+    if (boardH) {
+      boardH.hidden = false;
+      boardH.textContent = "Needs you";
     }
 
     const quiet = document.createElement("div");
     quiet.className = "quiet";
     quiet.id = "board-empty";
-    if (state.view === "cold") {
-      quiet.textContent = "";
-    } else if (state.flash) {
+    if (state.flash) {
       quiet.textContent = state.flash;
+    } else if (!hasGate) {
+      quiet.textContent = "None";
     } else {
       quiet.textContent = "";
     }
@@ -281,6 +242,7 @@
   Studio.panes.needsHitlCard = needsHitlCard;
   Studio.panes.hitlKindLabel = hitlKindLabel;
   Studio.panes.actorLabel = actorLabel;
+  Studio.panes.kernelGates = kernelGates;
   Studio.panes.hitlPending = hitlPending;
   Studio.panes.renderInstruments = renderInstruments;
   Studio.panes.renderWatches = renderWatches;

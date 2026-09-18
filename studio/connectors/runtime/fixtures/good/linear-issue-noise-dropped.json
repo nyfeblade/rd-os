@@ -1,0 +1,23 @@
+{
+  "op": "ingest",
+  "expect": { "ok": true, "dropped": true },
+  "envelope": {
+    "provider": "linear",
+    "event": "Issue",
+    "tray_state": "live",
+    "payload": {
+      "action": "update",
+      "type": "Issue",
+      "url": "https://linear.app/issue/LIN-18/linear-runtime-provider",
+      "createdAt": "2026-09-18T12:13:00.000Z",
+      "data": {
+        "id": "539068e2-ae88-4d09-bd75-22eb4a59612f",
+        "identifier": "LIN-18",
+        "title": "Linear runtime provider (typo fix)"
+      },
+      "updatedFrom": {
+        "title": "Linear runtime provider"
+      }
+    }
+  }
+}

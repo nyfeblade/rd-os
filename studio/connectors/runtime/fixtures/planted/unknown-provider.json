@@ -2,7 +2,7 @@
   "op": "ingest",
   "expect": { "ok": false, "code": "UNKNOWN_PROVIDER" },
   "envelope": {
-    "provider": "linear",
+    "provider": "sentry",
     "event": "issue_comment",
     "tray_state": "live",
     "payload": {}
