@@ -12,6 +12,8 @@ const path = require("path");
 
 const root = path.resolve(__dirname, "..");
 const { createMcpContract, TOOLS, REJECT_CODES, isMutator } = require(path.join(root, "src", "mcp"));
+const { createStubPlane } = require(path.join(root, "src", "mcp", "adapters", "stub-plane"));
+const { tryLoadCa1Plane } = require(path.join(root, "src", "mcp", "adapters", "plane"));
 
 const catalog = readJson(path.join(__dirname, "tools.json"));
 const rejectCatalog = readJson(path.join(__dirname, "reject-codes.json"));
@@ -97,11 +99,24 @@ function main() {
   }
   pass("mutator flags match");
 
-  const mcp = createMcpContract();
-  if (mcp.planeKind !== "stub" && mcp.planeKind !== "ca1") {
+  const mcp = createMcpContract({ plane: createStubPlane() });
+  if (mcp.planeKind !== "stub") {
     fail("planeKind", String(mcp.planeKind));
   } else {
-    pass(`plane adapter kind=${mcp.planeKind}`);
+    pass("plane adapter kind=stub (forced; CA1 optional)");
+  }
+
+  const ca1 = tryLoadCa1Plane(path.join(root, "var", "ca2-contract-ca1"));
+  if (ca1) {
+    const live = createMcpContract({ plane: ca1 });
+    const noLock = live.dispatch(
+      "board.set",
+      { experiment_id: "exp-ca2-ca1", title: "probe", idempotency_key: "ca1-nolock" },
+      { actor: "writer" }
+    );
+    expectReject("CA1 plane LOCK_REQUIRED", noLock, "LOCK_REQUIRED");
+  } else {
+    pass("CA1 src/board not on this checkout (stub-only; expected on main)");
   }
 
   expectReject("UNKNOWN_TOOL", mcp.dispatch("nope.tool", {}), "UNKNOWN_TOOL");
@@ -145,7 +160,7 @@ function main() {
   );
   expectReject("LOCK_HELD second writer", secondHolder, "LOCK_HELD");
 
-  const noLockWrite = createMcpContract().dispatch(
+  const noLockWrite = createMcpContract({ plane: createStubPlane() }).dispatch(
     "board.set",
     { experiment_id: "exp-ca2-contract", title: "no lock", idempotency_key: "thesis-nolock" },
     { actor: "writer" }
