@@ -1,0 +1,15 @@
+{
+  "op": "dm",
+  "live": false,
+  "env": {},
+  "expect": {
+    "ok": true,
+    "dry": true,
+    "method": "chat.postMessage",
+    "text": "dry DM maps conversations.open then postMessage"
+  },
+  "input": {
+    "user": "U123",
+    "text": "dry DM maps conversations.open then postMessage"
+  }
+}

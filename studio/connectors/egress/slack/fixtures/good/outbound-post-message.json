@@ -1,0 +1,24 @@
+{
+  "op": "map",
+  "expect": {
+    "ok": true,
+    "dry": true,
+    "method": "chat.postMessage",
+    "channel": "Ddm",
+    "text": "bot follow-up after human gate",
+    "thread_ts": "1726665660.000200",
+    "outbound_op": "post_message"
+  },
+  "input": {
+    "op": "post_message",
+    "provider": "slack",
+    "actor": "bot",
+    "kind": "message",
+    "bound_to": "slack:dm:Ddm:1726665660.000200",
+    "request": {
+      "channel": "Ddm",
+      "text": "bot follow-up after human gate",
+      "thread_ts": "1726665660.000200"
+    }
+  }
+}

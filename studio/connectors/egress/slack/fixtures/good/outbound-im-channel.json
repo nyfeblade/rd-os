@@ -1,0 +1,22 @@
+{
+  "op": "map",
+  "expect": {
+    "ok": true,
+    "dry": true,
+    "method": "chat.postMessage",
+    "channel": "Ddm",
+    "text": "studio can later DM from the app path",
+    "outbound_op": "post_message"
+  },
+  "input": {
+    "outbound": {
+      "op": "post_message",
+      "provider": "slack",
+      "actor": "bot",
+      "request": {
+        "channel": "Ddm",
+        "text": "studio can later DM from the app path"
+      }
+    }
+  }
+}

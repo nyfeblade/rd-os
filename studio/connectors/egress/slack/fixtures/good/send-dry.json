@@ -1,0 +1,21 @@
+{
+  "op": "send",
+  "live": false,
+  "env": {},
+  "expect": {
+    "ok": true,
+    "dry": true,
+    "method": "chat.postMessage",
+    "channel": "Ceng",
+    "text": "dry send never hits Slack",
+    "outbound_op": "post_message"
+  },
+  "input": {
+    "op": "post_message",
+    "provider": "slack",
+    "request": {
+      "channel": "Ceng",
+      "text": "dry send never hits Slack"
+    }
+  }
+}

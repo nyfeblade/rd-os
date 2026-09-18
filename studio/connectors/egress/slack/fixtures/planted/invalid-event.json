@@ -1,0 +1,7 @@
+{
+  "op": "map",
+  "expect": { "ok": false, "code": "INVALID_EVENT" },
+  "input": {
+    "note": "neither a draft nor a closed post_message outbound"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "op": "send",
+  "live": true,
+  "env": {},
+  "expect": { "ok": false, "code": "NEEDS_AUTH" },
+  "input": {
+    "op": "post_message",
+    "provider": "slack",
+    "request": {
+      "channel": "Ceng",
+      "text": "must not POST without SLACK_BOT_TOKEN"
+    }
+  }
+}

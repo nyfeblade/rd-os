@@ -1,0 +1,24 @@
+{
+  "op": "map",
+  "expect": {
+    "ok": true,
+    "dry": true,
+    "method": "chat.postMessage",
+    "channel": "Ceng",
+    "text": "acked from studio",
+    "thread_ts": "1726665600.000100",
+    "outbound_op": "post_message"
+  },
+  "input": {
+    "provider": "slack",
+    "actor": "human",
+    "kind": "message",
+    "tray_state": "live",
+    "bound_to": "slack:mention:Ceng:1726665600.000100",
+    "body": "acked from studio",
+    "thread_ref": {
+      "channel": "Ceng",
+      "thread_ts": "1726665600.000100"
+    }
+  }
+}
