@@ -1,0 +1,33 @@
+{
+  "op": "ingest",
+  "expect": {
+    "ok": true,
+    "dropped": false,
+    "kind": "ci_failure",
+    "need_you": true,
+    "needs_gate": true,
+    "dest": "board",
+    "provider": "github"
+  },
+  "envelope": {
+    "provider": "github",
+    "event": "check_suite",
+    "tray_state": "error",
+    "at_you": true,
+    "payload": {
+      "action": "completed",
+      "sender": { "login": "github-actions" },
+      "check_suite": {
+        "conclusion": "failure",
+        "head_sha": "b65aac42",
+        "html_url": "https://github.com/nyfeblade/rd-os/runs/1",
+        "updated_at": "2026-09-18T12:03:00Z"
+      },
+      "repository": {
+        "name": "rd-os",
+        "full_name": "nyfeblade/rd-os",
+        "owner": { "login": "nyfeblade" }
+      }
+    }
+  }
+}

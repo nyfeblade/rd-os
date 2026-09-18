@@ -1,0 +1,21 @@
+{
+  "op": "reply",
+  "expect": {
+    "ok": true,
+    "outbound_op": "create_issue_comment",
+    "actor": "human"
+  },
+  "draft": {
+    "provider": "github",
+    "actor": "human",
+    "kind": "issue_comment",
+    "tray_state": "live",
+    "bound_to": "github:comment:nyfeblade/rd-os:18:1",
+    "body": "will land the runtime on a new PR",
+    "thread_ref": {
+      "owner": "nyfeblade",
+      "repo": "rd-os",
+      "issue_number": 18
+    }
+  }
+}
