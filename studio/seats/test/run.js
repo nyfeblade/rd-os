@@ -80,28 +80,34 @@ function cases() {
   );
 
   rows.push(
-    runCase("presence starts disconnected", () => {
+    runCase("presence starts offline", () => {
       const presence = expectOk(fresh().presence.list());
       if (!presence.ok) {
         return presence;
       }
-      const live = presence.data.presence.filter((row) => row.state === "connected");
-      if (live.length !== 0) {
-        return { ok: false, error: `connected=${live.length}` };
+      const live = presence.data.presence.filter((row) => row.state === "online");
+      if (live.length !== 0 || presence.data.online_count !== 0) {
+        return { ok: false, error: `online=${presence.data.online_count}` };
       }
       return { ok: true };
     })
   );
 
   rows.push(
-    runCase("connect bot auto-attaches cutover", () => {
+    runCase("connect bot auto-attaches cutover + in-studio-only ack", () => {
       const studio = fresh();
       const connected = expectOk(studio.seats.connect("grok"));
       if (!connected.ok) {
         return connected;
       }
-      if (connected.data.seat.presence !== "connected" || connected.data.seat.cutover !== "attached") {
-        return { ok: false, error: JSON.stringify(connected.data.seat) };
+      const seat = connected.data.seat;
+      if (
+        seat.presence !== "online" ||
+        seat.cutover !== "attached" ||
+        seat.in_studio_only !== true ||
+        connected.data.ack !== "This seat works in Studio only while connected."
+      ) {
+        return { ok: false, error: JSON.stringify(connected.data) };
       }
       return { ok: true };
     })
@@ -196,10 +202,10 @@ function cases() {
   );
 
   rows.push(
-    runCase("human connected may speak on the floor, not Luke/1:1", () => {
+    runCase("human online may speak in Chat/Studio rooms, not Luke/1:1", () => {
       const studio = fresh();
       studio.seats.connect("human");
-      const sent = expectOk(studio.emit({ from: "human", dest: "room:floor", body: "steer" }));
+      const sent = expectOk(studio.emit({ from: "human", dest: "room:studio", body: "steer" }));
       if (!sent.ok) {
         return sent;
       }
@@ -212,7 +218,7 @@ function cases() {
   );
 
   rows.push(
-    runCase("disconnected bot cannot emit in-studio", () => {
+    runCase("offline bot cannot emit in-studio", () => {
       const studio = fresh();
       return expectReject(studio.emit({ from: "grok", dest: "room:bots", body: "early" }), "SEAT_DISCONNECTED");
     })
@@ -295,9 +301,20 @@ function cases() {
       if (!dumped.data.cutover || dumped.data.cutover.legal_channel !== "studio_room") {
         return { ok: false, error: "dump cutover" };
       }
+      if (
+        !dumped.data.chat ||
+        dumped.data.chat.pane !== "Chat" ||
+        dumped.data.chat.chrome !== "not-owned" ||
+        !eq(dumped.data.chat.trio, ["Chat", "Code", "Board"])
+      ) {
+        return { ok: false, error: "dump chat hints" };
+      }
       const demo = buildDemoDump();
-      if (demo.messages.length !== 2 || demo.seats.filter((seat) => seat.presence === "connected").length !== 3) {
+      if (demo.messages.length !== 2 || demo.online_count !== 3) {
         return { ok: false, error: "demo dump" };
+      }
+      if (demo.rooms.some((room) => room.id === "room:desk" || room.title === "Studio floor")) {
+        return { ok: false, error: "Waiting/desk room language leaked" };
       }
       return { ok: true };
     })
@@ -315,7 +332,7 @@ function cases() {
       if (!grok.ok) {
         return grok;
       }
-      if (grok.data.seat.presence !== "connected") {
+      if (grok.data.seat.presence !== "online") {
         return { ok: false, error: "presence lost" };
       }
       const messages = expectOk(b.rooms.messages("bots"));
@@ -332,6 +349,39 @@ function cases() {
   rows.push(
     runCase("unknown seat rejects", () => {
       return expectReject(fresh().seats.connect("elon"), "UNKNOWN_SEAT");
+    })
+  );
+
+  rows.push(
+    runCase("away stays in-studio and may still emit", () => {
+      const studio = fresh();
+      studio.seats.connect("grok");
+      const away = expectOk(studio.presence.away("grok"));
+      if (!away.ok) {
+        return away;
+      }
+      if (away.data.seat.presence !== "away" || away.data.seat.in_studio_only !== true) {
+        return { ok: false, error: JSON.stringify(away.data.seat) };
+      }
+      const sent = expectOk(studio.emit({ from: "grok", dest: "room:bots", body: "still in Chat" }));
+      if (!sent.ok) {
+        return sent;
+      }
+      return { ok: true, extra: { studio_room_delivers: 1 } };
+    })
+  );
+
+  rows.push(
+    runCase("seed rooms are Chat list rows (Bots / Chat / Studio)", () => {
+      const rooms = expectOk(fresh().rooms.list());
+      if (!rooms.ok) {
+        return rooms;
+      }
+      const titles = rooms.data.rooms.map((room) => `${room.id}:${room.title}`).sort();
+      if (!eq(titles, ["room:bots:Bots", "room:chat:Chat", "room:studio:Studio"])) {
+        return { ok: false, error: titles.join(",") };
+      }
+      return { ok: true };
     })
   );
 

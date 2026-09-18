@@ -14,6 +14,9 @@ module.exports = {
   BOT_SEAT_IDS: codes.BOT_SEAT_IDS,
   ROOM_KINDS: codes.ROOM_KINDS,
   PRESENCE_STATES: codes.PRESENCE_STATES,
+  STUDIO_PANES: codes.STUDIO_PANES,
+  IN_STUDIO_ONLY_LABEL: codes.IN_STUDIO_ONLY_LABEL,
+  CONNECT_ACK: codes.CONNECT_ACK,
   CUTOVER_STATES: codes.CUTOVER_STATES,
   SPEECH_CHANNELS: codes.SPEECH_CHANNELS,
   REJECT_CODES: codes.REJECT_CODES,
@@ -23,4 +26,5 @@ module.exports = {
   FORBIDDEN_DESTINATIONS: codes.FORBIDDEN_DESTINATIONS,
   seatKindOf: codes.seatKindOf,
   seatLabelOf: codes.seatLabelOf,
+  isInStudioPresence: codes.isInStudioPresence,
 };

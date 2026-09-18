@@ -1,19 +1,23 @@
 /**
- * Studio seat registry — types other panes import.
+ * Studio seat registry — types the Chat pane imports.
  *
  * Distinct from CA1 control-plane seats (author|proof|human on an experiment).
- * These seats are the desk presence roster: grok | claude | cursor | human.
+ * Distinct from shell chrome (titlebar, connectors tray, pane splitters) —
+ * this module feeds Chat (seats / rooms) only. Designer SoT: Chat · Code · Board.
  */
 
 export type StudioSeatId = "grok" | "claude" | "cursor" | "human";
 
 export type StudioSeatKind = "bot" | "human";
 
-export type PresenceState = "connected" | "disconnected";
+/** Designer presence dots: who's online in studio now. */
+export type PresenceState = "online" | "away" | "offline";
 
 export type CutoverState = "attached" | "unattached";
 
 export type RoomKind = "bot_bot" | "human_bot" | "studio_all";
+
+export type StudioPane = "Chat" | "Code" | "Board";
 
 /**
  * Speech channels a studio connector might attempt.
@@ -44,6 +48,8 @@ export interface StudioSeat {
   label: string;
   presence: PresenceState;
   cutover: CutoverState;
+  /** Chat list pill — always true after cutover.attach / connect. */
+  in_studio_only: boolean;
   connected_at: string | null;
   last_seen_at: string | null;
 }
@@ -70,6 +76,24 @@ export interface CutoverLock {
   attached_seat_ids: StudioSeatId[];
   legal_channel: "studio_room";
   forbidden_destinations: string[];
+  /** Connecting a seat acknowledges this copy. */
+  connect_ack: string;
+  /** Chat-list chip on cutover seats. */
+  in_studio_only_label: "in-studio-only";
+}
+
+/**
+ * Language the Chat pane renders. Not shell chrome.
+ * Waiting-table-as-home is dead.
+ */
+export interface ChatPaneHints {
+  pane: "Chat";
+  pane_role: "seats / rooms";
+  trio: StudioPane[];
+  in_studio_only_label: "in-studio-only";
+  connect_ack: string;
+  composer_placeholder: string;
+  chrome: "not-owned";
 }
 
 export interface StudioDump {
@@ -79,6 +103,8 @@ export interface StudioDump {
   rooms: StudioRoom[];
   messages: StudioMessage[];
   cutover: CutoverLock;
+  chat: ChatPaneHints;
+  online_count: number;
 }
 
 export interface StudioReject {
@@ -120,4 +146,8 @@ export function assertNeverSpeechChannel(channel: never): never {
 
 export function assertNeverReject(code: never): never {
   throw new Error(`unhandled CutoverRejectCode: ${code}`);
+}
+
+export function assertNeverPane(pane: never): never {
+  throw new Error(`unhandled StudioPane: ${pane}`);
 }

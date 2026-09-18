@@ -2,7 +2,7 @@
   "name": "@rd-os/studio-seats",
   "version": "0.1.0",
   "private": true,
-  "description": "Studio seat registry, presence, in-studio rooms, and hard-cutover speech gate. Connected bots speak only in-studio.",
+  "description": "Chat-pane seat registry, presence, and rooms. Connected bots speak only in-studio. Does not own shell chrome.",
   "main": "./index.js",
   "types": "./schema.ts",
   "bin": {

@@ -9,6 +9,9 @@ const {
   PRODUCT_LOCK,
   DUMP_SCHEMA,
   LEGAL_CHANNEL,
+  STUDIO_PANES,
+  IN_STUDIO_ONLY_LABEL,
+  CONNECT_ACK,
   reject,
   ok,
   seatKindOf,
@@ -16,6 +19,7 @@ const {
   isSeatId,
   isBotSeat,
   isRoomKind,
+  isInStudioPresence,
 } = require("./codes");
 const { classifyDestination, channelReject } = require("./classify");
 
@@ -30,7 +34,7 @@ function emptySeat(id) {
     id,
     kind: seatKindOf(id),
     label: seatLabelOf(id),
-    presence: "disconnected",
+    presence: "offline",
     cutover: "unattached",
     connected_at: null,
     last_seen_at: null,
@@ -42,21 +46,21 @@ function seedRooms(clock) {
   return [
     {
       id: "room:bots",
-      title: "Bot sync",
+      title: "Bots",
       kind: "bot_bot",
       member_seat_ids: BOT_SEAT_IDS.slice(),
       created_at: createdAt,
     },
     {
-      id: "room:floor",
-      title: "Studio floor",
+      id: "room:studio",
+      title: "Studio",
       kind: "studio_all",
       member_seat_ids: SEAT_IDS.slice(),
       created_at: createdAt,
     },
     {
-      id: "room:desk",
-      title: "Desk",
+      id: "room:chat",
+      title: "Chat",
       kind: "human_bot",
       member_seat_ids: SEAT_IDS.slice(),
       created_at: createdAt,
@@ -96,7 +100,53 @@ function loadState(home, clock) {
   if (!parsed || typeof parsed !== "object" || !parsed.seats || !parsed.rooms) {
     return seedState(clock);
   }
-  return parsed;
+  return normalizeState(parsed);
+}
+
+function normalizePresence(state) {
+  if (state === "connected") {
+    return "online";
+  }
+  if (state === "disconnected") {
+    return "offline";
+  }
+  return state;
+}
+
+function normalizeState(state) {
+  for (const id of SEAT_IDS) {
+    if (state.seats[id]) {
+      state.seats[id].presence = normalizePresence(state.seats[id].presence);
+    }
+  }
+  if (state.rooms["room:floor"] && !state.rooms["room:studio"]) {
+    const room = state.rooms["room:floor"];
+    room.id = "room:studio";
+    room.title = room.title === "Studio floor" ? "Studio" : room.title;
+    state.rooms["room:studio"] = room;
+    delete state.rooms["room:floor"];
+    for (const msg of state.messages) {
+      if (msg.room_id === "room:floor") {
+        msg.room_id = "room:studio";
+      }
+    }
+  }
+  if (state.rooms["room:desk"] && !state.rooms["room:chat"]) {
+    const room = state.rooms["room:desk"];
+    room.id = "room:chat";
+    room.title = room.title === "Desk" ? "Chat" : room.title;
+    state.rooms["room:chat"] = room;
+    delete state.rooms["room:desk"];
+    for (const msg of state.messages) {
+      if (msg.room_id === "room:desk") {
+        msg.room_id = "room:chat";
+      }
+    }
+  }
+  if (state.rooms["room:bots"] && state.rooms["room:bots"].title === "Bot sync") {
+    state.rooms["room:bots"].title = "Bots";
+  }
+  return state;
 }
 
 function persistState(home, state) {
@@ -107,8 +157,30 @@ function persistState(home, state) {
   fs.writeFileSync(path.join(home, STATE_FILE), `${JSON.stringify(state, null, 2)}\n`, "utf8");
 }
 
+function publicSeat(seat) {
+  const row = clone(seat);
+  row.in_studio_only = seat.cutover === "attached";
+  return row;
+}
+
 function listSeats(state) {
-  return SEAT_IDS.map((id) => clone(state.seats[id]));
+  return SEAT_IDS.map((id) => publicSeat(state.seats[id]));
+}
+
+function onlineCount(state) {
+  return SEAT_IDS.filter((id) => state.seats[id].presence === "online").length;
+}
+
+function chatHints() {
+  return {
+    pane: "Chat",
+    pane_role: "seats / rooms",
+    trio: STUDIO_PANES.slice(),
+    in_studio_only_label: IN_STUDIO_ONLY_LABEL,
+    connect_ack: CONNECT_ACK,
+    composer_placeholder: "Message {seat}…",
+    chrome: "not-owned",
+  };
 }
 
 function listRooms(state) {
@@ -141,7 +213,11 @@ function buildDump(state) {
       attached_seat_ids: attachedIds(state),
       legal_channel: LEGAL_CHANNEL,
       forbidden_destinations: FORBIDDEN_DESTINATIONS.slice(),
+      connect_ack: CONNECT_ACK,
+      in_studio_only_label: IN_STUDIO_ONLY_LABEL,
     },
+    chat: chatHints(),
+    online_count: onlineCount(state),
   };
 }
 
@@ -162,11 +238,13 @@ function createStudioSeats(options) {
     return state.seats[id];
   }
 
-  function touch(seat, connected) {
+  function touch(seat, inStudio) {
     const ts = nowIso(clock);
     seat.last_seen_at = ts;
-    if (connected) {
-      seat.presence = "connected";
+    if (inStudio) {
+      if (seat.presence !== "away") {
+        seat.presence = "online";
+      }
       if (!seat.connected_at) {
         seat.connected_at = ts;
       }
@@ -180,7 +258,7 @@ function createStudioSeats(options) {
     }
     seat.cutover = "attached";
     save();
-    return ok({ seat: clone(seat) });
+    return ok({ seat: publicSeat(seat) });
   }
 
   function connectSeat(id) {
@@ -188,13 +266,18 @@ function createStudioSeats(options) {
     if (!seat) {
       return reject("UNKNOWN_SEAT", `unknown seat: ${id}`);
     }
+    seat.presence = "online";
     touch(seat, true);
-    // Hard cutover: a connected bot is attached. No connected-but-external state.
+    // Hard cutover: an online seat is attached. No online-but-still-external state.
     if (isBotSeat(id) || seat.cutover === "unattached") {
       seat.cutover = "attached";
     }
     save();
-    return ok({ seat: clone(seat) });
+    return ok({
+      seat: publicSeat(seat),
+      ack: CONNECT_ACK,
+      in_studio_only: true,
+    });
   }
 
   function disconnectSeat(id) {
@@ -202,10 +285,23 @@ function createStudioSeats(options) {
     if (!seat) {
       return reject("UNKNOWN_SEAT", `unknown seat: ${id}`);
     }
-    seat.presence = "disconnected";
+    seat.presence = "offline";
     seat.connected_at = null;
     save();
-    return ok({ seat: clone(seat) });
+    return ok({ seat: publicSeat(seat) });
+  }
+
+  function setAway(id) {
+    const seat = getSeat(id);
+    if (!seat) {
+      return reject("UNKNOWN_SEAT", `unknown seat: ${id}`);
+    }
+    if (!isInStudioPresence(seat.presence)) {
+      return reject("SEAT_DISCONNECTED", `seat ${id} is offline; connect before away`);
+    }
+    seat.presence = "away";
+    save();
+    return ok({ seat: publicSeat(seat) });
   }
 
   function detachSeat(id) {
@@ -216,12 +312,12 @@ function createStudioSeats(options) {
     if (isBotSeat(id)) {
       return reject(
         "CUTOVER_LOCKED",
-        `hard cutover is one-way for bots (seat=${id}); disconnect is the only off-floor step`
+        `hard cutover is one-way for bots (seat=${id}); go offline to leave the Chat list as disconnected`
       );
     }
     seat.cutover = "unattached";
     save();
-    return ok({ seat: clone(seat) });
+    return ok({ seat: publicSeat(seat) });
   }
 
   function createRoom(payload) {
@@ -259,6 +355,17 @@ function createStudioSeats(options) {
     return ok({ room: clone(room) });
   }
 
+  function requireSpeaker(from) {
+    const seat = state.seats[from];
+    if (!isInStudioPresence(seat.presence)) {
+      return reject("SEAT_DISCONNECTED", `seat ${from} is offline; no speech`);
+    }
+    if (isBotSeat(from) && seat.cutover !== "attached") {
+      return reject("CUTOVER_REQUIRED", `bot ${from} must cutover.attach before in-studio speech`);
+    }
+    return null;
+  }
+
   function emit(payload) {
     const body = payload || {};
     const from = body.from || body.seat || body.from_seat;
@@ -277,12 +384,9 @@ function createStudioSeats(options) {
       return reject("UNKNOWN_SEAT", `unknown seat: ${from}`);
     }
 
-    const seat = state.seats[from];
-    if (seat.presence !== "connected") {
-      return reject("SEAT_DISCONNECTED", `seat ${from} is disconnected; no speech`);
-    }
-    if (isBotSeat(from) && seat.cutover !== "attached") {
-      return reject("CUTOVER_REQUIRED", `bot ${from} must cutover.attach before in-studio speech`);
+    const gated = requireSpeaker(from);
+    if (gated) {
+      return gated;
     }
 
     const room = state.rooms[classified.room_id];
@@ -301,7 +405,7 @@ function createStudioSeats(options) {
       created_at: nowIso(clock),
     };
     state.messages.push(message);
-    touch(seat, true);
+    touch(state.seats[from], true);
     save();
     return ok({ message: clone(message), room: clone(room) });
   }
@@ -320,12 +424,9 @@ function createStudioSeats(options) {
     if (!isSeatId(from)) {
       return reject("UNKNOWN_SEAT", `unknown seat: ${from}`);
     }
-    const seat = state.seats[from];
-    if (seat.presence !== "connected") {
-      return reject("SEAT_DISCONNECTED", `seat ${from} is disconnected; no speech`);
-    }
-    if (isBotSeat(from) && seat.cutover !== "attached") {
-      return reject("CUTOVER_REQUIRED", `bot ${from} must cutover.attach before in-studio speech`);
+    const gated = requireSpeaker(from);
+    if (gated) {
+      return gated;
     }
     if (!classified.room_id || !state.rooms[classified.room_id]) {
       return reject("ROOM_NOT_FOUND", `no studio room: ${classified.room_id}`);
@@ -356,7 +457,7 @@ function createStudioSeats(options) {
         if (!seat) {
           return reject("UNKNOWN_SEAT", `unknown seat: ${id}`);
         }
-        return ok({ seat: clone(seat) });
+        return ok({ seat: publicSeat(seat) });
       },
       connect: connectSeat,
       disconnect: disconnectSeat,
@@ -367,8 +468,10 @@ function createStudioSeats(options) {
           presence: listSeats(state).map((seat) => ({
             id: seat.id,
             state: seat.presence,
+            in_studio_only: seat.in_studio_only,
             last_seen_at: seat.last_seen_at,
           })),
+          online_count: onlineCount(state),
         });
       },
       get(id) {
@@ -376,10 +479,17 @@ function createStudioSeats(options) {
         if (!seat) {
           return reject("UNKNOWN_SEAT", `unknown seat: ${id}`);
         }
-        return ok({ id: seat.id, state: seat.presence, last_seen_at: seat.last_seen_at });
+        const row = publicSeat(seat);
+        return ok({
+          id: row.id,
+          state: row.presence,
+          in_studio_only: row.in_studio_only,
+          last_seen_at: row.last_seen_at,
+        });
       },
       connect: connectSeat,
       disconnect: disconnectSeat,
+      away: setAway,
     },
     rooms: {
       list() {
@@ -413,10 +523,12 @@ function createStudioSeats(options) {
             return reject("UNKNOWN_SEAT", `unknown seat: ${id}`);
           }
           return ok({
-            seat: clone(seat),
+            seat: publicSeat(seat),
             protocol: "hard",
             product_lock: PRODUCT_LOCK,
             legal_channel: LEGAL_CHANNEL,
+            connect_ack: CONNECT_ACK,
+            in_studio_only_label: IN_STUDIO_ONLY_LABEL,
           });
         }
         return ok({
@@ -425,6 +537,8 @@ function createStudioSeats(options) {
           attached_seat_ids: attachedIds(state),
           legal_channel: LEGAL_CHANNEL,
           forbidden_destinations: FORBIDDEN_DESTINATIONS.slice(),
+          connect_ack: CONNECT_ACK,
+          in_studio_only_label: IN_STUDIO_ONLY_LABEL,
         });
       },
     },
@@ -458,7 +572,7 @@ function buildDemoDump() {
   studio.seats.connect("human");
   studio.seats.connect("grok");
   studio.seats.connect("claude");
-  studio.emit({ from: "grok", dest: "room:bots", body: "cutover attached — bot sync stays in-studio" });
+  studio.emit({ from: "grok", dest: "room:bots", body: "in-studio-only — Chat thread stays here" });
   studio.emit({ from: "claude", dest: "room:bots", body: "ack — no Luke/1:1 path from this seat" });
   return studio.dump().data;
 }

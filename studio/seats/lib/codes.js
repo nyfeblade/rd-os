@@ -3,7 +3,10 @@
 const SEAT_IDS = Object.freeze(["grok", "claude", "cursor", "human"]);
 const BOT_SEAT_IDS = Object.freeze(["grok", "claude", "cursor"]);
 const ROOM_KINDS = Object.freeze(["bot_bot", "human_bot", "studio_all"]);
-const PRESENCE_STATES = Object.freeze(["connected", "disconnected"]);
+const PRESENCE_STATES = Object.freeze(["online", "away", "offline"]);
+const STUDIO_PANES = Object.freeze(["Chat", "Code", "Board"]);
+const IN_STUDIO_ONLY_LABEL = "in-studio-only";
+const CONNECT_ACK = "This seat works in Studio only while connected.";
 const CUTOVER_STATES = Object.freeze(["attached", "unattached"]);
 const SPEECH_CHANNELS = Object.freeze([
   "studio_room",
@@ -121,11 +124,31 @@ function isRoomKind(value) {
   return ROOM_KINDS.includes(value);
 }
 
+function isPresenceState(value) {
+  return PRESENCE_STATES.includes(value);
+}
+
+/** online | away = in studio (may speak). offline cannot. */
+function isInStudioPresence(state) {
+  switch (state) {
+    case "online":
+    case "away":
+      return true;
+    case "offline":
+      return false;
+    default:
+      return assertNeverPresence(state);
+  }
+}
+
 module.exports = {
   SEAT_IDS,
   BOT_SEAT_IDS,
   ROOM_KINDS,
   PRESENCE_STATES,
+  STUDIO_PANES,
+  IN_STUDIO_ONLY_LABEL,
+  CONNECT_ACK,
   CUTOVER_STATES,
   SPEECH_CHANNELS,
   REJECT_CODES,
@@ -147,4 +170,6 @@ module.exports = {
   isSeatId,
   isBotSeat,
   isRoomKind,
+  isPresenceState,
+  isInStudioPresence,
 };
