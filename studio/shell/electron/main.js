@@ -27,7 +27,7 @@ function createWindow() {
     minWidth: MIN_WIDTH,
     minHeight: MIN_HEIGHT,
     title: "AI Coding Studio",
-    backgroundColor: "#0e0e10",
+    backgroundColor: "#111113",
     show: false,
     titleBarStyle: isMac ? "hiddenInset" : "default",
     ...(isWin

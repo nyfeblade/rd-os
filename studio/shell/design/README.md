@@ -1,5 +1,7 @@
 # AI Coding Studio — design SoT
 
+Snapshot of `studio/design/` (PR#12) for VMs. Live chrome prefers **quiet-studio** (Chat + Board; Code on demand) over `three-pane.html`.
+
 **PRODUCT LOCK.** Waiting-table-as-home is DEAD.
 
 | File | Use |
