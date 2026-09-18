@@ -1,0 +1,14 @@
+{
+  "name": "@rd-os/studio-hitl",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Board HITL / need-you kernel. Real gate objects. Humans approve, reject, or defer. No silent auto-approve.",
+  "main": "./index.js",
+  "types": "./types.d.ts",
+  "scripts": {
+    "test": "node test/run.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
