@@ -19,7 +19,8 @@
     "proof-layer": "./scripts/proof-layer.sh",
     "wedge-measure": "./scripts/wedge-measure.sh",
     "ui-smoke": "./scripts/ui-smoke.sh",
-    "mcp-smoke": "node ./bin/mcp-smoke.js"
+    "mcp-smoke": "node ./bin/mcp-smoke.js",
+    "consumer:cursor-mcp": "npm --prefix ./consumers/cursor-mcp test"
   },
   "engines": {
     "node": ">=18"
