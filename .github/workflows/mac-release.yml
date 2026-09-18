@@ -1,0 +1,91 @@
+name: Mac Release
+
+# Builds the unsigned "AI Coding Studio.app" -> .dmg + .zip using the blessed
+# Mac-only recipe in studio/packaging, on a real macOS runner.
+#
+# Gated to manual dispatch and version tags ONLY — it never runs automatically,
+# so it cannot silently consume (billed) macOS runner minutes. A maintainer
+# triggers it from the Actions tab or by pushing a `v*` tag.
+#
+# Signing + notarization are opt-in: set the repo secrets referenced below and
+# flip SIGN=1. Without them the build is unsigned (Gatekeeper will warn users),
+# which is fine for internal/testing distribution.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sign:
+        description: "Sign + notarize (requires Apple secrets)"
+        type: boolean
+        default: false
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  package-mac:
+    name: package (macOS, unsigned unless secrets set)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install shell deps (electron)
+        working-directory: studio/shell
+        run: npm ci
+
+      - name: Install packaging deps (electron-builder)
+        working-directory: studio/packaging
+        run: npm ci
+
+      - name: Build Mac app (dmg + zip)
+        working-directory: studio/packaging
+        env:
+          # Unsigned by default. To sign+notarize, add these repo secrets and
+          # run the workflow with sign=true (or push a tag with them configured):
+          #   CSC_LINK                     base64 .p12 (Developer ID Application)
+          #   CSC_KEY_PASSWORD             .p12 password
+          #   APPLE_ID                     Apple account email
+          #   APPLE_APP_SPECIFIC_PASSWORD  app-specific password
+          #   APPLE_TEAM_ID                Apple Developer team id
+          SIGN: ${{ inputs.sign && '1' || '' }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -z "${SIGN}" ] || [ -z "${CSC_LINK}" ]; then
+            echo "Building UNSIGNED (no signing secrets / sign not requested)."
+            export CSC_IDENTITY_AUTO_DISCOVERY=false
+          else
+            echo "Building SIGNED + notarized."
+          fi
+          npm run package
+
+      - name: Generate checksums
+        working-directory: studio/packaging/dist
+        run: |
+          shasum -a 256 *.dmg *.zip | tee SHA256SUMS.txt
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-coding-studio-mac
+          path: |
+            studio/packaging/dist/*.dmg
+            studio/packaging/dist/*.zip
+            studio/packaging/dist/SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            studio/packaging/dist/*.dmg
+            studio/packaging/dist/*.zip
+            studio/packaging/dist/SHA256SUMS.txt
