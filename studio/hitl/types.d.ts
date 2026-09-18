@@ -1,6 +1,6 @@
 export type GateKind = "merge" | "deploy" | "db" | "public_post";
 
-export type GateRisk = "high" | "low";
+export type GateRisk = "high";
 
 export type GateStatus = "open" | "approved" | "rejected" | "deferred";
 
@@ -16,10 +16,14 @@ export type RejectCode =
   | "ALREADY_RESOLVED"
   | "INVALID_GATE";
 
-/** Shell bind notes. Chat and Board own the ids. This kernel only stores them. */
+export type ChatThreadId = string;
+export type BoardCardId = string;
+
+/** Shell owns these ids. This kernel does not store or join them. */
 export interface GateBindNotes {
-  chat_thread_id: string | null;
-  board_card_id: string | null;
+  gate_id: string;
+  chat_thread_id?: ChatThreadId;
+  board_card_id?: BoardCardId;
 }
 
 export interface Gate {
@@ -31,16 +35,12 @@ export interface Gate {
   payload_summary: string;
   status: GateStatus;
   created_at: string;
-  binds: GateBindNotes;
 }
 
 export interface CreateGateInput {
   kind: GateKind;
   title: string;
   payload_summary?: string;
-  binds?: Partial<GateBindNotes>;
-  chat_thread_id?: string | null;
-  board_card_id?: string | null;
 }
 
 export interface ResolveGateInput {
@@ -58,7 +58,6 @@ export interface HitlKernel {
   createGate(input: CreateGateInput): HitlResult<{ gate: Gate }>;
   listNeedYou(): HitlResult<{ gates: Gate[] }>;
   resolveGate(input: ResolveGateInput): HitlResult<{ gate: Gate }>;
-  getGate(id: string): HitlResult<{ gate: Gate }>;
 }
 
 export function createHitlKernel(opts?: {

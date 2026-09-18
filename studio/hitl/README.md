@@ -31,8 +31,6 @@ const created = hitl.createGate({
   kind: "merge",
   title: "Merge PR 12",
   payload_summary: "merge #12 into main",
-  chat_thread_id: "thread_9",
-  board_card_id: "card_4",
 });
 // created.data.gate.need_you === true
 // created.data.gate.status === "open"
@@ -45,7 +43,7 @@ hitl.resolveGate({ id: created.data.gate.id, decision: "approve", actor: "human"
 // status approved, need_you false
 ```
 
-`chat_thread_id` and `board_card_id` are bind notes. This kernel stores them. Chat and Board own the ids.
+`GateBindNotes` names `chat_thread_id` and `board_card_id` for Chat and Board. This kernel does not store those ids.
 
 ## Gate
 
@@ -60,7 +58,7 @@ hitl.resolveGate({ id: created.data.gate.id, decision: "approve", actor: "human"
 | `status` | `open` \| `approved` \| `rejected` \| `deferred` |
 | `created_at` | ISO-8601 |
 
-`createGate` always opens. It rejects `status: "approved"` and `auto_approve: true`.
+`createGate` always opens. It rejects `status`, `need_you`, `risk`, `id`, `created_at`, and `auto_approve` on the input.
 
 `resolveGate` accepts `approve`, `reject`, or `defer`. High-risk kinds require `actor: "human"`. Actors `merge`, `deploy`, `db`, `public`, `system`, `auto`, and `bot` return `HUMAN_REQUIRED`.
 

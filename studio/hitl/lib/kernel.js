@@ -12,7 +12,8 @@ const {
   riskOf,
   statusFromDecision,
 } = require("./kinds");
-const { emptyBinds, parseBindNotes } = require("./binds");
+
+const CREATE_OWNED_FIELDS = ["status", "need_you", "risk", "id", "created_at", "auto_approve"];
 
 function nowIso(clock) {
   return (clock && typeof clock.now === "function" ? new Date(clock.now()) : new Date()).toISOString();
@@ -32,10 +33,6 @@ function snapshot(row) {
     payload_summary: row.payload_summary,
     status: row.status,
     created_at: row.created_at,
-    binds: {
-      chat_thread_id: row.binds.chat_thread_id,
-      board_card_id: row.binds.board_card_id,
-    },
   };
 }
 
@@ -46,14 +43,11 @@ function createHitlKernel(opts) {
 
   function createGate(input) {
     const fields = input && typeof input === "object" ? input : {};
-    if (fields.auto_approve === true || fields.status === "approved") {
-      return reject("AUTO_APPROVE_FORBIDDEN", "createGate cannot approve; a human must resolveGate");
-    }
-    if (fields.need_you === false) {
-      return reject("AUTO_APPROVE_FORBIDDEN", "createGate cannot hide a gate from need-you");
-    }
-    if (fields.risk != null && fields.risk !== riskOf(fields.kind)) {
-      return reject("INVALID_GATE", "risk is derived from kind; do not set it");
+    for (let i = 0; i < CREATE_OWNED_FIELDS.length; i += 1) {
+      const key = CREATE_OWNED_FIELDS[i];
+      if (Object.prototype.hasOwnProperty.call(fields, key)) {
+        return reject("AUTO_APPROVE_FORBIDDEN", "createGate cannot set status, need_you, risk, or id");
+      }
     }
     const kind = typeof fields.kind === "string" ? fields.kind : "";
     if (!kind) {
@@ -67,10 +61,6 @@ function createHitlKernel(opts) {
       return reject("MISSING_FIELD", "createGate requires title");
     }
     const payload = typeof fields.payload_summary === "string" ? fields.payload_summary : "";
-    const binds = parseBindNotes(fields.binds || fields);
-    if (!binds.ok) {
-      return binds;
-    }
     const row = {
       id: nextId(ids, "gate_"),
       kind,
@@ -79,7 +69,6 @@ function createHitlKernel(opts) {
       payload_summary: payload,
       status: "open",
       created_at: nowIso(clock),
-      binds: binds.data || emptyBinds(),
     };
     rows.set(row.id, row);
     return ok({ gate: snapshot(row) });
@@ -91,14 +80,6 @@ function createHitlKernel(opts) {
       .sort((a, b) => (a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0))
       .map(snapshot);
     return ok({ gates });
-  }
-
-  function getGate(id) {
-    const row = rows.get(id);
-    if (!row) {
-      return reject("UNKNOWN_GATE", `no gate ${id}`);
-    }
-    return ok({ gate: snapshot(row) });
   }
 
   function resolveGate(input) {
@@ -139,7 +120,6 @@ function createHitlKernel(opts) {
     createGate,
     listNeedYou,
     resolveGate,
-    getGate,
   };
 }
 

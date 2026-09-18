@@ -233,12 +233,12 @@ function cases() {
   );
 
   rows.push(
-    runCase("bind notes store chat thread id and board card id", () => {
+    runCase("create does not attach chat or board bind ids", () => {
       const kernel = fresh({ ids: { next: () => "gate_b" } });
       const created = expectOk(
         kernel.createGate({
           kind: "merge",
-          title: "Merge with binds",
+          title: "Merge with leftover bind fields",
           chat_thread_id: "thread_9",
           board_card_id: "card_4",
         })
@@ -246,9 +246,25 @@ function cases() {
       if (!created.ok) {
         return created;
       }
-      const binds = created.data.gate.binds;
-      if (binds.chat_thread_id !== "thread_9" || binds.board_card_id !== "card_4") {
-        return { ok: false, error: JSON.stringify(binds) };
+      const gate = created.data.gate;
+      if (gate.binds || gate.chat_thread_id || gate.board_card_id) {
+        return { ok: false, error: JSON.stringify(gate) };
+      }
+      const keys = Object.keys(gate).sort();
+      if (
+        JSON.stringify(keys) !==
+        JSON.stringify([
+          "created_at",
+          "id",
+          "kind",
+          "need_you",
+          "payload_summary",
+          "risk",
+          "status",
+          "title",
+        ])
+      ) {
+        return { ok: false, error: keys.join(",") };
       }
       return { ok: true };
     })
