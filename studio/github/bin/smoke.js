@@ -153,8 +153,14 @@ async function main() {
   if (state.data.pane.default_chrome.join(",") !== "chat,board") {
     fail("default chrome must be Chat + Board");
   }
+  if (state.data.pane.surface !== "eng" || state.data.pane.theater !== false || state.data.pane.job !== "human+AI coding") {
+    fail("pane must be an eng coding surface, not life-OS theater");
+  }
   if (state.data.pane.does_not_own.indexOf("shell") < 0 || state.data.pane.does_not_own.indexOf("chat") < 0) {
     fail("Code pane must not own shell/chat chrome");
+  }
+  if (state.data.pane.does_not_own.indexOf("life-os") < 0) {
+    fail("pane must reject life-OS theater");
   }
   const drawn = studio.drawPane();
   const hidden = studio.hidePane();
@@ -256,7 +262,17 @@ async function main() {
     await close(server);
     fail("UI missing Code pane tree/nav");
   }
-  const banned = ["AI Coding Studio", "aria-label=\"Chat\"", "aria-label=\"Board\"", "connectors ▾", "3 online"];
+  const banned = [
+    "AI Coding Studio",
+    "aria-label=\"Chat\"",
+    "aria-label=\"Board\"",
+    "connectors ▾",
+    "3 online",
+    "in-studio-only",
+    "life-OS theater",
+    "Waiting home",
+    "immersive",
+  ];
   for (const token of banned) {
     if (String(html.raw).includes(token)) {
       await close(server);
@@ -328,6 +344,9 @@ async function main() {
   }
   if (!readme.includes("on demand") || !readme.includes("Three-pane-always is wrong")) {
     fail("README must lock Code as on-demand, not three-pane-always");
+  }
+  if (!readme.includes("eng surfaces") || !readme.includes("No life-OS theater")) {
+    fail("README must state product law: eng surfaces, no life-OS theater");
   }
 
   const wallMs = Date.now() - started;

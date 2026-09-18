@@ -19,31 +19,35 @@ function describeKnown(id) {
         kind: "repo",
         status: "ready",
         label: "GitHub",
-        summary: "Repo browse + attach recipe. First connector.",
+        summary: "Repo browse + attach. First coding connector.",
+        surface: "eng",
       };
     case "grok":
       return {
         id: "grok",
         kind: "seat",
         status: "stub",
-        label: "Grok seat",
-        summary: "Stub. Later wire via studio/seats.",
+        label: "Grok",
+        summary: "Coding connector stub. Later wire via studio/seats.",
+        surface: "eng",
       };
     case "claude":
       return {
         id: "claude",
         kind: "seat",
         status: "stub",
-        label: "Claude seat",
-        summary: "Stub. Later wire via studio/seats.",
+        label: "Claude",
+        summary: "Coding connector stub. Later wire via studio/seats.",
+        surface: "eng",
       };
     case "cursor":
       return {
         id: "cursor",
         kind: "seat",
         status: "stub",
-        label: "Cursor seat",
-        summary: "Stub. Later wire via studio/seats. MCP attach stays consumers/cursor-mcp.",
+        label: "Cursor",
+        summary: "Coding connector stub. MCP attach stays consumers/cursor-mcp.",
+        surface: "eng",
       };
     default:
       return assertNeverConnector(id);
@@ -65,6 +69,9 @@ function loadRecipe(id) {
 
 function surfaceHooks() {
   return {
+    job: "human+AI coding",
+    surface: "eng",
+    theater: false,
     hooks: [
       {
         id: "file-tree",

@@ -16,8 +16,10 @@
     "note": "Stranger default. No token. No live GitHub."
   },
   "resource_exhausted": "STOP, no retry",
+  "surface": "eng",
+  "theater": false,
   "later": {
     "max_connectors": ["github", "grok", "claude", "cursor"],
-    "seats": "studio/seats — stubs only here"
+    "seats": "studio/seats — coding stubs only here"
   }
 }

@@ -40,6 +40,9 @@
 
   window.StudioGithub = {
     pane: "code",
+    job: "human+AI coding",
+    surface: "eng",
+    theater: false,
     draw: "on-demand",
     defaultVisible: false,
     threePaneAlways: false,
@@ -235,12 +238,12 @@
 
   function renderHead() {
     if (!state || !state.repo) {
-      repoHead.innerHTML = `<p class="quiet">Code</p><h1>repo</h1>`;
+      repoHead.innerHTML = `<p class="quiet">Repo</p><h1>repo</h1>`;
       sourceMeta.textContent = "offline";
       return;
     }
     const repo = state.repo;
-    repoHead.innerHTML = `<p class="quiet">Code</p>
+    repoHead.innerHTML = `<p class="quiet">Repo</p>
       <h1><span class="name">${escapeHtml(repo.owner)}</span><span class="slash"> / </span>${escapeHtml(repo.name)}</h1>
       <p class="desc">${escapeHtml(repo.description || "")}</p>`;
     sourceMeta.textContent = `${state.source} · ${repo.default_branch}`;
@@ -445,8 +448,8 @@
       })
       .join("");
     const repo = (state.attach && state.attach.github && state.attach.github.repo) || "nyfeblade/rd-os";
-    return `<h2>Attach</h2>
-      <p class="page-pad quiet">GitHub first. Seat stubs later via studio/seats. This is not the shell connectors tray.</p>
+    return `<h2>Connectors</h2>
+      <p class="page-pad quiet">Engineering attach: GitHub repo first. Grok / Claude / Cursor are coding stubs. Not life-OS.</p>
       <form id="attach-form" data-hook="connector-attach" data-testid="connector-attach">
         <label>GitHub repo<input name="repo" required value="${escapeHtml(repo)}" placeholder="owner/name" /></label>
         <label>Token (optional, public repos work without)<input name="token" type="password" autocomplete="off" /></label>

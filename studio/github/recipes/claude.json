@@ -5,8 +5,10 @@
   "status": "stub",
   "fence": "studio/github",
   "later": "studio/seats",
+  "surface": "eng",
+  "theater": false,
   "notes": [
-    "Scaffold only. Do not implement the Claude seat here.",
+    "Coding connector stub. Do not implement the Claude seat here.",
     "Human+AI coding surface can later bind this id."
   ]
 }

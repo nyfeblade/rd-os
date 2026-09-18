@@ -5,18 +5,24 @@ const DEFAULT_CHROME = ["chat", "board"];
 const CODE_PANE = {
   pane: "code",
   fence: "studio/github",
+  job: "human+AI coding",
+  surface: "eng",
+  theater: false,
   draw: "on-demand",
   default_visible: false,
   three_pane_always: false,
   default_chrome: DEFAULT_CHROME.slice(),
   owns: ["repo-switcher", "file-tree", "file-preview", "pr-list", "connector-attach"],
-  does_not_own: ["shell", "chat", "board", "titlebar", "presence", "connectors-tray"],
+  does_not_own: ["shell", "chat", "board", "titlebar", "presence", "connectors-tray", "life-os"],
 };
 
 function codePaneContract() {
   return {
     pane: CODE_PANE.pane,
     fence: CODE_PANE.fence,
+    job: CODE_PANE.job,
+    surface: CODE_PANE.surface,
+    theater: CODE_PANE.theater,
     draw: CODE_PANE.draw,
     default_visible: CODE_PANE.default_visible,
     three_pane_always: CODE_PANE.three_pane_always,
