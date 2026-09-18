@@ -1,0 +1,14 @@
+{
+  "name": "rd-os-studio-cursor-seat",
+  "connector": "cursor",
+  "kind": "seat",
+  "status": "stub",
+  "fence": "studio/github",
+  "later": "studio/seats",
+  "surface": "eng",
+  "theater": false,
+  "notes": [
+    "Coding connector stub. Do not implement the Cursor seat here.",
+    "Keep consumers/cursor-mcp as the rd-os MCP attach. Not a second MCP server."
+  ]
+}
