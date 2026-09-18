@@ -11,6 +11,7 @@ const { createStudioServer } = require("../lib/http");
 const { listConnectors, loadRecipe, CONNECTOR_IDS } = require("../lib/connectors");
 const { REJECT_CODES, describeReject } = require("../lib/errors");
 const { CODE_PANE } = require("../lib/pane");
+const { HOMEBASE } = require("../lib/homebase");
 
 const ROOT = path.resolve(__dirname, "..");
 
@@ -102,6 +103,7 @@ async function main() {
     "bin/studio.js",
     "lib/studio.js",
     "lib/pane.js",
+    "lib/homebase.js",
   ]) {
     if (!fs.existsSync(path.join(ROOT, file))) {
       fail(`missing ${file}`);
@@ -155,6 +157,19 @@ async function main() {
   }
   if (state.data.pane.surface !== "eng" || state.data.pane.theater !== false || state.data.pane.job !== "human+AI coding") {
     fail("pane must be an eng coding surface, not life-OS theater");
+  }
+  if (
+    state.data.pane.homebase !== "any-ai-developer" ||
+    state.data.pane.multi_provider !== true ||
+    state.data.pane.cold_open !== true
+  ) {
+    fail("pane must be a multi-provider cold-open homebase for any AI developer");
+  }
+  if (!state.data.homebase || state.data.homebase.providers.join(",") !== "github,grok,claude,cursor") {
+    fail("homebase providers must be github + grok + claude + cursor");
+  }
+  if (HOMEBASE.audience !== "any-ai-developer" || HOMEBASE.cold_open !== true) {
+    fail("HOMEBASE drifted");
   }
   if (state.data.pane.does_not_own.indexOf("shell") < 0 || state.data.pane.does_not_own.indexOf("chat") < 0) {
     fail("Code pane must not own shell/chat chrome");
@@ -304,6 +319,15 @@ async function main() {
     await close(server);
     fail("api/surface failed");
   }
+  const apiHomebase = await request(port, "GET", "/api/homebase");
+  if (
+    apiHomebase.status !== 200 ||
+    apiHomebase.body.data.audience !== "any-ai-developer" ||
+    apiHomebase.body.data.multi_provider !== true
+  ) {
+    await close(server);
+    fail(`api/homebase ${JSON.stringify(apiHomebase.body)}`);
+  }
   const apiPane = await request(port, "GET", "/api/pane");
   if (apiPane.status !== 200 || apiPane.body.data.draw !== "on-demand" || apiPane.body.data.three_pane_always !== false) {
     await close(server);
@@ -347,6 +371,9 @@ async function main() {
   }
   if (!readme.includes("eng surfaces") || !readme.includes("No life-OS theater")) {
     fail("README must state product law: eng surfaces, no life-OS theater");
+  }
+  if (!readme.includes("any AI developer") || !readme.includes("Multi-provider")) {
+    fail("README must state north star: any AI developer homebase, multi-provider");
   }
 
   const wallMs = Date.now() - started;

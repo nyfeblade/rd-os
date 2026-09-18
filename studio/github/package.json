@@ -2,7 +2,7 @@
   "name": "rd-os-studio-github",
   "version": "0.1.0",
   "private": true,
-  "description": "Studio C: GitHub-like repo browse + connector attach. Fence: studio/github only. Not a 14d verdict.",
+  "description": "Any-AI-developer homebase: GitHub browse + multi-provider connectors. Fence: studio/github only.",
   "bin": {
     "rdos-studio-github": "./bin/studio.js"
   },

@@ -19,8 +19,9 @@ function describeKnown(id) {
         kind: "repo",
         status: "ready",
         label: "GitHub",
-        summary: "Repo browse + attach. First coding connector.",
+        summary: "Repo browse + attach. First coding connector for any AI developer.",
         surface: "eng",
+        homebase: true,
       };
     case "grok":
       return {

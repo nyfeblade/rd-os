@@ -102,6 +102,9 @@ function createStudioServer(options) {
     if (req.method === "GET" && pathname === "/api/pane") {
       return sendJson(res, 200, studio.pane());
     }
+    if (req.method === "GET" && pathname === "/api/homebase") {
+      return sendJson(res, 200, studio.homebase());
+    }
     if (req.method === "POST" && pathname === "/api/pane/draw") {
       return sendJson(res, 200, studio.drawPane());
     }

@@ -18,6 +18,8 @@
   "resource_exhausted": "STOP, no retry",
   "surface": "eng",
   "theater": false,
+  "homebase": "any-ai-developer",
+  "multi_provider": true,
   "later": {
     "max_connectors": ["github", "grok", "claude", "cursor"],
     "seats": "studio/seats — coding stubs only here"

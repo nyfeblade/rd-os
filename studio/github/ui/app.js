@@ -43,6 +43,9 @@
     job: "human+AI coding",
     surface: "eng",
     theater: false,
+    homebase: "any-ai-developer",
+    multiProvider: true,
+    coldOpen: true,
     draw: "on-demand",
     defaultVisible: false,
     threePaneAlways: false,
@@ -449,7 +452,7 @@
       .join("");
     const repo = (state.attach && state.attach.github && state.attach.github.repo) || "nyfeblade/rd-os";
     return `<h2>Connectors</h2>
-      <p class="page-pad quiet">Engineering attach: GitHub repo first. Grok / Claude / Cursor are coding stubs. Not life-OS.</p>
+      <p class="page-pad quiet">Homebase for any AI developer. GitHub first. Multi-provider (Grok / Claude / Cursor stubs). Not life-OS.</p>
       <form id="attach-form" data-hook="connector-attach" data-testid="connector-attach">
         <label>GitHub repo<input name="repo" required value="${escapeHtml(repo)}" placeholder="owner/name" /></label>
         <label>Token (optional, public repos work without)<input name="token" type="password" autocomplete="off" /></label>

@@ -1,4 +1,6 @@
-# Studio C — GitHub browse / connector UI
+# GitHub browse + connectors — any AI developer homebase
+
+**North star:** GitHub and coding connectors as a homebase **any** AI developer can cold-open. Multi-provider (GitHub first; Grok / Claude / Cursor stubs). Stranger path is one command. No host lock-in.
 
 Fence: **`studio/github/` only**. Not `studio/shell/`, not `studio/seats/`, not `studio/design/`, not `desktop/`, not the kernel, not `consumers/`.
 

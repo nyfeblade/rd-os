@@ -7,6 +7,7 @@ const { createStore } = require("./store");
 const { createFixtureBrowse, sortEntries } = require("./fixtures");
 const { createRdosClient } = require("./rdos-client");
 const { codePaneContract, drawCodePane, hideCodePane } = require("./pane");
+const { homebaseContract } = require("./homebase");
 
 function resolveSource(raw) {
   const value = String(raw || "fixture").trim().toLowerCase();
@@ -58,6 +59,7 @@ function createStudio(options) {
       studio: "C",
       fence: "studio/github",
       pane: codePaneContract(),
+      homebase: homebaseContract(),
       source,
       repo: repoResult.data,
       connectors: listConnectors(),
@@ -154,6 +156,10 @@ function createStudio(options) {
     return ok(codePaneContract());
   }
 
+  function homebase() {
+    return ok(homebaseContract());
+  }
+
   function drawPane() {
     return drawCodePane();
   }
@@ -181,6 +187,7 @@ function createStudio(options) {
     setSource,
     attach,
     pane,
+    homebase,
     drawPane,
     hidePane,
     surface,

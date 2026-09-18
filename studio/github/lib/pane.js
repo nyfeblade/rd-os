@@ -1,5 +1,7 @@
 "use strict";
 
+const { homebaseContract } = require("./homebase");
+
 const DEFAULT_CHROME = ["chat", "board"];
 
 const CODE_PANE = {
@@ -8,6 +10,9 @@ const CODE_PANE = {
   job: "human+AI coding",
   surface: "eng",
   theater: false,
+  homebase: "any-ai-developer",
+  multi_provider: true,
+  cold_open: true,
   draw: "on-demand",
   default_visible: false,
   three_pane_always: false,
@@ -23,6 +28,10 @@ function codePaneContract() {
     job: CODE_PANE.job,
     surface: CODE_PANE.surface,
     theater: CODE_PANE.theater,
+    homebase: CODE_PANE.homebase,
+    multi_provider: CODE_PANE.multi_provider,
+    cold_open: CODE_PANE.cold_open,
+    providers: homebaseContract().providers,
     draw: CODE_PANE.draw,
     default_visible: CODE_PANE.default_visible,
     three_pane_always: CODE_PANE.three_pane_always,
