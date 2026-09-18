@@ -1,0 +1,8 @@
+{
+  "tool": "synth.render",
+  "expect": { "ok": false, "code": "UNKNOWN_PATCH" },
+  "payload": {
+    "seed": 1,
+    "patch_id": "does.not.exist"
+  }
+}

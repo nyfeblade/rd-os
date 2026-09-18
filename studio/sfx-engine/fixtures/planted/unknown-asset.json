@@ -1,0 +1,8 @@
+{
+  "tool": "sfx.process",
+  "expect": { "ok": false, "code": "UNKNOWN_ASSET" },
+  "payload": {
+    "asset_id": "asset.missing",
+    "chain": [{ "type": "limiter", "ceiling": 0.9 }]
+  }
+}

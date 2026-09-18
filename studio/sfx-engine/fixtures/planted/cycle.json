@@ -1,0 +1,17 @@
+{
+  "tool": "synth.patch",
+  "expect": { "ok": false, "code": "CYCLE" },
+  "payload": {
+    "patch": {
+      "version": "sfx.graph.v1",
+      "id": "cycle",
+      "duration_ms": 40,
+      "nodes": {
+        "a": { "type": "env", "input": "b", "attack_ms": 2, "decay_ms": 10, "sustain": 0, "release_ms": 5 },
+        "b": { "type": "filter", "input": "a", "mode": "lowpass", "hz": 800, "q": 0.7 },
+        "out": { "type": "mix", "inputs": ["a"], "gains": [1] }
+      },
+      "out": "out"
+    }
+  }
+}

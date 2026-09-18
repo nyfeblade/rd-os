@@ -1,0 +1,16 @@
+{
+  "tool": "synth.patch",
+  "expect": { "ok": false, "code": "INVALID_GRAPH" },
+  "payload": {
+    "patch": {
+      "version": "sfx.graph.v1",
+      "id": "bad.hz",
+      "duration_ms": 40,
+      "nodes": {
+        "osc": { "type": "osc", "wave": "sine", "hz": -3, "gain": 0.4 },
+        "out": { "type": "env", "input": "osc", "attack_ms": 2, "decay_ms": 20, "sustain": 0, "release_ms": 8 }
+      },
+      "out": "out"
+    }
+  }
+}

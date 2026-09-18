@@ -1,0 +1,39 @@
+{
+  "tool": "sfx.layer",
+  "expect": { "ok": true, "tool": "sfx.layer", "n": 2, "has_sha": true },
+  "payload": {
+    "seed": 2,
+    "stems": [
+      {
+        "gain": 0.8,
+        "pan": -0.2,
+        "offset_ms": 0,
+        "patch": {
+          "version": "sfx.graph.v1",
+          "id": "layer.a",
+          "duration_ms": 50,
+          "nodes": {
+            "osc": { "type": "osc", "wave": "sine", "hz": 720, "gain": 0.4 },
+            "out": { "type": "env", "input": "osc", "attack_ms": 2, "decay_ms": 25, "sustain": 0, "release_ms": 10 }
+          },
+          "out": "out"
+        }
+      },
+      {
+        "gain": 0.5,
+        "pan": 0.3,
+        "offset_ms": 8,
+        "patch": {
+          "version": "sfx.graph.v1",
+          "id": "layer.b",
+          "duration_ms": 40,
+          "nodes": {
+            "click": { "type": "sample", "wave": "click", "gain": 0.5 },
+            "out": { "type": "env", "input": "click", "attack_ms": 1, "decay_ms": 12, "sustain": 0, "release_ms": 8 }
+          },
+          "out": "out"
+        }
+      }
+    ]
+  }
+}

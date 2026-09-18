@@ -1,0 +1,31 @@
+{
+  "tool": "pack.export",
+  "expect": { "ok": true, "tool": "pack.export", "format": "json" },
+  "setup": [
+    {
+      "tool": "pack.bind",
+      "payload": {
+        "pack_id": "pack.studio.chrome.v1",
+        "event_id": "ui.expand",
+        "file": "ui_expand.wav",
+        "gain": 0.45,
+        "cooldown_ms": 80,
+        "seed": 1,
+        "patch": {
+          "version": "sfx.graph.v1",
+          "id": "ui.expand",
+          "duration_ms": 80,
+          "nodes": {
+            "tick": { "type": "osc", "wave": "triangle", "hz": 720, "gain": 0.36 },
+            "out": { "type": "env", "input": "tick", "attack_ms": 3, "decay_ms": 40, "sustain": 0, "release_ms": 16 }
+          },
+          "out": "out"
+        }
+      }
+    }
+  ],
+  "payload": {
+    "pack_id": "pack.studio.chrome.v1",
+    "format": "json"
+  }
+}

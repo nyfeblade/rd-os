@@ -1,0 +1,16 @@
+{
+  "tool": "synth.patch",
+  "expect": { "ok": false, "code": "UNKNOWN_NODE" },
+  "payload": {
+    "patch": {
+      "version": "sfx.graph.v1",
+      "id": "bad.node",
+      "duration_ms": 40,
+      "nodes": {
+        "magic": { "type": "whoosh", "gain": 1 },
+        "out": { "type": "mix", "inputs": ["magic"], "gains": [1] }
+      },
+      "out": "out"
+    }
+  }
+}

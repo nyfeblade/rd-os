@@ -1,0 +1,9 @@
+{
+  "tool": "synth.patch",
+  "expect": { "ok": false, "code": "MISSING_GRAPH_IR" },
+  "payload": {
+    "prompt": "make a whoosh",
+    "description": "airy UI whoosh for the code drawer",
+    "chat": "just a soft whoosh please"
+  }
+}

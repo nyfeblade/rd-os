@@ -1,0 +1,10 @@
+{
+  "tool": "pack.bind",
+  "expect": { "ok": false, "code": "UNKNOWN_EVENT" },
+  "payload": {
+    "pack_id": "pack.studio.chrome.v1",
+    "event_id": "ui.whoosh",
+    "file": "ui_whoosh.wav",
+    "gain": 0.5
+  }
+}

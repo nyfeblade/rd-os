@@ -1,0 +1,8 @@
+{
+  "tool": "pack.export",
+  "expect": { "ok": false, "code": "UNKNOWN_PACK" },
+  "payload": {
+    "pack_id": "pack.does.not.exist",
+    "format": "json"
+  }
+}

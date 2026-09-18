@@ -1,0 +1,7 @@
+{
+  "tool": "sfx.layer",
+  "expect": { "ok": false, "code": "INVALID_LAYER" },
+  "payload": {
+    "stems": []
+  }
+}

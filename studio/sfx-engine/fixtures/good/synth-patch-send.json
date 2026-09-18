@@ -1,0 +1,21 @@
+{
+  "tool": "synth.patch",
+  "expect": { "ok": true, "tool": "synth.patch", "has_ir": true },
+  "payload": {
+    "patch": {
+      "version": "sfx.graph.v1",
+      "id": "ui.send",
+      "sample_rate": 48000,
+      "duration_ms": 90,
+      "nodes": {
+        "tick": { "type": "osc", "wave": "sine", "hz": 1240, "gain": 0.55 },
+        "click": { "type": "sample", "wave": "click", "gain": 0.28 },
+        "env": { "type": "env", "input": "tick", "attack_ms": 2, "decay_ms": 45, "sustain": 0, "release_ms": 20 },
+        "click_env": { "type": "env", "input": "click", "attack_ms": 1, "decay_ms": 12, "sustain": 0, "release_ms": 8 },
+        "lp": { "type": "filter", "input": "env", "mode": "lowpass", "hz": 4200, "q": 0.7 },
+        "out": { "type": "mix", "inputs": ["lp", "click_env"], "gains": [0.85, 0.35] }
+      },
+      "out": "out"
+    }
+  }
+}

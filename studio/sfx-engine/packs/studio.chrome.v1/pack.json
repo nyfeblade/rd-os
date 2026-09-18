@@ -1,0 +1,144 @@
+{
+  "id": "pack.studio.chrome.v1",
+  "events": {
+    "ui.send": { "file": "ui_send.wav", "gain": 0.7, "cooldown_ms": 80, "reduced_motion_mute": false },
+    "ui.need_you": { "file": "ui_need_you.wav", "gain": 0.55, "cooldown_ms": 120, "reduced_motion_mute": false },
+    "ui.approve": { "file": "ui_approve.wav", "gain": 0.65, "cooldown_ms": 80, "reduced_motion_mute": false },
+    "ui.deny": { "file": "ui_deny.wav", "gain": 0.6, "cooldown_ms": 80, "reduced_motion_mute": false },
+    "ui.connect_ok": { "file": "ui_connect_ok.wav", "gain": 0.6, "cooldown_ms": 100, "reduced_motion_mute": false },
+    "ui.error": { "file": "ui_error.wav", "gain": 0.55, "cooldown_ms": 160, "reduced_motion_mute": false },
+    "ui.code_open": { "file": "ui_code_open.wav", "gain": 0.5, "cooldown_ms": 120, "reduced_motion_mute": true },
+    "ui.expand": { "file": "ui_expand.wav", "gain": 0.45, "cooldown_ms": 80, "reduced_motion_mute": true },
+    "ui.craft_gen_done": { "file": "ui_craft_gen_done.wav", "gain": 0.6, "cooldown_ms": 200, "reduced_motion_mute": false }
+  },
+  "patches": {
+    "ui.send": {
+      "version": "sfx.graph.v1",
+      "id": "ui.send",
+      "sample_rate": 48000,
+      "duration_ms": 90,
+      "nodes": {
+        "tick": { "type": "osc", "wave": "sine", "hz": 1240, "gain": 0.55 },
+        "click": { "type": "sample", "wave": "click", "gain": 0.28 },
+        "env": { "type": "env", "input": "tick", "attack_ms": 2, "decay_ms": 45, "sustain": 0, "release_ms": 20 },
+        "click_env": { "type": "env", "input": "click", "attack_ms": 1, "decay_ms": 12, "sustain": 0, "release_ms": 8 },
+        "lp": { "type": "filter", "input": "env", "mode": "lowpass", "hz": 4200, "q": 0.7 },
+        "out": { "type": "mix", "inputs": ["lp", "click_env"], "gains": [0.85, 0.35] }
+      },
+      "out": "out"
+    },
+    "ui.need_you": {
+      "version": "sfx.graph.v1",
+      "id": "ui.need_you",
+      "sample_rate": 48000,
+      "duration_ms": 110,
+      "nodes": {
+        "low": { "type": "osc", "wave": "sine", "hz": 523, "gain": 0.42 },
+        "high": { "type": "osc", "wave": "sine", "hz": 784, "gain": 0.38 },
+        "lfo": { "type": "lfo", "wave": "sine", "hz": 6, "amount": 0.25, "target": "high.gain" },
+        "mix": { "type": "mix", "inputs": ["low", "high"], "gains": [1, 1] },
+        "out": { "type": "env", "input": "mix", "attack_ms": 6, "decay_ms": 70, "sustain": 0.15, "release_ms": 28 }
+      },
+      "out": "out"
+    },
+    "ui.approve": {
+      "version": "sfx.graph.v1",
+      "id": "ui.approve",
+      "sample_rate": 48000,
+      "duration_ms": 100,
+      "nodes": {
+        "tone": { "type": "osc", "wave": "sine", "hz": 520, "gain": 0.5 },
+        "rise": { "type": "lfo", "wave": "saw", "hz": 9, "amount": 380, "target": "tone.hz", "bipolar": false },
+        "out": { "type": "env", "input": "tone", "attack_ms": 4, "decay_ms": 70, "sustain": 0, "release_ms": 20 }
+      },
+      "out": "out"
+    },
+    "ui.deny": {
+      "version": "sfx.graph.v1",
+      "id": "ui.deny",
+      "sample_rate": 48000,
+      "duration_ms": 110,
+      "nodes": {
+        "tone": { "type": "osc", "wave": "saw", "hz": 280, "gain": 0.28 },
+        "fall": { "type": "lfo", "wave": "saw", "hz": 8, "amount": -160, "target": "tone.hz", "bipolar": false },
+        "grit": { "type": "noise", "color": "brown", "gain": 0.18 },
+        "body": { "type": "env", "input": "tone", "attack_ms": 3, "decay_ms": 70, "sustain": 0, "release_ms": 25 },
+        "air": { "type": "env", "input": "grit", "attack_ms": 2, "decay_ms": 50, "sustain": 0, "release_ms": 20 },
+        "lp": { "type": "filter", "input": "body", "mode": "lowpass", "hz": 900, "q": 0.8 },
+        "out": { "type": "mix", "inputs": ["lp", "air"], "gains": [0.85, 0.3] }
+      },
+      "out": "out"
+    },
+    "ui.connect_ok": {
+      "version": "sfx.graph.v1",
+      "id": "ui.connect_ok",
+      "sample_rate": 48000,
+      "duration_ms": 105,
+      "nodes": {
+        "root": { "type": "osc", "wave": "sine", "hz": 440, "gain": 0.36 },
+        "fifth": { "type": "osc", "wave": "sine", "hz": 660, "gain": 0.32 },
+        "mix": { "type": "mix", "inputs": ["root", "fifth"], "gains": [1, 1] },
+        "soft": { "type": "filter", "input": "mix", "mode": "lowpass", "hz": 2600, "q": 0.6 },
+        "out": { "type": "env", "input": "soft", "attack_ms": 8, "decay_ms": 70, "sustain": 0.1, "release_ms": 24 }
+      },
+      "out": "out"
+    },
+    "ui.error": {
+      "version": "sfx.graph.v1",
+      "id": "ui.error",
+      "sample_rate": 48000,
+      "duration_ms": 115,
+      "nodes": {
+        "buzz": { "type": "osc", "wave": "square", "hz": 140, "gain": 0.22 },
+        "hiss": { "type": "noise", "color": "white", "gain": 0.12 },
+        "am": { "type": "am", "carrier": "buzz", "modulator": "hiss", "amount": 0.35, "gain": 1 },
+        "bp": { "type": "filter", "input": "am", "mode": "bandpass", "hz": 320, "q": 1.4 },
+        "out": { "type": "env", "input": "bp", "attack_ms": 2, "decay_ms": 80, "sustain": 0, "release_ms": 25 }
+      },
+      "out": "out"
+    },
+    "ui.code_open": {
+      "version": "sfx.graph.v1",
+      "id": "ui.code_open",
+      "sample_rate": 48000,
+      "duration_ms": 110,
+      "nodes": {
+        "air": { "type": "noise", "color": "pink", "gain": 0.45 },
+        "sweep": { "type": "lfo", "wave": "saw", "hz": 8, "amount": 2200, "target": "bp.hz", "bipolar": false },
+        "bp": { "type": "filter", "input": "air", "mode": "bandpass", "hz": 1400, "q": 2.1 },
+        "body": { "type": "env", "input": "bp", "attack_ms": 18, "decay_ms": 70, "sustain": 0, "release_ms": 22 },
+        "grains": { "type": "granular", "input": "body", "grain_ms": 8, "density": 48, "pitch": 1.12, "jitter": 0.22 },
+        "tick": { "type": "osc", "wave": "sine", "hz": 960, "gain": 0.28 },
+        "tick_env": { "type": "env", "input": "tick", "attack_ms": 2, "decay_ms": 18, "sustain": 0, "release_ms": 12 },
+        "out": { "type": "mix", "inputs": ["grains", "tick_env"], "gains": [0.72, 0.38] }
+      },
+      "out": "out"
+    },
+    "ui.expand": {
+      "version": "sfx.graph.v1",
+      "id": "ui.expand",
+      "sample_rate": 48000,
+      "duration_ms": 80,
+      "nodes": {
+        "tick": { "type": "osc", "wave": "triangle", "hz": 720, "gain": 0.36 },
+        "lift": { "type": "lfo", "wave": "saw", "hz": 12, "amount": 220, "target": "tick.hz", "bipolar": false },
+        "out": { "type": "env", "input": "tick", "attack_ms": 3, "decay_ms": 40, "sustain": 0, "release_ms": 16 }
+      },
+      "out": "out"
+    },
+    "ui.craft_gen_done": {
+      "version": "sfx.graph.v1",
+      "id": "ui.craft_gen_done",
+      "sample_rate": 48000,
+      "duration_ms": 118,
+      "nodes": {
+        "carrier": { "type": "osc", "wave": "sine", "hz": 523, "gain": 0.48 },
+        "mod": { "type": "osc", "wave": "sine", "hz": 1049, "gain": 0.9 },
+        "bell": { "type": "fm", "carrier": "carrier", "modulator": "mod", "index": 1.7 },
+        "lp": { "type": "filter", "input": "bell", "mode": "lowpass", "hz": 3800, "q": 0.7 },
+        "out": { "type": "env", "input": "lp", "attack_ms": 5, "decay_ms": 85, "sustain": 0, "release_ms": 26 }
+      },
+      "out": "out"
+    }
+  }
+}

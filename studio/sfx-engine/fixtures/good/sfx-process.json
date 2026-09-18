@@ -1,0 +1,24 @@
+{
+  "tool": "sfx.process",
+  "expect": { "ok": true, "tool": "sfx.process", "n": 5, "has_sha": true },
+  "payload": {
+    "seed": 5,
+    "chain": [
+      { "type": "transient", "attack": 0.25, "sustain": -0.05 },
+      { "type": "eq", "mode": "peak", "hz": 1800, "gain_db": 2, "q": 0.8 },
+      { "type": "compress", "threshold": 0.45, "ratio": 3, "attack_ms": 3, "release_ms": 40 },
+      { "type": "reverb", "mix": 0.12, "decay_ms": 60 },
+      { "type": "limiter", "ceiling": 0.95 }
+    ],
+    "patch": {
+      "version": "sfx.graph.v1",
+      "id": "process.tick",
+      "duration_ms": 70,
+      "nodes": {
+        "osc": { "type": "osc", "wave": "triangle", "hz": 640, "gain": 0.55 },
+        "out": { "type": "env", "input": "osc", "attack_ms": 2, "decay_ms": 35, "sustain": 0, "release_ms": 12 }
+      },
+      "out": "out"
+    }
+  }
+}
