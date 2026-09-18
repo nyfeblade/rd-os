@@ -24,6 +24,7 @@
         <div class="tray" id="connectors-tray" data-chrome="connectors-tray" aria-label="Connectors"></div>
         <span class="grow"></span>
         <span class="meter" id="thread-meter" hidden></span>
+        <span id="cutover-chip" hidden>in-studio only</span>
         <button type="button" id="btn-code" aria-pressed="false">Code</button>
         <button type="button" class="here" id="presence-btn" data-chrome="presence-bar" hidden aria-hidden="true" aria-expanded="false" aria-controls="presence-list">
           <span id="presence-count">0 online</span>
@@ -69,6 +70,7 @@
 
         <section class="pane board" data-pane="board" data-module="board-pane" id="pane-board" aria-label="Board">
           <span class="meter" id="board-meter" hidden></span>
+          <span class="meter" id="seat-meters" hidden></span>
           <div id="board-body"></div>
           <div class="instruments" id="instruments" hidden aria-hidden="true" aria-label="CA map"></div>
           <div class="watches" id="watches" hidden aria-hidden="true" aria-label="Routines and watches"></div>

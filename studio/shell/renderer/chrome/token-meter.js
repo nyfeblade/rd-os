@@ -31,10 +31,31 @@
     host.textContent = `${label} · est. ${text}`;
   }
 
+  function renderSeatMeters(host, seats) {
+    if (!host) {
+      return;
+    }
+    host.replaceChildren();
+    const rows = seats && typeof seats === "object" ? Object.entries(seats) : [];
+    const known = rows.filter(([, value]) => knownTokens(value));
+    if (!known.length) {
+      host.hidden = true;
+      return;
+    }
+    host.hidden = false;
+    host.classList.add("meter");
+    host.textContent = known
+      .map(([seat, value]) => `${seat} · est. ${formatTokens(value)}`)
+      .join(" · ");
+  }
+
   function renderTokenMeters(els, state) {
     const tokens = state.tokens || {};
-    renderMeter(els.threadMeter, tokens.session, "session");
-    renderMeter(els.boardMeter, tokens.board, "run");
+    const seatId = state.selectedSeat;
+    const seatVal = tokens.seats && seatId ? tokens.seats[seatId] : null;
+    renderMeter(els.threadMeter, knownTokens(seatVal) ? seatVal : tokens.session, "seat");
+    renderMeter(els.boardMeter, knownTokens(tokens.mission) ? tokens.mission : tokens.board, "mission");
+    renderSeatMeters(els.seatMeters, tokens.seats);
   }
 
   Studio.chrome = Studio.chrome || {};

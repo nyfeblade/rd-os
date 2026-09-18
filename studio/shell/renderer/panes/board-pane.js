@@ -29,7 +29,7 @@
           return { label: "Proof", state: "checking", detail: "dual-gate in progress" };
         }
         if (who === "human") {
-          return { label: "Proof", state: "ready", detail: "checks in — needs you" };
+          return { label: "Proof", state: "ready", detail: "Lead-merge" };
         }
         return { label: "Proof", state: "idle", detail: "no packet" };
       default:
@@ -51,8 +51,25 @@
     hideUntilNeeded(els.watches);
   }
 
+  function isWakeKind(item) {
+    switch (item.kind) {
+      case "review_request":
+      case "review":
+      case "review_comment":
+      case "ci_failure":
+      case "auth_failure":
+        return true;
+      case "comment":
+      case "mention":
+      case "dm":
+        return false;
+      default:
+        return false;
+    }
+  }
+
   function inboxGates(state) {
-    return (state.inbox || []).filter((item) => item.need_you && item.needs_gate);
+    return (state.inbox || []).filter((item) => item.need_you && item.needs_gate && isWakeKind(item));
   }
 
   function renderInboxGate(els, item, handlers) {

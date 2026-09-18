@@ -9,6 +9,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { tryReadTwoWayWire } = require("./read-catalog");
 const { ingressPresent, readIngressFixture, tryLoadIngress } = require("./read-ingress");
+const { shouldTrayPing, shouldWakeChrome, wakeClass } = require("./quiet");
 
 const P0_WIRE = ["github", "slack"];
 const TRAY_STATES = ["live", "needs_auth", "error", "disconnected"];
@@ -98,12 +99,8 @@ function trayStatus(status) {
   }
 }
 
-function shouldTrayPing(item) {
-  return Boolean(item && item.need_you === true);
-}
-
 function visibleInbox(items) {
-  return (items || []).filter((item) => shouldTrayPing(item));
+  return (items || []).filter((item) => item && item.need_you === true);
 }
 
 function chatInbox(items) {
@@ -295,6 +292,8 @@ module.exports = {
   ingressPresent,
   quietPingDropped,
   shouldTrayPing,
+  shouldWakeChrome,
+  wakeClass,
   mergeWireConnectors,
   replyKindFor,
   runtimePresent,

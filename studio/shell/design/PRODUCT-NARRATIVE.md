@@ -41,6 +41,12 @@ Visible mode chips (eng / design / …). Align with `studio/modes` (PR#14). Enco
 3. Onboarding path: GitHub + one AI seat + see Board  
 4. Multi-provider first-class (not Grok-only chrome)  
 
+
+## Connectors — two-way (lock)
+Not read-only. **In:** notifications into Studio. **Out:** human + bot replies to GitHub/Slack/….  
+UI: notification inbox (Chat and/or Board need-you) + reply composer; tray supports auth + inbox.  
+P0: GitHub + Slack. See [CONNECTORS-TWOWAY.md](./CONNECTORS-TWOWAY.md).
+
 ## Out of UI scope
 Life-OS, food, flights, Mac-only, Waiting-as-home, Code always-on, Design launching CAs.
 
@@ -53,3 +59,7 @@ Life-OS, food, flights, Mac-only, Waiting-as-home, Code always-on, Design launch
 | `quiet-studio.html` | Mock: Chat\|Board + tray + Code drawer |
 | `tokens.css` | Tokens |
 | Land | `studio/design/**` via Design CA |
+
+## Token UX
+Quiet defaults · Board/seat token meters · Marketplace low-token mode. See [TOKEN-UX.md](./TOKEN-UX.md).
+

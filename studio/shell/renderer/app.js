@@ -56,6 +56,8 @@
     ctaSeat: document.getElementById("cta-seat"),
     threadMeter: document.getElementById("thread-meter"),
     boardMeter: document.getElementById("board-meter"),
+    seatMeters: document.getElementById("seat-meters"),
+    cutoverChip: document.getElementById("cutover-chip"),
   };
 
   const state = {
@@ -77,7 +79,7 @@
     codeOpen: false,
     mode: "eng",
     view: "cold",
-    tokens: { session: null, board: null },
+    tokens: { session: null, board: null, mission: null, seats: {} },
   };
 
   function bindInbox(id) {
@@ -190,7 +192,12 @@
       }
       return next;
     });
-    state.tokens = { session: 840, board: 210 };
+    state.tokens = {
+      session: 840,
+      board: 210,
+      mission: 210,
+      seats: { cursor: 420, claude: 210 },
+    };
   }
 
   function clearTwoWay() {
@@ -200,15 +207,18 @@
     state.boundTo = null;
     state.pendingBotSend = null;
     state.pendingHitl = null;
-    state.tokens = { session: null, board: null };
+    state.tokens = { session: null, board: null, mission: null, seats: {} };
   }
 
   function bindFirstInbox() {
     const github = (state.inbox || []).find(
-      (item) => item.provider === "github" && item.need_you && item.dest !== "board",
+      (item) =>
+        item.provider === "github" &&
+        item.need_you &&
+        (item.kind === "review_request" || item.kind === "review" || item.kind === "review_comment"),
     );
     const slack = (state.inbox || []).find((item) => item.provider === "slack" && item.need_you);
-    state.inboxFilter = github ? "github" : slack ? "slack" : null;
+    state.inboxFilter = null;
     state.boundTo = github ? github.id : slack ? slack.id : null;
     state.pendingBotSend = null;
     state.pendingHitl = {

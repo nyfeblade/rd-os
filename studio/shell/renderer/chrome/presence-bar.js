@@ -20,6 +20,16 @@
     return seats.filter((member) => member.presence === "online");
   }
 
+  function renderCutoverChip(els, state) {
+    const chip = els.cutoverChip;
+    if (!chip) {
+      return;
+    }
+    const attached = (state.seats || []).some((seat) => seat.kind === "bot" && seat.cutover === true);
+    chip.hidden = state.view === "cold" || !attached;
+    chip.textContent = "in-studio only";
+  }
+
   function renderPresence(els, state) {
     const online = onlineMembers(state.seats);
     els.presenceCount.textContent = `${online.length} online`;
@@ -27,6 +37,7 @@
     els.presenceBtn.setAttribute("aria-hidden", "true");
     els.presenceList.hidden = true;
     els.presenceList.replaceChildren();
+    renderCutoverChip(els, state);
   }
 
   Studio.chrome = Studio.chrome || {};

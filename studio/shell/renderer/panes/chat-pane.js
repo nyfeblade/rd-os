@@ -33,12 +33,32 @@
     return item.dest === "chat" || item.dest === "chat+board";
   }
 
+  function isWakeKind(item) {
+    switch (item.kind) {
+      case "review_request":
+      case "review":
+      case "review_comment":
+      case "ci_failure":
+      case "auth_failure":
+        return true;
+      case "comment":
+      case "mention":
+      case "dm":
+        return false;
+      default:
+        return false;
+    }
+  }
+
   function inboxForChat(state) {
     return (state.inbox || []).filter((item) => {
       if (!item.need_you || !chatDest(item)) {
         return false;
       }
       if (state.inboxFilter && item.provider !== state.inboxFilter) {
+        return false;
+      }
+      if (!state.inboxFilter && !isWakeKind(item)) {
         return false;
       }
       return true;

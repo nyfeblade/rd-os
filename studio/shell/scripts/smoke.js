@@ -9,6 +9,7 @@ const { CATALOG_REL, catalogPath, catalogPresent, tryReadCatalogP0, tryReadTwoWa
 const twoWay = require("../lib/two-way");
 const { INGRESS_REL, ingressPresent, tryLoadIngress } = require("../lib/read-ingress");
 const hitl = require("../lib/hitl");
+const quiet = require("../lib/quiet");
 const { coldOpenSeats, CONNECT_ACK, DEFAULT_SEAT_IDS, IN_STUDIO_ONLY_LABEL } = require("../lib/cold-open");
 const seats = require("../../seats");
 
@@ -67,6 +68,9 @@ assert.match(html, /Reply composer/);
 assert.match(html, /class="tray"/);
 assert.match(html, /id="thread-meter"/);
 assert.match(html, /id="board-meter"/);
+assert.match(html, /id="seat-meters"/);
+assert.match(html, /id="cutover-chip"/);
+assert.match(html, /in-studio only/);
 assert.match(html, /token-meter\.js/);
 assert.match(html, /data-chrome="modes-rail"/);
 assert.match(html, /your-repo/);
@@ -124,6 +128,8 @@ assert.match(js, /needsHitlCard/);
 assert.match(chat, /HITL pending on Board/);
 assert.match(js, /tokens:/);
 assert.match(js, /session: null/);
+assert.match(js, /mission:/);
+assert.match(js, /seats:/);
 assert.match(js, /Escape/);
 assert.doesNotMatch(js, /Eng Lead/);
 assert.doesNotMatch(js, /nyfeblade\/rd-os/);
@@ -147,6 +153,8 @@ assert.match(chat, /You \(draft out\)/);
 assert.match(chat, /Slack needs sign-in in tray/);
 assert.doesNotMatch(chat, /person on/);
 assert.doesNotMatch(chat, /Eng Lead/);
+assert.doesNotMatch(chat, /VERIFIED/);
+assert.doesNotMatch(chat, /Proof VERIFIED/);
 
 assert.match(board, /Needs you/);
 assert.match(board, /also from inbox/);
@@ -158,6 +166,7 @@ assert.match(board, /Actor/);
 assert.match(board, /needsHitlCard/);
 assert.match(board, /Low-risk GitHub replies/);
 assert.match(board, /instrumentFor/);
+assert.match(board, /Lead-merge/);
 assert.match(board, /Agent map/);
 assert.match(board, /View diff/);
 assert.match(board, /hideUntilNeeded/);
@@ -215,12 +224,24 @@ assert.match(readme, /two-way|TWO-WAY|bound/);
 assert.match(readme, /inbox entry|inbox filter/);
 assert.match(readme, /runtime/);
 assert.match(readme, /Token meter|token meter/);
+assert.match(readme, /mission|per seat|per-seat|seats/);
 assert.match(readme, /need_you=false|quiet/);
+assert.match(readme, /Lead-merge/);
+assert.match(readme, /in-studio only|in-studio-only/);
 assert.doesNotMatch(readme, /always visible/);
 
 assert.ok(fs.existsSync(path.join(root, "design", "TOKEN-UX.md")));
 assert.ok(fs.existsSync(path.join(root, "renderer", "chrome", "token-meter.js")));
 assert.match(read("renderer/chrome/token-meter.js"), /unknown|omit|knownTokens/);
+assert.match(read("renderer/chrome/token-meter.js"), /mission/);
+assert.match(read("renderer/chrome/token-meter.js"), /seats/);
+assert.match(presence, /in-studio only/);
+assert.ok(fs.existsSync(path.join(root, "lib", "quiet.js")));
+assert.equal(quiet.shouldTrayPing({ kind: "comment", need_you: true }), false);
+assert.equal(quiet.shouldTrayPing({ kind: "mention", need_you: true }), false);
+assert.equal(quiet.shouldTrayPing({ kind: "review_request", need_you: true }), true);
+assert.equal(quiet.shouldTrayPing({ kind: "ci_failure", need_you: true }), true);
+assert.equal(quiet.shouldTrayPing({ kind: "review_request", need_you: false }), false);
 assert.match(read("lib/read-ingress.js"), /tryLoadIngress/);
 assert.doesNotMatch(read("lib/read-ingress.js"), /writeFile|writeFileSync/);
 assert.ok(fs.existsSync(path.join(root, "design", "CONNECTORS-TWO-WAY.md")));
@@ -239,6 +260,8 @@ assert.match(read("design/quiet-studio.html"), /HITL · high-risk outbound/);
 assert.match(read("design/quiet-studio.html"), /Send to GitHub/);
 
 const designSot = path.resolve(root, "..", "design");
+assert.ok(fs.existsSync(path.join(designSot, "TOKEN-UX.md")), "studio/design TOKEN-UX is consumed read-only");
+assert.ok(fs.existsSync(path.join(designSot, "PRODUCT-NARRATIVE.md")), "studio/design PRODUCT-NARRATIVE is consumed read-only");
 assert.ok(fs.existsSync(path.join(designSot, "CONNECTORS-TWO-WAY.md")), "studio/design CONNECTORS-TWO-WAY is consumed read-only");
 assert.ok(fs.existsSync(path.join(designSot, "HITL.md")), "studio/design HITL is consumed read-only");
 assert.ok(fs.existsSync(path.join(designSot, "quiet-studio.html")), "studio/design quiet-studio is consumed read-only");
@@ -335,7 +358,12 @@ if (catalogPresent()) {
   const inbox = twoWay.demoInbox();
   assert.ok(inbox.length >= 1, "demo inbox should ingest at least one need-you item");
   assert.ok(inbox.every((item) => item.need_you === true));
-  assert.ok(inbox.every((item) => twoWay.shouldTrayPing(item)));
+  assert.ok(
+    inbox.filter((item) => item.kind === "comment" || item.kind === "mention" || item.kind === "dm").every((item) => !twoWay.shouldTrayPing(item)),
+    "FYI/ack must not tray-ping",
+  );
+  assert.ok(inbox.some((item) => item.kind === "review_request" && twoWay.shouldTrayPing(item)));
+  assert.ok(inbox.some((item) => item.kind === "ci_failure" && twoWay.shouldTrayPing(item)));
   assert.ok(!inbox.some((item) => item.need_you === false), "quiet default: no need_you=false tray ping");
   assert.ok(inbox.some((item) => item.provider === "github"), "P0 inbox includes GitHub");
   assert.ok(inbox.some((item) => item.provider === "slack"), "P0 inbox includes Slack");
