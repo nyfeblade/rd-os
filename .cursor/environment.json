@@ -1,0 +1,15 @@
+{
+  "name": "rd-os / AI Coding Studio",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "rd-os-lab",
+      "command": "node bin/lab.js --host 127.0.0.1 --port 7420"
+    },
+    {
+      "name": "studio-preview",
+      "command": "cd studio/shell && PORT=5173 node scripts/preview.js"
+    }
+  ]
+}
