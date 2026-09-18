@@ -1,39 +1,38 @@
 # rd-os
 
-R&D OS wedge — capability-native research lab OS.
+Local-first R&D OS — portable MCP contract + greyscale Waiting cockpit + Proof Layer as first instrument.
 
-**This tree is the smallest runnable wedge:** local board/packets, `attention.dump` file, Proof Layer hook, 14d harness stubs. No product UI. No MCP server process. No second CA.
+CNP skill v2 FAIL Δ=+0.20 — skill theater is not proven. This tree is a **usable lab**, not a 14-day PASS.
 
 | Path | What |
 | --- | --- |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Two surfaces (portable MCP + human steer cockpit) and HARD LAW → interfaces |
-| [MCP_CONTRACT.md](MCP_CONTRACT.md) | Tool names, reject codes, research-before-claim, anti-shrink |
-| [KILL_14D.md](KILL_14D.md) | 14-day kill vs markdown baseline — PASS/FAIL numbers + stranger cmds |
-| [INSTRUMENTS.md](INSTRUMENTS.md) | Proof Layer as first instrument |
-| [schema/](schema/) | Machine-time / experiment / MCP / attention types |
-| [bin/rdos.js](bin/rdos.js) | CLI shim: `rdos <tool> --in payload.json --out result.json` |
-| [board/](board/) | Local board (runtime packets under `$RDOS_HOME/board`) |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | MCP + human steer; `attention.dump` is SoT |
+| [rd-os-design/steer-cockpit-v1.md](rd-os-design/steer-cockpit-v1.md) | Greyscale Waiting product UI spec |
+| [MCP_CONTRACT.md](MCP_CONTRACT.md) | Tool names, reject codes, stdio MCP server |
+| [KILL_14D.md](KILL_14D.md) | 14-day kill vs markdown baseline — day 0 armable; clock not started |
+| [INSTRUMENTS.md](INSTRUMENTS.md) | Proof Layer `npm run demo:reject` hook |
+| [ui/](ui/) | Waiting / Experiments / History / Settings — greyscale view over the dump |
+| [bin/lab.js](bin/lab.js) | `npm start` — UI + JSON API |
+| [bin/mcp.js](bin/mcp.js) | stdio MCP server agents attach |
+| [bin/rdos.js](bin/rdos.js) | CLI: `rdos <tool> --in payload.json --out result.json` |
 
-First instrument (merged Exp-1): [agent-proof-layer](https://github.com/nyfeblade/agent-proof-layer).
-
-CNP skill v2 FAIL Δ=+0.20 — skill theater is not proven.
-
-## Stranger check (this PR)
-
-Cold clone, Node 18+, no npm install. Expect exit 0.
+## One command (clone → lab)
 
 ```bash
-chmod +x scripts/stranger-check.sh scripts/kill14d.sh scripts/proof-layer.sh scripts/wedge-measure.sh
-./scripts/stranger-check.sh
+git clone https://github.com/nyfeblade/rd-os.git
+cd rd-os
+npm start
 ```
 
-Expect `PASS stranger-check (board + attention + packet + 14d stubs; not a 14d verdict)`.
+Waiting home: [http://127.0.0.1:7420](http://127.0.0.1:7420). MCP: `RDOS_HOME=./var node bin/mcp.js`. Human steer: UI Approve/Reject or `rdos steer.gate --actor human`.
+
+Proof screenshot fixtures: `node bin/lab.js --no-seed --fixture needs-you` (also `proof-waiting`, `agent-waiting`, `history`).
+
+## Eng Proof dual-gate
 
 ```bash
-./scripts/kill14d.sh --arm markdown --day 0
-./scripts/kill14d.sh --arm rdos --day 7 --skip-m1
-./scripts/proof-layer.sh   # clones agent-proof-layer; expect REJECTED
-./scripts/wedge-measure.sh # packet completeness / time-to-falsify vs markdown path
+chmod +x scripts/*.sh
+npm run dual-gate
 ```
 
-That is not a 14-day PASS. `verdict` stays null. Human merge only.
+`verdict` stays null. `clock_started` stays false. Harness executable ≠ day-14 PASS.

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# Cold-clone check for the Exp-2 runnable wedge.
-# Exercises local board + attention.dump + packet path.
-# Does not PASS the 14-day kill. Does not self-cert the wedge.
+# Cold-clone check for the usable R&D OS lab.
+# Board + MCP + UI smoke + day-0 kill fields. Does not PASS the 14-day kill.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -25,7 +24,20 @@ need_file schema/experiment.ts
 need_file schema/mcp.ts
 need_file schema/attention.ts
 need_file bin/rdos.js
+need_file bin/mcp.js
+need_file bin/lab.js
+need_file bin/kill14d.js
+need_file bin/proof-layer.js
 need_file src/kernel.js
+need_file src/mcp-server.js
+need_file src/lab-server.js
+need_file ui/index.html
+need_file ui/app.js
+need_file ui/app.css
+need_file ui/copy.js
+need_file rd-os-design/steer-cockpit-v1.md
+need_file fixtures/ui/needs-you.json
+need_file fixtures/lab/seed.json
 need_file scripts/kill14d.sh
 need_file scripts/proof-layer.sh
 
@@ -46,13 +58,16 @@ grep -q "WEIGHT_ONLY" MCP_CONTRACT.md || fail "MCP_CONTRACT.md missing WEIGHT_ON
 grep -q "UNDER_SCOPE" MCP_CONTRACT.md || fail "MCP_CONTRACT.md missing UNDER_SCOPE code"
 grep -q "Δ=+0.20\|DELTA=+0.20\|+0.20" KILL_14D.md ARCHITECTURE.md MCP_CONTRACT.md \
   || fail "CNP v2 FAIL +0.20 not cited"
+grep -q "stdio" MCP_CONTRACT.md || fail "MCP_CONTRACT.md missing stdio MCP server"
 
 for field in estimate_ca_hours estimate_proof_min human_gates actuals; do
   grep -q "$field" schema/machine-time.ts || fail "schema/machine-time.ts missing $field"
 done
 
 command -v node >/dev/null || fail "node >=18 required"
-chmod +x bin/rdos.js scripts/kill14d.sh scripts/proof-layer.sh scripts/wedge-measure.sh
+command -v curl >/dev/null || fail "curl required for UI smoke"
+chmod +x bin/rdos.js bin/mcp.js bin/lab.js bin/kill14d.js bin/proof-layer.js bin/mcp-smoke.js \
+  scripts/kill14d.sh scripts/proof-layer.sh scripts/wedge-measure.sh scripts/ui-smoke.sh scripts/dual-gate.sh
 
 home="$(mktemp -d "${TMPDIR:-/tmp}/rdos-stranger.XXXXXX")"
 export RDOS_HOME="$home"
@@ -77,30 +92,42 @@ node -e '
 const dump = require(process.argv[1]);
 if (!dump.p0 || !Array.isArray(dump.hard_law)) process.exit(1);
 if (!dump.p0.id || dump.hard_law.length < 5) process.exit(1);
-console.log("attention.dump siblings ok");
-' "$home/board/attention.dump.json" || fail "attention.dump missing p0/hard_law siblings"
+if (!dump.thesis || !dump.bottleneck || !dump.redirect) process.exit(1);
+console.log("attention.dump siblings + thesis/bottleneck/redirect ok");
+' "$home/board/attention.dump.json" || fail "attention.dump missing p0/hard_law/thesis"
 
 if node bin/rdos.js claim.submit --in fixtures/wedge/weight-only.json --home "$home" --out "$home/weight.json" >/dev/null; then
   fail "weight-only claim must reject"
 fi
 grep -q '"code": "WEIGHT_ONLY"' "$home/weight.json" || fail "weight-only missing WEIGHT_ONLY"
 
-# 14d stubs must run without starting the clock. Skip live APL on this check
-# so a cold rd-os clone does not require a second repo; Proof Layer hook is
-# scripts/proof-layer.sh (Eng Proof / M1).
+if node bin/rdos.js steer.gate --in fixtures/lab/seed.json --home "$home" --actor agent --out "$home/not-human.json" >/dev/null; then
+  fail "agent steer.gate must reject"
+fi
+grep -q '"code": "NOT_HUMAN"' "$home/not-human.json" || fail "agent steer missing NOT_HUMAN"
+
+node bin/mcp-smoke.js || fail "mcp-smoke failed"
+
+# Day 0 is armable now. Skip live APL here so a cold rd-os clone does not
+# require a second repo; Proof Layer hook is scripts/proof-layer.sh (M1).
 node bin/kill14d.js --arm markdown --day 0 --home "$home/md" --skip-m1 > "$home/day0-markdown.json"
-node bin/kill14d.js --arm rdos --day 7 --home "$home/rdos" --skip-m1 > "$home/day7-rdos.json"
+node bin/kill14d.js --arm rdos --day 0 --home "$home/rdos" --skip-m1 > "$home/day0-rdos.json"
+node bin/kill14d.js --arm rdos --day 7 --home "$home/rdos7" --skip-m1 > "$home/day7-rdos.json"
 for key in m1_rejected m1_n m2_illegal_accepts m3_weight_only_rejected m3_n \
   m4_underscope_rejected m4_n m5_compliant m5_n m6_baselines m6_accepts_without_query \
   m7_p0_present m7_hard_law_n; do
   grep -q "\"$key\"" "$home/day0-markdown.json" || fail "day0 markdown missing $key"
-  grep -q "\"$key\"" "$home/day7-rdos.json" || fail "day7 rdos missing $key"
+  grep -q "\"$key\"" "$home/day0-rdos.json" || fail "day0 rdos missing $key"
 done
-grep -q '"verdict": null' "$home/day7-rdos.json" || fail "harness self-certified verdict"
-grep -q '"clock_started": false' "$home/day7-rdos.json" || fail "harness started 14d clock"
-grep -q '"m2_illegal_accepts": 0' "$home/day7-rdos.json" || fail "rdos arm accepted a single-lane plant"
-grep -q '"m3_weight_only_rejected": 5' "$home/day7-rdos.json" || fail "rdos arm missed a WEIGHT_ONLY plant"
-grep -q '"m4_underscope_rejected": 5' "$home/day7-rdos.json" || fail "rdos arm missed an UNDER_SCOPE plant"
-grep -q '"m7_p0_present": true' "$home/day7-rdos.json" || fail "rdos arm missing live P0"
+grep -q '"verdict": null' "$home/day0-rdos.json" || fail "harness self-certified verdict"
+grep -q '"clock_started": false' "$home/day0-rdos.json" || fail "harness started 14d clock"
+grep -q '"m2_illegal_accepts": 0' "$home/day0-rdos.json" || fail "rdos arm accepted a single-lane plant"
+grep -q '"m3_weight_only_rejected": 5' "$home/day0-rdos.json" || fail "rdos arm missed a WEIGHT_ONLY plant"
+grep -q '"m4_underscope_rejected": 5' "$home/day0-rdos.json" || fail "rdos arm missed an UNDER_SCOPE plant"
+grep -q '"m7_p0_present": true' "$home/day0-rdos.json" || fail "rdos arm missing live P0"
+grep -q '"m6_accepts_without_query": 0' "$home/day0-rdos.json" || fail "rdos accepted without envelope query"
+grep -q '"m2_illegal_accepts": 5' "$home/day0-markdown.json" || fail "markdown arm must show unconstrained single-lane ACCEPTs"
 
-echo "PASS stranger-check (board + attention + packet + 14d stubs; not a 14d verdict)"
+RDOS_HOME="$home/ui" ./scripts/ui-smoke.sh || fail "ui-smoke failed"
+
+echo "PASS stranger-check (board + MCP + Waiting UI + day0 fields; not a 14d verdict)"

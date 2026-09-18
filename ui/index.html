@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>rd-os — Waiting</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel" id="plate">
+        <nav class="tabs" aria-label="Primary">
+          <a href="/" data-nav="waiting" id="nav-waiting">Waiting</a>
+          <a href="/experiments" data-nav="experiments" id="nav-experiments">Experiments</a>
+          <a href="/history" data-nav="history" id="nav-history">History</a>
+          <a href="/settings" data-nav="settings" id="nav-settings">Settings</a>
+          <span class="meta">now</span>
+        </nav>
+        <main id="view" tabindex="-1">loading</main>
+      </div>
+    </div>
+    <div id="dialog-root"></div>
+    <script src="/copy.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,17 +1,25 @@
 {
   "name": "rd-os",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "Smallest runnable R&D OS wedge: local board/packets, attention.dump, Proof Layer hook, 14d harness stubs. No glass UI. No MCP server process.",
+  "description": "Local-first R&D OS lab: board, MCP, Waiting cockpit (dump SoT), Proof Layer hook, day-0 kill harness. No 14d PASS from harness existence.",
   "bin": {
-    "rdos": "./bin/rdos.js"
+    "rdos": "./bin/rdos.js",
+    "rdos-mcp": "./bin/mcp.js",
+    "rdos-lab": "./bin/lab.js"
   },
   "scripts": {
+    "start": "node ./bin/lab.js",
+    "lab": "node ./bin/lab.js",
+    "mcp": "node ./bin/mcp.js",
     "rdos": "node ./bin/rdos.js",
     "stranger": "./scripts/stranger-check.sh",
+    "dual-gate": "./scripts/dual-gate.sh",
     "kill14d": "./scripts/kill14d.sh",
     "proof-layer": "./scripts/proof-layer.sh",
-    "wedge-measure": "./scripts/wedge-measure.sh"
+    "wedge-measure": "./scripts/wedge-measure.sh",
+    "ui-smoke": "./scripts/ui-smoke.sh",
+    "mcp-smoke": "node ./bin/mcp-smoke.js"
   },
   "engines": {
     "node": ">=18"

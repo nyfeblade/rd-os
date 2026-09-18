@@ -9,4 +9,4 @@ Each experiment packet is `board/experiments/<id>.json` and **must** carry machi
 - `human_gates[]`
 - `actuals`
 
-`attention.dump` is `board/attention.dump.json` — P0 and HARD LAW are siblings. No glass UI.
+`attention.dump` is `board/attention.dump.json` — P0 and HARD LAW are siblings. This file is the data SoT.

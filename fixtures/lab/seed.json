@@ -1,0 +1,25 @@
+{
+  "experiment_id": "exp-2-rd-os-lab",
+  "title": "R&D OS usable lab (MCP + dump SoT + Proof Layer)",
+  "estimate_ca_hours": 3,
+  "estimate_proof_min": 30,
+  "human_gates": [
+    {
+      "kind": "merge",
+      "reason": "playbook: human-owned merges; bots never merge"
+    },
+    {
+      "kind": "proof_accept",
+      "reason": "Eng Proof dual-gate stranger-check + proof-layer + kill14d day0 + UI smoke"
+    }
+  ],
+  "actuals": {
+    "ca_hours": null,
+    "proof_min": null,
+    "human_hours": null,
+    "finished_at": null
+  },
+  "opened_n": 3,
+  "kill": "cold clone opens a working lab; day-0 kill is armable; do not claim 14d PASS",
+  "instrument": "apl prove"
+}

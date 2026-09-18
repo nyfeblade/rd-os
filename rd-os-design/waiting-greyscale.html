@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>R&amp;D OS — Waiting (greyscale)</title>
+<style>
+  :root {
+    --bg: #f4f4f2;
+    --panel: #ffffff;
+    --line: #d8d8d4;
+    --ink: #1a1a1a;
+    --ink-2: #5c5c5c;
+    --ink-3: #8a8a8a;
+    --row-human: #ececea;
+    --focus: #1a1a1a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 24px auto; padding: 0 16px 48px; }
+  .note { color: var(--ink-2); font-size: 12px; margin-bottom: 12px; max-width: 40em; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  nav {
+    display: flex; gap: 16px; align-items: baseline;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+  }
+  nav a { color: var(--ink-3); text-decoration: none; }
+  nav a[aria-current="page"] { color: var(--ink); font-weight: 600; }
+  nav .meta { margin-left: auto; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  caption {
+    text-align: left;
+    padding: 12px 14px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-3);
+    padding: 6px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  th.num, td.num { text-align: right; }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr.human {
+    background: var(--row-human);
+    font-weight: 500;
+  }
+  tr.human td:first-child { box-shadow: inset 3px 0 0 var(--ink); }
+  .who { display: block; font-size: 11px; color: var(--ink-2); font-weight: 400; margin-top: 2px; }
+  .actions {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+  }
+  button {
+    font: inherit; font-size: 12px; font-weight: 600;
+    padding: 5px 10px; border-radius: 5px; cursor: pointer;
+    border: 1px solid var(--ink); background: var(--ink); color: #fff;
+  }
+  button.secondary {
+    background: transparent; color: var(--ink);
+  }
+  button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .quiet { color: var(--ink-2); font-weight: 400; }
+  .foot {
+    padding: 10px 14px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .empty {
+    padding: 36px 14px;
+  }
+  .empty h1 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .hidden { display: none; }
+  .toggles { display: flex; gap: 6px; margin-bottom: 10px; }
+  .toggles button {
+    background: transparent; color: var(--ink-2);
+    border-color: var(--line); font-weight: 500;
+  }
+  .toggles button[aria-pressed="true"] {
+    color: var(--ink); border-color: var(--ink); font-weight: 600;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="note">
+      Greyscale Waiting — information graphic from <code>attention.dump</code>.
+      Compare by eye: who waits, how long. Actions sit on the human row.
+      No brand accent until hierarchy reads.
+    </p>
+    <div class="toggles" role="group" aria-label="State">
+      <button type="button" id="b-human" aria-pressed="true">Needs human</button>
+      <button type="button" id="b-empty" aria-pressed="false">Empty</button>
+      <button type="button" id="b-flight" aria-pressed="false">In flight only</button>
+    </div>
+
+    <div class="panel">
+      <nav aria-label="Primary">
+        <a href="#" aria-current="page">Waiting</a>
+        <a href="#">Experiments</a>
+        <a href="#">History</a>
+        <a href="#">Settings</a>
+        <span class="meta">now</span>
+      </nav>
+
+      <div id="view-human">
+        <table>
+          <caption>Open items · sorted by urgency</caption>
+          <thead>
+            <tr>
+              <th scope="col">What</th>
+              <th scope="col">Waiting on</th>
+              <th scope="col" class="num">Age</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="human">
+              <td>
+                Plan ready — merge gate on Exp-2 wedge
+                <span class="who">Agents finished probes. Decision required.</span>
+                <div class="actions">
+                  <button type="button">Approve</button>
+                  <button type="button" class="secondary">Reject</button>
+                  <button type="button" class="secondary">Details</button>
+                </div>
+              </td>
+              <td>Human</td>
+              <td class="num">12m</td>
+            </tr>
+            <tr>
+              <td class="quiet">Checking claims…</td>
+              <td class="quiet">Proof</td>
+              <td class="num quiet">4m</td>
+            </tr>
+            <tr>
+              <td class="quiet">Running probes…</td>
+              <td class="quiet">Agent</td>
+              <td class="num quiet">1h 02m</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="foot">Open gates: merge · Exp-2 · Last similar run: 2.0 CA hours</div>
+      </div>
+
+      <div id="view-empty" class="hidden">
+        <div class="empty">
+          <h1>Nothing waiting</h1>
+          <p class="quiet" style="margin:0 0 12px">Board is clear. Open an experiment when you want to measure something.</p>
+          <button type="button" class="secondary">New experiment</button>
+        </div>
+      </div>
+
+      <div id="view-flight" class="hidden">
+        <table>
+          <caption>Open items · no human gate</caption>
+          <thead>
+            <tr>
+              <th scope="col">What</th>
+              <th scope="col">Waiting on</th>
+              <th scope="col" class="num">Age</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Checking claims…</td>
+              <td>Proof</td>
+              <td class="num">4m</td>
+            </tr>
+            <tr>
+              <td class="quiet">Running probes…</td>
+              <td class="quiet">Agent</td>
+              <td class="num quiet">1h 02m</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="foot">No open human gates · Last similar run: 2.0 CA hours</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const views = {
+      human: document.getElementById('view-human'),
+      empty: document.getElementById('view-empty'),
+      flight: document.getElementById('view-flight'),
+    };
+    const btns = {
+      human: document.getElementById('b-human'),
+      empty: document.getElementById('b-empty'),
+      flight: document.getElementById('b-flight'),
+    };
+    function show(k) {
+      Object.keys(views).forEach((key) => {
+        views[key].classList.toggle('hidden', key !== k);
+        btns[key].setAttribute('aria-pressed', key === k ? 'true' : 'false');
+      });
+    }
+    btns.human.onclick = () => show('human');
+    btns.empty.onclick = () => show('empty');
+    btns.flight.onclick = () => show('flight');
+  </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 # MCP contract — portable, any agent
 
-**Status:** contract + local `rdos` CLI shim. No MCP server process in this PR.  
-**Companion:** `ARCHITECTURE.md` (HARD LAW), `schema/mcp.ts`, `schema/machine-time.ts`, `bin/rdos.js`.  
-**Portability:** any agent that can exec `rdos <tool> --in payload.json --out result.json`. Do not require Cursor, Claude, or Grok specifically.
+**Status:** contract + stdio MCP server (`bin/mcp.js`) + `rdos` CLI shim. `attention.dump` is SoT.  
+**Companion:** `ARCHITECTURE.md` (HARD LAW), `schema/mcp.ts`, `schema/machine-time.ts`, `bin/rdos.js`, `bin/mcp.js`.  
+**Portability:** any agent that speaks MCP stdio (`node bin/mcp.js`) or can exec `rdos <tool> --in payload.json --out result.json`. Do not require Cursor, Claude, or Grok specifically.
 
 This contract is **enforcement**, not a skill file. CNP skill v2 FAILED (OUT Δ=+0.20 < +1.5 vs strong same-tools baseline). A markdown reminder to "do research" is not this contract.
 
@@ -37,7 +37,9 @@ Names are stable. Payloads are the types in `schema/`. Unknown tools → `UNKNOW
 | `attention.dump` | agent or human | — | — (always returns P0 + HARD LAW siblings) |
 | `steer.gate` | **human only** | add/resolve `human_gates[]` | `NOT_HUMAN` if agent calls it |
 
-`rdos` CLI shim (this PR): each tool is `rdos <tool> --in payload.json --out result.json --home <dir>`. Same reject codes. Not a hosted MCP server.
+Attach (stdio MCP): `RDOS_HOME=./var node bin/mcp.js`. Same tool names and reject codes.  
+CLI shim: `rdos <tool> --in payload.json --out result.json --home <dir> --actor agent|human`.  
+Human steer: `rdos steer.gate --actor human` (or lab `POST /api/steer`). MCP agents always get `NOT_HUMAN` on `steer.gate`.
 
 ---
 
@@ -168,7 +170,7 @@ Reject if any required key is missing. Reject if any string/number field looks l
 
 ## Attention (Law 5)
 
-`attention.dump` returns P0 and HARD LAW in one object (see `ARCHITECTURE.md`). Agents may not strip `hard_law`. Humans use the dump as the steer cockpit until a UI exists.
+`attention.dump` returns P0 and HARD LAW in one object (see `ARCHITECTURE.md`). Agents may not strip `hard_law`. Humans steer from the Waiting UI (a view of the dump) or `rdos steer.gate --actor human`.
 
 ---
 
@@ -181,7 +183,7 @@ Reject if any required key is missing. Reject if any string/number field looks l
 | Set `verdict` | (Eng Proof process, not a tool in v0) | no (`SELF_CERT`) |
 | Merge | git / GitHub — playbook human only | no |
 
-Cockpit v0 = `attention.dump` + reading reject codes. No product UI.
+Cockpit = `attention.dump` (source of truth) + reject codes. The Waiting UI is a view of that dump.
 
 ---
 

@@ -1,6 +1,6 @@
 # R&D OS wedge — architecture (stack research)
 
-**Status:** smallest runnable wedge — local board/packets + `rdos` CLI + `attention.dump` file + Proof Layer hook + 14d harness stubs. No product UI. No MCP server process. No second CA.  
+**Status:** usable local-first lab — board/packets + stdio MCP server + `attention.dump` SoT + greyscale Waiting cockpit (dump view) + Proof Layer `demo:reject` hook + day-0 kill harness. No second CA. Harness ≠ 14-day PASS.  
 **Board:** [Exp-2 R&D OS](https://app.notion.com/p/3dee07d17270817e9d01d8821b3ec2f5)  
 **Vehicle:** this repo (`nyfeblade/rd-os`).  
 **First instrument (merged Exp-1):** [`nyfeblade/agent-proof-layer`](https://github.com/nyfeblade/agent-proof-layer) ([PR #1](https://github.com/nyfeblade/agent-proof-layer/pull/1) merged `de40fcc`).  
@@ -18,7 +18,7 @@ These five rules are the product. They sit **beside** the live attention pane (P
 2. **Multi-lane fan-out:** spawn N parallel cheap probes; each must fetch or run; recombine evidence-only; anti-single-lane check before ACCEPT plan.
 3. **Research-before-claim + anti-shrink** in the agent MCP contract: reject weight-only verdicts; reject under-scope without a physics or human constraint.
 4. **Envelope memory:** store finished CA-hour baselines for planning.
-5. **Live attention pane is still the P0 wedge.** This law sits beside it — same dump, same cockpit, not a buried appendix.
+5. **Live attention pane is still the P0 wedge.** This law sits beside it — same dump, same desk, not a buried appendix.
 
 ---
 
@@ -31,22 +31,22 @@ Coding agents (Cursor CloudAgents, Claude Code, Grok, others) ship prose: "tests
 | Proof Layer **REJECTED** a planted-false "tests passed" claim (`measured_exit` 1 vs expect 0, `wall_ms` 508 on `de40fcc`) | Eng Proof on Exp-1; stranger `npm run demo:reject` | Instruments that *run* claims beat self-cert. First instrument exists. |
 | CNP skill v2 **FAIL** OUT Δ=+0.20 (need ≥+1.5 vs strong same-tools baseline) | Board Proof column; evidence `capability-ab-v2/` | Skill/markdown theater is **not** proven. Prefer instruments + contract rejects over more prose. |
 
-The wedge is a **capability-native research lab OS**: portable contract any agent must speak, plus a human steer surface that keeps P0 and HARD LAW in one glance. It is not a chat app, visualizer, or second CloudAgent.
+The wedge is a **capability-native research lab OS**: portable contract any agent must speak, plus a human steer desk that keeps P0 and HARD LAW in one glance. It is not a chat app, visualizer, or second CloudAgent.
 
 ---
 
 ## Two surfaces (and only two)
 
 ```
- any agent ──MCP_CONTRACT──► R&D OS kernel (no UI)
+ any agent ──stdio MCP (bin/mcp.js)──► R&D OS kernel
                                   │
                                   ├─ machine-time + envelope store
                                   ├─ multi-lane fan-out + evidence recombine
-                                  ├─ Proof Layer (apl prove) as first instrument
-                                  └─ attention.dump (P0 + HARD LAW adjacent)
+                                  ├─ Proof Layer (npm run demo:reject) as first instrument
+                                  └─ attention.dump (P0 + HARD LAW adjacent)  ← data SoT
                                          │
- human ──────── steer cockpit ───────────┘
-         (JSON/text now; UI later only if 14d kill PASSes)
+ human ── Waiting UI / rdos steer.gate --actor human ─┘
+         (UI is a view of attention.dump; never a second store)
 ```
 
 ### 1. Portable MCP (any agent)
@@ -55,9 +55,9 @@ A small tool contract, not a host that owns the agent's pipes. Agents remain Cur
 
 **Steal from Sightline, do not rebuild it.** [Sightline](https://github.com/nyfeblade/sightline) already hosts Claude Code, gates tool calls, and distinguishes Claimed / Checked / Verified (Verified requires a refutation that has *fired*). R&D OS steals the claim hygiene and the "waiting-on-you at the top" attention idea. It leaves behind: Claude-only hosting, desktop GUI, chief/worker fleet, in-process MCP that owns the binary. Exp-3 governor and parallel CAs are out of scope.
 
-### 2. Human steer cockpit (no product UI this PR)
+### 2. Human steer desk
 
-The cockpit is the human control surface: ACCEPT/REJECT plans, list human gates, see P0, read HARD LAW. **This PR ships no chrome.** The interface is `attention.dump` — a JSON document a stranger can `cat`. The live attention pane is P0; HARD LAW is the next sibling field, not a link to a wiki.
+The cockpit is the human control surface. Source of truth is `attention.dump`. The product view is Magic Ink greyscale Waiting (`rd-os-design/waiting-greyscale.html`, tokens in `ui/app.css`): Waiting home, Experiments, History, Settings. HARD LAW is behavior + Settings rules, not a home chip strip. No copper Ink Desk. No SaaS blue accent as the primary system. Humans also steer with `rdos steer.gate --actor human`.
 
 ```json
 {
@@ -68,7 +68,7 @@ The cockpit is the human control surface: ACCEPT/REJECT plans, list human gates,
 }
 ```
 
-If P0 and HARD LAW are not in the same dump, the cockpit is non-compliant. A future UI may render this dump; it may not invent a second source of truth.
+If P0 and HARD LAW are not in the same dump, the cockpit is non-compliant. The Waiting UI renders this dump; it may not invent a second source of truth.
 
 ---
 
@@ -80,7 +80,7 @@ If P0 and HARD LAW are not in the same dump, the cockpit is non-compliant. A fut
 | 2 Multi-lane | `FanOut` (`n≥2` unless constraint) | `plan.fanout`, `plan.accept` — anti-single-lane before ACCEPT | Show lane count + per-probe fetch/run evidence URIs |
 | 3 Research-before-claim + anti-shrink | Claim + Plan validators | `claim.submit`, `plan.accept` — reject `WEIGHT_ONLY`, `UNDER_SCOPE`, `NO_RESEARCH` | Surface reject codes; human may add a physics/human constraint, not a vibe override |
 | 4 Envelope memory | append-only `envelope/` baselines | `envelope.query`, `envelope.record` (only after `actuals` filled + experiment finished) | Next-plan hint: nearest finished CA-hour baseline or `NO_BASELINE` |
-| 5 Attention P0 beside law | `attention.dump` | `attention.dump` | P0 pane + HARD LAW siblings; no buried law |
+| 5 Attention P0 beside law | `attention.dump` | `attention.dump` | Waiting interrupt + Settings rules; no buried law |
 
 ### Law 1 — machine-time (detail)
 
@@ -123,7 +123,7 @@ Planning **must** call `envelope.query` (or the CLI equivalent) and either cite 
 
 ### Law 5 — attention pane (detail)
 
-P0 is the only interrupt that may preempt the current experiment. The pane answers: what is waiting, on whom, for how long. HARD LAW is the adjacent field so a stranger opening the cockpit cannot miss the contract. Do not build a dashboard in this wedge; `attention.dump` is enough to kill or keep the idea (see `KILL_14D.md` M7).
+P0 is the only interrupt that may preempt the current experiment. The pane answers: what is waiting, on whom, for how long. HARD LAW is the adjacent field so a stranger opening the dump cannot miss the contract. M7 grades the dump, not chrome (see `KILL_14D.md`).
 
 ---
 
@@ -133,10 +133,10 @@ P0 is the only interrupt that may preempt the current experiment. The pane answe
 | --- | --- | --- |
 | `MachineTime`, `HumanGate`, `Actuals` | `schema/machine-time.ts` + `src/kernel.js` | `rdos experiment.open` writes `board/experiments/<id>.json` |
 | `Experiment`, `FanOut`, `Probe` | `schema/experiment.ts` + `src/kernel.js` | local board packets; rejects `SINGLE_LANE` / `UNDER_SCOPE` |
-| MCP tool names + reject codes | `schema/mcp.ts` + `bin/rdos.js` | CLI shim `rdos <tool> --in payload.json` — not an MCP server process |
+| MCP tool names + reject codes | `schema/mcp.ts` + `bin/mcp.js` + `bin/rdos.js` | stdio MCP + CLI shim |
 | Attention dump | `schema/attention.ts` + `src/attention.js` | `rdos attention.dump` → `board/attention.dump.json` |
 
-No server, no UI, no second CA.
+No second CA. Do not claim 14d PASS because the harness exists.
 
 ---
 
@@ -148,7 +148,7 @@ Proof Layer (`apl prove`) is the only instrument this wedge may depend on on day
 
 ## Out of scope (park)
 
-Full app UI; parallel CloudAgents; CNP skill re-litigation without a new kill that beats a strong same-tools baseline; Exp-3 governor; group chat; Sightline rebuild; wrapping Claude/Cursor/Grok.
+Parallel CloudAgents; CNP skill re-litigation without a new kill that beats a strong same-tools baseline; Exp-3 governor; group chat; Sightline rebuild; wrapping Claude/Cursor/Grok; starting the 14d clock as PASS.
 
 ---
 

@@ -7,6 +7,7 @@ const BOARD_EXPERIMENTS = "board/experiments";
 const BOARD_PACKETS = "board/packets";
 const BOARD_ATTENTION = "board/attention.dump.json";
 const BOARD_SESSION = "board/session.json";
+const BOARD_EVENTS = "board/events.jsonl";
 const ENVELOPE_DIR = "envelope/baselines";
 
 function resolveHome(home) {
@@ -131,6 +132,31 @@ function createStore(homeArg) {
     saveBaseline(baseline) {
       writeJson(this.envelopePath(baseline.experiment_id), baseline);
       return rel(home, this.envelopePath(baseline.experiment_id));
+    },
+    eventsPath() {
+      return path.join(home, BOARD_EVENTS);
+    },
+    appendEvent(event) {
+      const row = {
+        at: new Date().toISOString(),
+        ...event,
+      };
+      fs.appendFileSync(this.eventsPath(), `${JSON.stringify(row)}\n`);
+      return row;
+    },
+    listEvents(limit = 50) {
+      const abs = this.eventsPath();
+      if (!fs.existsSync(abs)) {
+        return [];
+      }
+      const lines = fs.readFileSync(abs, "utf8").split("\n").filter(Boolean);
+      return lines.slice(-limit).map((line) => {
+        try {
+          return JSON.parse(line);
+        } catch (_err) {
+          return null;
+        }
+      }).filter(Boolean);
     },
   };
 }
