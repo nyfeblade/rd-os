@@ -1,0 +1,18 @@
+{
+  "op": "accept",
+  "sign": false,
+  "expect": { "ok": false, "code": "BAD_SIGNATURE" },
+  "request": {
+    "provider": "slack",
+    "secret": "fixture-slack-signing-secret",
+    "headers": {
+      "x-slack-request-timestamp": "1000000000",
+      "x-slack-signature": "v0=placeholder"
+    },
+    "tray_state": "live",
+    "body": {
+      "type": "url_verification",
+      "challenge": "old"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "op": "accept",
+  "expect": {
+    "ok": true,
+    "dropped": false,
+    "kind": "review_comment",
+    "need_you": true,
+    "dest": "chat",
+    "provider": "github"
+  },
+  "request": {
+    "provider": "github",
+    "headers": { "x-github-event": "pull_request_review_comment" },
+    "tray_state": "live",
+    "body": {
+      "action": "created",
+      "sender": { "login": "reviewer", "type": "User" },
+      "pull_request": {
+        "number": 18,
+        "title": "connectors catalog",
+        "html_url": "https://github.com/nyfeblade/rd-os/pull/18"
+      },
+      "comment": {
+        "id": 99,
+        "body": "wire Slack next",
+        "user": { "login": "reviewer", "type": "User" },
+        "html_url": "https://github.com/nyfeblade/rd-os/pull/18#discussion_r99",
+        "created_at": "2026-09-18T12:02:00Z"
+      },
+      "repository": {
+        "name": "rd-os",
+        "full_name": "nyfeblade/rd-os",
+        "owner": { "login": "nyfeblade" }
+      }
+    }
+  }
+}

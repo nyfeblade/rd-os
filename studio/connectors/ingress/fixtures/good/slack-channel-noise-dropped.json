@@ -1,0 +1,17 @@
+{
+  "op": "accept",
+  "expect": { "ok": true, "dropped": true, "at_you": false },
+  "request": {
+    "provider": "slack",
+    "headers": {},
+    "tray_state": "live",
+    "body": {
+      "type": "message",
+      "channel_type": "channel",
+      "user": "U999",
+      "text": "standup in 5",
+      "ts": "1726665700.000300",
+      "channel": "Ceng"
+    }
+  }
+}

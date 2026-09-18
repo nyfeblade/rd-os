@@ -1,0 +1,20 @@
+{
+  "op": "accept",
+  "expect": { "ok": true, "dropped": true },
+  "request": {
+    "provider": "github",
+    "headers": { "x-github-event": "issue_comment" },
+    "tray_state": "disconnected",
+    "body": {
+      "action": "created",
+      "sender": { "login": "reviewer", "type": "User" },
+      "issue": { "number": 18, "title": "x" },
+      "comment": { "id": 1, "body": "hi", "user": { "login": "reviewer" }, "created_at": "2026-09-18T12:00:00Z" },
+      "repository": {
+        "name": "rd-os",
+        "full_name": "nyfeblade/rd-os",
+        "owner": { "login": "nyfeblade" }
+      }
+    }
+  }
+}

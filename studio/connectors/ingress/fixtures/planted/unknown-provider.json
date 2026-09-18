@@ -1,0 +1,10 @@
+{
+  "op": "accept",
+  "expect": { "ok": false, "code": "UNKNOWN_PROVIDER" },
+  "request": {
+    "provider": "pagerduty",
+    "headers": {},
+    "tray_state": "live",
+    "body": { "hello": true }
+  }
+}

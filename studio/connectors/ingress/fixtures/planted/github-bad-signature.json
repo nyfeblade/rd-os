@@ -1,0 +1,19 @@
+{
+  "op": "accept",
+  "sign": false,
+  "expect": { "ok": false, "code": "BAD_SIGNATURE" },
+  "request": {
+    "provider": "github",
+    "secret": "fixture-github-webhook-secret",
+    "headers": {
+      "x-github-event": "issue_comment",
+      "x-hub-signature-256": "sha256=0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "tray_state": "live",
+    "body": {
+      "action": "created",
+      "issue": { "number": 18 },
+      "comment": { "id": 1, "body": "nope" }
+    }
+  }
+}

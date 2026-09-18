@@ -1,0 +1,24 @@
+{
+  "op": "accept",
+  "expect": { "ok": true, "dropped": true },
+  "request": {
+    "provider": "github",
+    "headers": { "x-github-event": "workflow_run" },
+    "tray_state": "live",
+    "body": {
+      "action": "completed",
+      "sender": { "login": "github-actions", "type": "Bot" },
+      "workflow_run": {
+        "conclusion": "success",
+        "head_sha": "0f48eb2",
+        "updated_at": "2026-09-18T12:04:00Z",
+        "pull_requests": [{ "assignees": [{ "login": "luke" }] }]
+      },
+      "repository": {
+        "name": "rd-os",
+        "full_name": "nyfeblade/rd-os",
+        "owner": { "login": "nyfeblade" }
+      }
+    }
+  }
+}

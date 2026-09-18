@@ -1,0 +1,16 @@
+{
+  "op": "accept",
+  "sign": false,
+  "expect": { "ok": false, "code": "BAD_SIGNATURE" },
+  "request": {
+    "provider": "github",
+    "unsigned": true,
+    "headers": { "x-github-event": "issue_comment" },
+    "tray_state": "live",
+    "body": {
+      "action": "created",
+      "issue": { "number": 18, "title": "x" },
+      "comment": { "id": 1, "body": "should not land" }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "op": "accept",
+  "expect": { "ok": false, "code": "UNSUPPORTED_PROVIDER" },
+  "request": {
+    "provider": "linear",
+    "headers": {},
+    "tray_state": "live",
+    "body": { "action": "create", "type": "Issue" }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "op": "accept",
+  "expect": {
+    "ok": true,
+    "dropped": false,
+    "kind": "review_request",
+    "need_you": true,
+    "needs_gate": true,
+    "dest": "chat+board",
+    "provider": "github",
+    "at_you": true
+  },
+  "request": {
+    "provider": "github",
+    "headers": { "x-github-event": "pull_request" },
+    "tray_state": "live",
+    "body": {
+      "action": "review_requested",
+      "requested_reviewer": { "login": "luke" },
+      "sender": { "login": "alice", "type": "User" },
+      "pull_request": {
+        "number": 18,
+        "title": "connectors catalog",
+        "html_url": "https://github.com/nyfeblade/rd-os/pull/18",
+        "updated_at": "2026-09-18T12:01:00Z",
+        "user": { "login": "alice" }
+      },
+      "repository": {
+        "name": "rd-os",
+        "full_name": "nyfeblade/rd-os",
+        "owner": { "login": "nyfeblade" }
+      }
+    }
+  }
+}

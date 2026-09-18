@@ -1,0 +1,39 @@
+{
+  "op": "accept",
+  "fixture": true,
+  "expect": {
+    "ok": true,
+    "dropped": false,
+    "kind": "comment",
+    "dest": "chat",
+    "provider": "github"
+  },
+  "request": {
+    "provider": "github",
+    "fixture": true,
+    "unsigned": true,
+    "headers": { "x-github-event": "issue_comment" },
+    "tray_state": "live",
+    "body": {
+      "action": "created",
+      "sender": { "login": "reviewer", "type": "User" },
+      "issue": {
+        "number": 22,
+        "title": "unsigned fixture path",
+        "html_url": "https://github.com/nyfeblade/rd-os/issues/22"
+      },
+      "comment": {
+        "id": 3,
+        "body": "live secrets absent — fixture ok",
+        "user": { "login": "reviewer", "type": "User" },
+        "html_url": "https://github.com/nyfeblade/rd-os/issues/22#issuecomment-3",
+        "created_at": "2026-09-18T12:10:00Z"
+      },
+      "repository": {
+        "name": "rd-os",
+        "full_name": "nyfeblade/rd-os",
+        "owner": { "login": "nyfeblade" }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "op": "accept",
+  "expect": { "ok": false, "code": "INVALID_EVENT" },
+  "request": {
+    "provider": "github",
+    "headers": { "x-github-event": "issue_comment" },
+    "tray_state": "live",
+    "body": {
+      "action": "created",
+      "sender": { "login": "reviewer", "type": "User" },
+      "issue": { "number": 18 },
+      "repository": {
+        "name": "rd-os",
+        "full_name": "nyfeblade/rd-os",
+        "owner": { "login": "nyfeblade" }
+      }
+    }
+  }
+}
