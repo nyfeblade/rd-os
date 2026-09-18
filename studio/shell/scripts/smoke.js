@@ -240,8 +240,12 @@ assert.match(read("design/quiet-studio.html"), /Send to GitHub/);
 
 const designSot = path.resolve(root, "..", "design");
 assert.ok(fs.existsSync(path.join(designSot, "CONNECTORS-TWO-WAY.md")), "studio/design CONNECTORS-TWO-WAY is consumed read-only");
+assert.ok(fs.existsSync(path.join(designSot, "HITL.md")), "studio/design HITL is consumed read-only");
 assert.ok(fs.existsSync(path.join(designSot, "quiet-studio.html")), "studio/design quiet-studio is consumed read-only");
 assert.match(fs.readFileSync(path.join(designSot, "CONNECTORS-TWO-WAY.md"), "utf8"), /HITL pending card|bound to/);
+assert.match(fs.readFileSync(path.join(designSot, "HITL.md"), "utf8"), /Pending-approval card/);
+assert.match(fs.readFileSync(path.join(designSot, "quiet-studio.html"), "utf8"), /HITL · high-risk outbound/);
+assert.match(fs.readFileSync(path.join(designSot, "quiet-studio.html"), "utf8"), /Approve send/);
 assert.match(fs.readFileSync(path.join(designSot, "quiet-studio.html"), "utf8"), /Send to GitHub/);
 assert.doesNotMatch(js, /studio\/design\//);
 assert.doesNotMatch(read("lib/two-way.js"), /studio\/design\//);
