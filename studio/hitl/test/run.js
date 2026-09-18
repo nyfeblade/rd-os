@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 "use strict";
 
-const {
-  createHitlKernel,
-  HIGH_RISK_KINDS,
-  HUMAN_ACTOR,
-} = require("..");
+const { createHitlKernel, HUMAN_ACTOR } = require("..");
+
+const HIGH_RISK_JOB_KINDS = ["merge", "deploy", "db", "public_post"];
 
 function fresh(opts) {
   return createHitlKernel(opts || {});
@@ -171,7 +169,7 @@ function cases() {
     })
   );
 
-  HIGH_RISK_KINDS.forEach((kind) => {
+  HIGH_RISK_JOB_KINDS.forEach((kind) => {
     rows.push(
       runCase(`high-risk ${kind} rejects merge/deploy/public/system actors`, () => {
         const kernel = fresh({ ids: { next: () => `gate_${kind}` } });
