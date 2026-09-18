@@ -2,7 +2,7 @@
   "name": "@rd-os/studio-seats",
   "version": "0.1.0",
   "private": true,
-  "description": "Chat-pane seat registry for Chat|Board default chrome. Code on-demand. Connected bots speak only in-studio.",
+  "description": "Eng surfaces: seats, rooms, hard cutover. Coding-agent bot↔bot in-studio. Not a life-OS.",
   "main": "./index.js",
   "types": "./schema.ts",
   "bin": {

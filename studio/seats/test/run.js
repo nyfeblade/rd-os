@@ -270,6 +270,16 @@ function cases() {
   );
 
   rows.push(
+    runCase("cannot create a life-OS room", () => {
+      const studio = fresh();
+      return expectReject(
+        studio.rooms.create({ id: "journal", title: "Personal journal", kind: "human_bot" }),
+        "EXTERNAL_CHANNEL_FORBIDDEN"
+      );
+    })
+  );
+
+  rows.push(
     runCase("classifyDestination maps room and luke", () => {
       const room = classifyDestination("room:bots");
       const luke = classifyDestination("dm:luke");
@@ -304,6 +314,7 @@ function cases() {
       if (
         !dumped.data.chat ||
         dumped.data.chat.pane !== "Chat" ||
+        dumped.data.chat.pane_role !== "eng seats / rooms" ||
         dumped.data.chat.sibling_default !== "Board" ||
         dumped.data.chat.chrome !== "not-owned" ||
         dumped.data.chat.three_pane_always !== false ||
@@ -320,6 +331,18 @@ function cases() {
         !eq(dumped.data.layout.default_chrome, ["Chat", "Board"])
       ) {
         return { ok: false, error: "dump layout lock" };
+      }
+      if (
+        !dumped.data.eng ||
+        dumped.data.eng.domain !== "eng" ||
+        dumped.data.eng.life_os !== false ||
+        dumped.data.eng.purpose !== "coding_agent_bot_bot"
+      ) {
+        return { ok: false, error: "dump eng surface" };
+      }
+      const grok = dumped.data.seats.find((seat) => seat.id === "grok");
+      if (!grok || grok.surface !== "eng" || grok.agent !== "coding_agent") {
+        return { ok: false, error: "coding_agent surface" };
       }
       const demo = buildDemoDump();
       if (demo.messages.length !== 2 || demo.online_count !== 3) {
@@ -375,7 +398,7 @@ function cases() {
       if (away.data.seat.presence !== "away" || away.data.seat.in_studio_only !== true) {
         return { ok: false, error: JSON.stringify(away.data.seat) };
       }
-      const sent = expectOk(studio.emit({ from: "grok", dest: "room:bots", body: "still in Chat" }));
+      const sent = expectOk(studio.emit({ from: "grok", dest: "room:bots", body: "still in-studio" }));
       if (!sent.ok) {
         return sent;
       }
@@ -384,16 +407,36 @@ function cases() {
   );
 
   rows.push(
-    runCase("seed rooms are Chat list rows (Bots / Chat / Studio)", () => {
+    runCase("seed rooms are eng surfaces (Bots / Agents / Studio)", () => {
       const rooms = expectOk(fresh().rooms.list());
       if (!rooms.ok) {
         return rooms;
       }
       const titles = rooms.data.rooms.map((room) => `${room.id}:${room.title}`).sort();
-      if (!eq(titles, ["room:bots:Bots", "room:chat:Chat", "room:studio:Studio"])) {
+      if (!eq(titles, ["room:bots:Bots", "room:chat:Agents", "room:studio:Studio"])) {
         return { ok: false, error: titles.join(",") };
       }
+      if (rooms.data.rooms.some((room) => room.surface !== "eng")) {
+        return { ok: false, error: "room surface" };
+      }
       return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("life-OS dests fail closed", () => {
+      const studio = fresh();
+      studio.seats.connect("grok");
+      const dests = ["life-os", "journal", "personal", "family"];
+      let rejects = 0;
+      for (const dest of dests) {
+        const result = studio.emit({ from: "grok", dest, body: "theater" });
+        if (!result || result.ok !== false || result.code !== "EXTERNAL_CHANNEL_FORBIDDEN") {
+          return { ok: false, error: `${dest} → ${result && result.code}` };
+        }
+        rejects += 1;
+      }
+      return { ok: true, extra: { external_attempts: dests.length, external_rejects: rejects } };
     })
   );
 

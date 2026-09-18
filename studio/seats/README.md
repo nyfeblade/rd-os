@@ -1,14 +1,14 @@
 # studio/seats
 
-Seat registry, presence, and in-studio rooms for **AI Coding Studio**.
+Eng surfaces for **coding agents**: seats, rooms, hard cutover. Bot↔bot speech stays in-studio. Not a life-OS.
 
-**Layout lock:** default chrome is **Chat | Board**. Code is on-demand only. Three-pane-always is wrong. Waiting-table-as-home is dead.
+**Layout lock:** default chrome is **Chat | Board**. Code is on-demand. Three-pane-always is wrong.
 
-This module feeds **Chat** (seats / rooms + presence) beside Board. It does **not** own shell chrome — no titlebar, connectors tray, or pane splitters. `studio/design/**` is read-only (bc-a7c450cd).
+This module feeds Chat (eng seats / rooms + presence) beside Board. It does **not** own shell chrome. `studio/design/**` is read-only (bc-a7c450cd).
 
-**Fence:** `studio/seats/` only. Not CA1 experiment seats (`author|proof|human` on a packet).
+**Fence:** `studio/seats/` only. Distinct from CA1 experiment seats (`author|proof|human` on a packet).
 
-**Product lock:** connected bots speak only in-studio. See [CUTOVER.md](CUTOVER.md).
+**Product lock:** connected coding-agent bots speak only in-studio. See [CUTOVER.md](CUTOVER.md).
 
 ## Stranger
 
@@ -25,8 +25,6 @@ PASS studio/seats cutover (measured; cases=N passed=N failed=0; luke_1to1_leaks=
 
 `clock_started` stays false. This is not a 14-day verdict.
 
-Dump the Chat-pane fixture:
-
 ```bash
 node bin/dump.js --out fixtures/demo.dump.json
 ```
@@ -34,7 +32,7 @@ node bin/dump.js --out fixtures/demo.dump.json
 ## Import later (Chat pane — not chrome)
 
 ```ts
-import type { StudioDump, StudioSeat, StudioRoom, ChatPaneHints } from "../seats/schema";
+import type { StudioDump, StudioSeat, StudioRoom, EngSurfaceLock } from "../seats/schema";
 ```
 
 ```js
@@ -42,22 +40,22 @@ const { createStudioSeats } = require("../seats");
 const demo = require("../seats/fixtures/demo.dump.json");
 
 const studio = createStudioSeats();
-studio.seats.connect("grok"); // ack: "This seat works in Studio only while connected."
+studio.seats.connect("grok");
 studio.seats.connect("claude");
-studio.emit({ from: "grok", dest: "room:bots", body: "bot↔bot stays in Chat" });
+studio.emit({ from: "grok", dest: "room:bots", body: "bot↔bot stays in-studio" });
 ```
 
-Shell renders `demo.dump.json` or `studio.dump().data`: seat list + `in_studio_only` pill, rooms as Chat threads, `online_count`. Board is the default sibling (gates). Code is on-demand — not an always-on presence surface.
+Dump: `eng.domain=eng`, `eng.life_os=false`, `eng.purpose=coding_agent_bot_bot`. Seats carry `surface: eng` and `agent: coding_agent|human`.
 
 ## Roster
 
-| Seat | Kind | Notes |
+| Seat | Kind | Agent |
 | --- | --- | --- |
-| `grok` | bot | general seat — not a project-specific Grok Bot |
-| `claude` | bot | general seat |
-| `cursor` | bot | general seat |
-| `human` | human | Chat operator |
+| `grok` | bot | coding_agent — general seat, not a project-specific Grok Bot |
+| `claude` | bot | coding_agent |
+| `cursor` | bot | coding_agent |
+| `human` | human | human — eng, not a life-OS persona |
 
-Presence (Designer dots): `online` | `away` | `offline`. Online and away are in-studio (may speak). Offline cannot.
+Presence: `online` | `away` | `offline`. Online and away may speak. Offline cannot.
 
-Seed Chat rooms: `room:bots` (Bots), `room:chat` (Chat), `room:studio` (Studio).
+Seed rooms (eng): `room:bots` (Bots), `room:chat` (Agents), `room:studio` (Studio).

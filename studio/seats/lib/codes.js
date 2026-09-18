@@ -33,6 +33,9 @@ const REJECT_CODES = Object.freeze([
 const PRODUCT_LOCK = "connected_bots_speak_only_in_studio";
 const DUMP_SCHEMA = "studio.seats.dump/v1";
 const LEGAL_CHANNEL = "studio_room";
+const ENG_DOMAIN = "eng";
+const ENG_PURPOSE = "coding_agent_bot_bot";
+const ENG_SURFACES = Object.freeze(["seat", "room", "cutover"]);
 
 const FORBIDDEN_DESTINATIONS = Object.freeze([
   "luke",
@@ -83,6 +86,19 @@ function assertNeverSpeechChannel(channel) {
 
 function assertNeverReject(code) {
   throw new Error(`unhandled CutoverRejectCode: ${code}`);
+}
+
+function agentOf(id) {
+  switch (id) {
+    case "grok":
+    case "claude":
+    case "cursor":
+      return "coding_agent";
+    case "human":
+      return "human";
+    default:
+      return assertNeverSeatId(id);
+  }
 }
 
 function seatKindOf(id) {
@@ -157,6 +173,9 @@ module.exports = {
   PRODUCT_LOCK,
   DUMP_SCHEMA,
   LEGAL_CHANNEL,
+  ENG_DOMAIN,
+  ENG_PURPOSE,
+  ENG_SURFACES,
   FORBIDDEN_DESTINATIONS,
   reject,
   ok,
@@ -167,6 +186,7 @@ module.exports = {
   assertNeverRoomKind,
   assertNeverSpeechChannel,
   assertNeverReject,
+  agentOf,
   seatKindOf,
   seatLabelOf,
   isSeatId,

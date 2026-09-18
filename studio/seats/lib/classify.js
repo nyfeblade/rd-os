@@ -20,6 +20,17 @@ const LUKE_ALIASES = new Set([
   "external/luke",
 ]);
 
+const LIFE_OS_ALIASES = new Set([
+  "life",
+  "life-os",
+  "life_os",
+  "lifeos",
+  "journal",
+  "personal",
+  "family",
+  "calendar",
+]);
+
 const GROUP_ALIASES = new Set([
   "group",
   "hq",
@@ -63,6 +74,14 @@ function speechChannelOf(dest) {
   }
   if (LUKE_ALIASES.has(raw) || raw.startsWith("luke:") || raw.startsWith("luke/") || raw.endsWith(":luke")) {
     return { channel: "luke_1to1", dest: raw, room_id: null };
+  }
+  if (
+    LIFE_OS_ALIASES.has(raw) ||
+    raw.startsWith("life:") ||
+    raw.startsWith("life-os:") ||
+    raw.startsWith("life_os:")
+  ) {
+    return { channel: "external_connector", dest: raw, room_id: null };
   }
   if (GROUP_ALIASES.has(raw) || raw.startsWith("slack:") || raw.startsWith("discord:")) {
     return { channel: "external_group", dest: raw, room_id: null };

@@ -11,10 +11,14 @@ const {
   LEGAL_CHANNEL,
   DEFAULT_CHROME,
   CODE_MODE,
+  ENG_DOMAIN,
+  ENG_PURPOSE,
+  ENG_SURFACES,
   IN_STUDIO_ONLY_LABEL,
   CONNECT_ACK,
   reject,
   ok,
+  agentOf,
   seatKindOf,
   seatLabelOf,
   isSeatId,
@@ -61,7 +65,7 @@ function seedRooms(clock) {
     },
     {
       id: "room:chat",
-      title: "Chat",
+      title: "Agents",
       kind: "human_bot",
       member_seat_ids: SEAT_IDS.slice(),
       created_at: createdAt,
@@ -85,6 +89,11 @@ function clone(value) {
 function looksLikeLukeRoom(id, title) {
   const text = `${id} ${title}`.toLowerCase();
   return /\bluke\b/.test(text) || text.includes("1:1") || text.includes("1to1");
+}
+
+function looksLikeLifeOsRoom(id, title) {
+  const text = `${id} ${title}`.toLowerCase();
+  return /\b(life-?os|journal|personal|family|calendar)\b/.test(text);
 }
 
 function loadState(home, clock) {
@@ -132,10 +141,13 @@ function normalizeState(state) {
       }
     }
   }
+  if (state.rooms["room:chat"] && state.rooms["room:chat"].title === "Chat") {
+    state.rooms["room:chat"].title = "Agents";
+  }
   if (state.rooms["room:desk"] && !state.rooms["room:chat"]) {
     const room = state.rooms["room:desk"];
     room.id = "room:chat";
-    room.title = room.title === "Desk" ? "Chat" : room.title;
+    room.title = room.title === "Desk" || room.title === "Chat" ? "Agents" : room.title;
     state.rooms["room:chat"] = room;
     delete state.rooms["room:desk"];
     for (const msg of state.messages) {
@@ -161,7 +173,24 @@ function persistState(home, state) {
 function publicSeat(seat) {
   const row = clone(seat);
   row.in_studio_only = seat.cutover === "attached";
+  row.surface = "eng";
+  row.agent = agentOf(seat.id);
   return row;
+}
+
+function publicRoom(room) {
+  const row = clone(room);
+  row.surface = "eng";
+  return row;
+}
+
+function engSurfaceLock() {
+  return {
+    domain: ENG_DOMAIN,
+    life_os: false,
+    purpose: ENG_PURPOSE,
+    surfaces: ENG_SURFACES.slice(),
+  };
 }
 
 function listSeats(state) {
@@ -183,14 +212,14 @@ function layoutLock() {
 function chatHints() {
   return {
     pane: "Chat",
-    pane_role: "seats / rooms",
+    pane_role: "eng seats / rooms",
     sibling_default: "Board",
     default_chrome: DEFAULT_CHROME.slice(),
     code: CODE_MODE,
     three_pane_always: false,
     in_studio_only_label: IN_STUDIO_ONLY_LABEL,
     connect_ack: CONNECT_ACK,
-    composer_placeholder: "Message {seat}…",
+    composer_placeholder: "Emit in-studio to {seat}",
     chrome: "not-owned",
   };
 }
@@ -198,7 +227,7 @@ function chatHints() {
 function listRooms(state) {
   return Object.keys(state.rooms)
     .sort()
-    .map((id) => clone(state.rooms[id]));
+    .map((id) => publicRoom(state.rooms[id]));
 }
 
 function listMessages(state, roomId) {
@@ -229,6 +258,7 @@ function buildDump(state) {
       in_studio_only_label: IN_STUDIO_ONLY_LABEL,
     },
     layout: layoutLock(),
+    eng: engSurfaceLock(),
     chat: chatHints(),
     online_count: onlineCount(state),
   };
@@ -325,7 +355,7 @@ function createStudioSeats(options) {
     if (isBotSeat(id)) {
       return reject(
         "CUTOVER_LOCKED",
-        `hard cutover is one-way for bots (seat=${id}); go offline to leave the Chat list as disconnected`
+        `hard cutover is one-way for bots (seat=${id}); go offline to leave the eng roster`
       );
     }
     seat.cutover = "unattached";
@@ -344,12 +374,15 @@ function createStudioSeats(options) {
     if (looksLikeLukeRoom(rawId, title)) {
       return reject("LUKE_1TO1_FORBIDDEN", "rooms cannot alias Luke/1:1");
     }
+    if (looksLikeLifeOsRoom(rawId, title)) {
+      return reject("EXTERNAL_CHANNEL_FORBIDDEN", "rooms are eng surfaces, not life-OS");
+    }
     if (!isRoomKind(kind)) {
       return reject("UNKNOWN_ROOM_KIND", `rooms.create requires kind bot_bot|human_bot|studio_all`);
     }
     const id = rawId.startsWith("room:") ? rawId : `room:${rawId}`;
     if (state.rooms[id]) {
-      return ok({ room: clone(state.rooms[id]) });
+      return ok({ room: publicRoom(state.rooms[id]) });
     }
     const members = Array.isArray(body.member_seat_ids)
       ? body.member_seat_ids.filter(isSeatId)
@@ -365,7 +398,7 @@ function createStudioSeats(options) {
     };
     state.rooms[id] = room;
     save();
-    return ok({ room: clone(room) });
+    return ok({ room: publicRoom(room) });
   }
 
   function requireSpeaker(from) {
@@ -420,7 +453,7 @@ function createStudioSeats(options) {
     state.messages.push(message);
     touch(state.seats[from], true);
     save();
-    return ok({ message: clone(message), room: clone(room) });
+    return ok({ message: clone(message), room: publicRoom(room) });
   }
 
   function canSpeak(from, dest) {
@@ -514,7 +547,7 @@ function createStudioSeats(options) {
         if (!room) {
           return reject("ROOM_NOT_FOUND", `no studio room: ${roomId}`);
         }
-        return ok({ room: clone(room), messages: listMessages(state, roomId) });
+        return ok({ room: publicRoom(room), messages: listMessages(state, roomId) });
       },
       create: createRoom,
       messages(roomId) {
@@ -585,8 +618,8 @@ function buildDemoDump() {
   studio.seats.connect("human");
   studio.seats.connect("grok");
   studio.seats.connect("claude");
-  studio.emit({ from: "grok", dest: "room:bots", body: "in-studio-only — Chat thread stays here" });
-  studio.emit({ from: "claude", dest: "room:bots", body: "ack — no Luke/1:1 path from this seat" });
+  studio.emit({ from: "grok", dest: "room:bots", body: "bot↔bot eng surface — in-studio only" });
+  studio.emit({ from: "claude", dest: "room:bots", body: "ack — no Luke/1:1 or life-OS path" });
   return studio.dump().data;
 }
 

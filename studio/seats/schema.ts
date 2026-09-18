@@ -1,18 +1,19 @@
 /**
- * Studio seat registry — types the Chat pane imports.
- *
- * Distinct from CA1 control-plane seats (author|proof|human on an experiment).
- * Distinct from shell chrome (titlebar, connectors tray, pane splitters) —
- * this module feeds Chat (seats / rooms) only.
- * Layout lock: default chrome = Chat | Board. Code is on-demand. Three-pane-always is wrong.
+ * Eng surfaces: seats, rooms, hard cutover.
+ * Bot↔bot in-studio for coding agents. Not a life-OS. Not CA1 packet seats.
+ * Feeds Chat | Board default chrome. Code is on-demand. Three-pane-always is wrong.
  */
 
 export type StudioSeatId = "grok" | "claude" | "cursor" | "human";
 
 export type StudioSeatKind = "bot" | "human";
 
-/** Designer presence dots: who's online in studio now. */
+export type EngAgent = "coding_agent" | "human";
+
+/** Who is on the eng surface now. */
 export type PresenceState = "online" | "away" | "offline";
+
+export type EngSurfaceName = "seat" | "room" | "cutover";
 
 export type CutoverState = "attached" | "unattached";
 
@@ -53,10 +54,13 @@ export type CutoverRejectCode =
 export interface StudioSeat {
   id: StudioSeatId;
   kind: StudioSeatKind;
+  /** Bots are coding agents. Human is eng, not a life-OS persona. */
+  agent: EngAgent;
+  surface: "eng";
   label: string;
   presence: PresenceState;
   cutover: CutoverState;
-  /** Chat list pill — always true after cutover.attach / connect. */
+  /** Pill — true after cutover.attach / connect. */
   in_studio_only: boolean;
   connected_at: string | null;
   last_seen_at: string | null;
@@ -66,6 +70,7 @@ export interface StudioRoom {
   id: string;
   title: string;
   kind: RoomKind;
+  surface: "eng";
   member_seat_ids: StudioSeatId[];
   created_at: string;
 }
@@ -96,13 +101,19 @@ export interface LayoutLock {
   three_pane_always: false;
 }
 
+export interface EngSurfaceLock {
+  domain: "eng";
+  life_os: false;
+  purpose: "coding_agent_bot_bot";
+  surfaces: EngSurfaceName[];
+}
+
 /**
- * Language the Chat pane renders. Not shell chrome.
- * Waiting-table-as-home is dead. Default chrome is Chat | Board.
+ * Chat pane hosts the eng seat/room surface. Not life-OS chrome.
  */
 export interface ChatPaneHints {
   pane: "Chat";
-  pane_role: "seats / rooms";
+  pane_role: "eng seats / rooms";
   sibling_default: "Board";
   default_chrome: DefaultChrome;
   code: "on-demand";
@@ -121,6 +132,7 @@ export interface StudioDump {
   messages: StudioMessage[];
   cutover: CutoverLock;
   layout: LayoutLock;
+  eng: EngSurfaceLock;
   chat: ChatPaneHints;
   online_count: number;
 }
