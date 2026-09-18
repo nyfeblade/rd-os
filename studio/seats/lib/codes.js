@@ -4,6 +4,8 @@ const DEFAULT_SEAT_IDS = Object.freeze(["grok", "claude", "cursor", "human"]);
 const DEFAULT_BOT_SEAT_IDS = Object.freeze(["grok", "claude", "cursor"]);
 const SEAT_IDS = DEFAULT_SEAT_IDS;
 const BOT_SEAT_IDS = DEFAULT_BOT_SEAT_IDS;
+/** Coding-agent providers connect() may register on demand. Default roster stays four seats. */
+const KNOWN_PROVIDERS = Object.freeze(["claude", "grok", "cursor", "codex", "gemini", "chatgpt"]);
 const ROOM_KINDS = Object.freeze(["bot_bot", "human_bot", "studio_all"]);
 const PRESENCE_STATES = Object.freeze(["online", "away", "offline"]);
 const DEFAULT_CHROME = Object.freeze(["Chat", "Board"]);
@@ -30,6 +32,8 @@ const REJECT_CODES = Object.freeze([
   "UNKNOWN_SEAT",
   "UNKNOWN_ROOM_KIND",
   "BAD_DESTINATION",
+  "TOOL_REQUIRES_HITL",
+  "TOOL_NOT_ALLOWED",
 ]);
 
 const PRODUCT_LOCK = "connected_bots_speak_only_in_studio";
@@ -126,6 +130,9 @@ function seatKindOf(id) {
     case "grok":
     case "claude":
     case "cursor":
+    case "codex":
+    case "gemini":
+    case "chatgpt":
       return "bot";
     case "human":
       return "human";
@@ -142,6 +149,12 @@ function seatLabelOf(id) {
       return "Claude";
     case "cursor":
       return "Cursor";
+    case "codex":
+      return "Codex";
+    case "gemini":
+      return "Gemini";
+    case "chatgpt":
+      return "ChatGPT";
     case "human":
       return "Human";
     default:
@@ -150,6 +163,14 @@ function seatLabelOf(id) {
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(" ");
   }
+}
+
+function isKnownProvider(value) {
+  return KNOWN_PROVIDERS.includes(value);
+}
+
+function isConnectableId(value) {
+  return isBuiltinSeatId(value) || isKnownProvider(value);
 }
 
 function isBuiltinSeatId(value) {
@@ -198,6 +219,7 @@ module.exports = {
   DEFAULT_BOT_SEAT_IDS,
   SEAT_IDS,
   BOT_SEAT_IDS,
+  KNOWN_PROVIDERS,
   RESERVED_SEAT_IDS,
   ROOM_KINDS,
   PRESENCE_STATES,
@@ -228,6 +250,8 @@ module.exports = {
   agentOf,
   seatKindOf,
   seatLabelOf,
+  isKnownProvider,
+  isConnectableId,
   isBuiltinSeatId,
   isValidSeatSlug,
   isReservedSeatId,

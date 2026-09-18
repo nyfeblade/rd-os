@@ -23,10 +23,21 @@ const {
   seatLabelOf,
   isValidSeatSlug,
   isReservedSeatId,
+  isConnectableId,
   isRoomKind,
   isInStudioPresence,
+  KNOWN_PROVIDERS,
 } = require("./codes");
 const { classifyDestination, channelReject } = require("./classify");
+const {
+  toolsAllowedFor,
+  authorizeTool,
+  toolRequiresHitl,
+  isToolAllowed,
+  defaultPermissionMatrix,
+  highRiskPermissionMatrix,
+  permissionsLock,
+} = require("./permissions");
 
 const STATE_FILE = "state.json";
 
@@ -178,7 +189,17 @@ function publicSeat(seat) {
   row.in_studio_only = seat.cutover === "attached";
   row.surface = "eng";
   row.agent = agentFromKind(seat.kind);
+  row.tools_allowed = toolsAllowedFor(seat.id);
   return row;
+}
+
+function connectionRecord(seat) {
+  return {
+    provider: seat.id,
+    connected_at: seat.connected_at,
+    tools_allowed: toolsAllowedFor(seat.id),
+    cutover: true,
+  };
 }
 
 function publicRoom(room) {
@@ -286,6 +307,9 @@ function buildDump(state) {
     eng: engSurfaceLock(),
     north_star: northStar(),
     chat: chatHints(),
+    permissions: Object.assign(permissionsLock(), {
+      providers: KNOWN_PROVIDERS.slice(),
+    }),
     online_count: onlineCount(state),
   };
 }
@@ -371,19 +395,40 @@ function createStudioSeats(options) {
     return ok({ seat: publicSeat(seat) });
   }
 
-  function connectSeat(id) {
-    const seat = getSeat(id);
-    if (!seat) {
+  function ensureRegistered(id) {
+    if (state.seats[id]) {
+      return ok({ seat: publicSeat(state.seats[id]), created: false });
+    }
+    if (!isConnectableId(id)) {
       return reject("UNKNOWN_SEAT", `unknown seat: ${id}`);
     }
+    const registered = registerSeat({ id, kind: seatKindOf(id), label: seatLabelOf(id) });
+    if (!registered.ok) {
+      return registered;
+    }
+    return ok({ seat: registered.data.seat, created: true });
+  }
+
+  function connectSeat(id) {
+    const ensured = ensureRegistered(id);
+    if (!ensured.ok) {
+      return ensured;
+    }
+    const attached = attachSeat(id);
+    if (!attached.ok) {
+      return attached;
+    }
+    const seat = getSeat(id);
     seat.presence = "online";
     touch(seat, true);
-    // Hard cutover: an online seat is attached. No online-but-still-external state.
-    if (isBot(id) || seat.cutover === "unattached") {
-      seat.cutover = "attached";
-    }
     save();
+    const connection = connectionRecord(seat);
     return ok({
+      connection,
+      provider: connection.provider,
+      connected_at: connection.connected_at,
+      tools_allowed: connection.tools_allowed,
+      cutover: true,
       seat: publicSeat(seat),
       ack: CONNECT_ACK,
       in_studio_only: true,
@@ -671,6 +716,27 @@ function createStudioSeats(options) {
     emit,
     canSpeak,
     classifyDestination,
+    connect: connectSeat,
+    disconnect: disconnectSeat,
+    permissions: {
+      toolsAllowed(provider, options) {
+        return ok({
+          provider,
+          tools_allowed: toolsAllowedFor(provider, options),
+          matrix: defaultPermissionMatrix(),
+          high_risk: highRiskPermissionMatrix(),
+        });
+      },
+      authorize(provider, tool, options) {
+        return authorizeTool(provider, tool, options);
+      },
+      requiresHitl(tool) {
+        return toolRequiresHitl(tool);
+      },
+      allow(provider, tool, options) {
+        return isToolAllowed(provider, tool, options);
+      },
+    },
     dump() {
       return ok(buildDump(state));
     },

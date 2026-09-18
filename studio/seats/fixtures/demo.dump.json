@@ -12,7 +12,12 @@
       "last_seen_at": "2026-09-18T12:00:00.000Z",
       "in_studio_only": true,
       "surface": "eng",
-      "agent": "coding_agent"
+      "agent": "coding_agent",
+      "tools_allowed": [
+        "chat.emit",
+        "board.read",
+        "repo.read"
+      ]
     },
     {
       "id": "claude",
@@ -24,7 +29,12 @@
       "last_seen_at": "2026-09-18T12:00:00.000Z",
       "in_studio_only": true,
       "surface": "eng",
-      "agent": "coding_agent"
+      "agent": "coding_agent",
+      "tools_allowed": [
+        "chat.emit",
+        "board.read",
+        "repo.read"
+      ]
     },
     {
       "id": "cursor",
@@ -36,7 +46,12 @@
       "last_seen_at": null,
       "in_studio_only": false,
       "surface": "eng",
-      "agent": "coding_agent"
+      "agent": "coding_agent",
+      "tools_allowed": [
+        "chat.emit",
+        "board.read",
+        "repo.read"
+      ]
     },
     {
       "id": "human",
@@ -48,7 +63,12 @@
       "last_seen_at": "2026-09-18T12:00:00.000Z",
       "in_studio_only": true,
       "surface": "eng",
-      "agent": "human"
+      "agent": "human",
+      "tools_allowed": [
+        "chat.emit",
+        "board.read",
+        "repo.read"
+      ]
     }
   ],
   "rooms": [
@@ -174,6 +194,28 @@
     "connect_ack": "This seat works in Studio only while connected.",
     "composer_placeholder": "Emit in-studio to {seat}",
     "chrome": "not-owned"
+  },
+  "permissions": {
+    "default_tools_allowed": [
+      "chat.emit",
+      "board.read",
+      "repo.read"
+    ],
+    "chat_emit_scope": "room-only",
+    "high_risk": [
+      "merge",
+      "deploy",
+      "public"
+    ],
+    "high_risk_requires_hitl": true,
+    "providers": [
+      "claude",
+      "grok",
+      "cursor",
+      "codex",
+      "gemini",
+      "chatgpt"
+    ]
   },
   "online_count": 3
 }
