@@ -54,7 +54,7 @@ npm run dual-gate
 echo "exit=$?"
 ```
 
-`npm install` fetches the pinned `main` lab into `node_modules/rd-os`. `npm run dual-gate` resolves that package and execs **its** `npm run dual-gate`. Expected: **exit 0** and the same PASS lines as the cold clone.
+`npm install` fetches the pinned `main` lab into `node_modules/rd-os` (`git+ssh://git@github.com/nyfeblade/rd-os.git#9457cac3e38fb442567fb6b1ffedeb8d9290ab00`). `npm run dual-gate` resolves that package and execs **its** `npm run dual-gate`. Measured here: **exit 0**, `eng-proof: dual-gate against installed lab …/node_modules/rd-os`, same PASS lines as the cold clone. The installed tree has no `consumers/` — it is `main`, not this PR.
 
 Override the lab root only if you must (still must be an rd-os tree, not this consumer):
 
