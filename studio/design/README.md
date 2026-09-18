@@ -6,11 +6,16 @@
 **Visibility:** only necessary info by default. See `VISIBILITY.md`.  
 **Chrome fences:** `SHELL-IA.md` is authoritative (two-way tray + Code drawer).  
 **Connectors:** two-way — inbox + outbound reply. Tray `live` \| `needs_auth`. P0: GitHub + Slack. See `CONNECTORS-TWO-WAY.md`.  
-**HITL:** ingress inbox vs egress composer | pending-approval (payload+diff). See `HITL.md`.
+**HITL:** ingress inbox vs egress composer | pending-approval (payload+diff). See `HITL.md`.  
+**Token UX:** Board + seat meters; Marketplace low-token mode. See `TOKEN-UX.md`.  
+**Marketplace:** discover/install/manage eng capabilities. See `MARKETPLACE.md`.
 
 | File | Use |
 | --- | --- |
-| `PRODUCT-NARRATIVE.md` | UI coverage + Grok Bot → Studio map |
+| `PRODUCT-NARRATIVE.md` | Product law + token-efficient homebase |
+| `TOKEN-UX.md` | Token/cost meter on Board + seats; first-class efficiency |
+| `MARKETPLACE.md` | Marketplace SoT — connectors, modes, seat packs |
+| `marketplace.html` | Marketplace mock (browse / detail / installed) |
 | `CONNECTORS-TWO-WAY.md` | Two-way + HITL pending card (payload+diff) before high-risk send |
 | `HITL.md` | Ingress inbox vs egress composer \| pending-approval fields |
 | `CONNECTORS-TWOWAY.md` | Pointer only — superseded by `CONNECTORS-TWO-WAY.md` |
