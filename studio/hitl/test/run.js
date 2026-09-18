@@ -269,6 +269,83 @@ function cases() {
   );
 
   rows.push(
+    runCase("getGate reads a resolved gate by id after it leaves need-you", () => {
+      const kernel = fresh({ ids: { next: () => "gate_g" } });
+      kernel.createGate({ kind: "merge", title: "Land it" });
+      kernel.resolveGate({ id: "gate_g", decision: "approve", actor: HUMAN_ACTOR });
+      const got = expectOk(kernel.getGate({ id: "gate_g" }));
+      if (!got.ok) {
+        return got;
+      }
+      if (got.data.gate.status !== "approved" || got.data.gate.need_you !== false) {
+        return { ok: false, error: JSON.stringify(got.data.gate) };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("getGate rejects unknown id and missing id", () => {
+      const kernel = fresh();
+      const unknown = expectReject(kernel.getGate({ id: "nope" }), "UNKNOWN_GATE");
+      if (!unknown.ok) {
+        return unknown;
+      }
+      return expectReject(kernel.getGate({}), "MISSING_FIELD");
+    })
+  );
+
+  rows.push(
+    runCase("listGates returns every status; listNeedYou stays open-only", () => {
+      let n = 0;
+      const kernel = fresh({ ids: { next: () => `gate_l${++n}` } });
+      kernel.createGate({ kind: "merge", title: "one" });
+      kernel.createGate({ kind: "deploy", title: "two" });
+      kernel.resolveGate({ id: "gate_l1", decision: "approve", actor: HUMAN_ACTOR });
+      const all = expectOk(kernel.listGates());
+      if (!all.ok) {
+        return all;
+      }
+      if (all.data.gates.length !== 2) {
+        return { ok: false, error: `all=${all.data.gates.length}` };
+      }
+      const open = expectOk(kernel.listNeedYou());
+      if (!open.ok) {
+        return open;
+      }
+      if (open.data.gates.length !== 1 || open.data.gates[0].id !== "gate_l2") {
+        return { ok: false, error: `open=${JSON.stringify(open.data.gates)}` };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("listGates filters by status and rejects an unknown status", () => {
+      let n = 0;
+      const kernel = fresh({ ids: { next: () => `gate_f${++n}` } });
+      kernel.createGate({ kind: "merge", title: "one" });
+      kernel.createGate({ kind: "db", title: "two" });
+      kernel.resolveGate({ id: "gate_f1", decision: "approve", actor: HUMAN_ACTOR });
+      const approved = expectOk(kernel.listGates({ status: "approved" }));
+      if (!approved.ok) {
+        return approved;
+      }
+      if (approved.data.gates.length !== 1 || approved.data.gates[0].id !== "gate_f1") {
+        return { ok: false, error: JSON.stringify(approved.data.gates) };
+      }
+      const openOnly = expectOk(kernel.listGates({ status: "open" }));
+      if (!openOnly.ok) {
+        return openOnly;
+      }
+      if (openOnly.data.gates.length !== 1 || openOnly.data.gates[0].id !== "gate_f2") {
+        return { ok: false, error: JSON.stringify(openOnly.data.gates) };
+      }
+      return expectReject(kernel.listGates({ status: "bogus" }), "UNKNOWN_STATUS");
+    })
+  );
+
+  rows.push(
     runCase("idempotent approve of already approved gate", () => {
       const kernel = fresh({ ids: { next: () => "gate_i" } });
       kernel.createGate({ kind: "db", title: "Migrate" });
