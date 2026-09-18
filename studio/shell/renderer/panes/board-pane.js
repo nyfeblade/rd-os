@@ -250,20 +250,28 @@
 
     if (state.dump) {
       renderDumpGate(els, state, handlers);
-    } else if (state.view !== "cold" && !inboxGates(state).length && !hitlPending(state)) {
-      const fail = document.createElement("p");
-      fail.className = "quiet";
-      fail.textContent = "Unreachable";
-      els.boardBody.appendChild(fail);
+    }
+
+    const hasGate = Boolean(els.boardBody.querySelector(".gate"));
+    const boardH = document.querySelector(".board-h");
+    if (boardH) {
+      boardH.hidden = !hasGate && state.view !== "cold";
+      if (state.view === "cold") {
+        boardH.hidden = true;
+      }
+      if (!hasGate && state.view !== "cold") {
+        boardH.hidden = false;
+        boardH.textContent = "Needs you";
+      }
     }
 
     const quiet = document.createElement("div");
     quiet.className = "quiet";
     quiet.id = "board-empty";
-    if (state.view === "cold") {
-      quiet.textContent = "";
-    } else if (state.flash) {
+    if (state.flash) {
       quiet.textContent = state.flash;
+    } else if (!hasGate && state.view !== "cold") {
+      quiet.textContent = "None";
     } else {
       quiet.textContent = "";
     }
