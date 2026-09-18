@@ -34,12 +34,13 @@
 
       <main class="main" id="main">
         <section class="pane chat" data-pane="chat" data-module="chat-pane" id="pane-chat" aria-label="Chat">
-          <aside class="seats" id="seat-list" hidden aria-hidden="true" aria-label="Seats"></aside>
+          <aside class="seats" id="seat-list" aria-label="Team"></aside>
           <div id="chat-cold" class="empty" hidden>
             <h1>Connect</h1>
             <div class="cold-actions">
               <button class="ok" type="button" id="cta-github">GitHub</button>
-              <button type="button" id="cta-seat">Seat</button>
+              <button type="button" id="cta-import">Import team</button>
+              <button type="button" id="cta-seat" hidden tabindex="-1">Connect</button>
             </div>
           </div>
           <div id="chat-live">

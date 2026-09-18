@@ -304,8 +304,84 @@ body[data-host="electron"][data-platform="mac"] .bar {
 }
 
 .seats {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--line);
+  background: var(--bg);
+  overflow: auto;
 }
+.seats[hidden] {
+  display: none !important;
+}
+.seats-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--line);
+}
+.seats-import {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+.seats-import:hover {
+  border-color: var(--ink);
+}
+.seat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.seat-row.on {
+  background: var(--hover);
+}
+.seat-name {
+  flex: 1;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  border: 0;
+  background: 0;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+.seat-connect {
+  font: inherit;
+  font-size: 11px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--accent-ink, #fff);
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+.seat-connect.done {
+  border-color: var(--line);
+  background: var(--bg);
+  color: var(--mute);
+  cursor: default;
+}
+
 
 #chat-live {
   flex: 1;
@@ -869,7 +945,6 @@ textarea:focus-visible {
   }
 }
 
-
 /* Critiquito: demote git bind; wrap HITL; no mid-token clip */
 #bind-status,
 .bind {
@@ -898,5 +973,12 @@ textarea:focus-visible {
   text-overflow: clip !important;
 }
 .board-h[hidden] {
+  display: none !important;
+}
+
+/* one-click connect roster — no CLI empty states */
+.empty code,
+.empty pre,
+.empty .cli {
   display: none !important;
 }
