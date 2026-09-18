@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * studio/connectors/runtime — P0 GitHub + Slack two-way contracts.
+ * studio/connectors/runtime — GitHub + Slack + Linear two-way contracts.
  *
  *   ingest(envelope) → inbox item | dropped noise | { ok:false, code }
  *   reply(draft)     → outbound op (human or bot-with-gate) | { ok:false, code }
@@ -24,10 +24,12 @@ const { authFailure } = require("./inbox");
 const { humanGateAllows, cutoverAllows, gateDraft } = require("./reply");
 const github = require("./providers/github");
 const slack = require("./providers/slack");
+const linear = require("./providers/linear");
 
 const REGISTRY = {
   github,
   slack,
+  linear,
 };
 
 function validateEnvelope(envelope) {

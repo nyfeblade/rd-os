@@ -1,0 +1,14 @@
+{
+  "op": "ingest",
+  "expect": { "ok": false, "code": "UNKNOWN_EVENT" },
+  "envelope": {
+    "provider": "linear",
+    "event": "Project",
+    "tray_state": "live",
+    "payload": {
+      "action": "update",
+      "type": "Project",
+      "data": { "id": "project-1", "name": "noise" }
+    }
+  }
+}

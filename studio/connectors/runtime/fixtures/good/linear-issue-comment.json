@@ -1,0 +1,39 @@
+{
+  "op": "ingest",
+  "expect": {
+    "ok": true,
+    "dropped": false,
+    "kind": "comment",
+    "need_you": true,
+    "dest": "chat",
+    "provider": "linear"
+  },
+  "envelope": {
+    "provider": "linear",
+    "event": "Comment",
+    "tray_state": "live",
+    "payload": {
+      "action": "create",
+      "type": "Comment",
+      "url": "https://linear.app/issue/LIN-18/linear-runtime-provider#comment-77217de3",
+      "createdAt": "2026-09-18T12:11:00.000Z",
+      "actor": {
+        "id": "user-alice",
+        "type": "user",
+        "name": "Alice"
+      },
+      "data": {
+        "id": "2174add1-f7c8-44e3-bbf3-2d60b5ea8bc9",
+        "createdAt": "2026-09-18T12:11:00.000Z",
+        "body": "needs a two-way Linear runtime",
+        "edited": false,
+        "issueId": "539068e2-ae88-4d09-bd75-22eb4a59612f",
+        "issue": {
+          "id": "539068e2-ae88-4d09-bd75-22eb4a59612f",
+          "identifier": "LIN-18",
+          "title": "Linear runtime provider"
+        }
+      }
+    }
+  }
+}

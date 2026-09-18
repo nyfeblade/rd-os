@@ -1,6 +1,6 @@
 # studio/connectors/runtime
 
-P0 two-way contracts for **GitHub** and **Slack**, aligned to the product lock (CONNECTORS-TWO-WAY): connectors are bidirectional. Notifications in; human replies out; bots send only with **cutover + human gate**.
+Two-way contracts for **GitHub**, **Slack**, and **Linear**, aligned to the product lock (CONNECTORS-TWO-WAY): connectors are bidirectional. Notifications in; human replies out; bots send only with **cutover + human gate**.
 
 ```bash
 node studio/connectors/runtime/prove.js                                      # exit 0
@@ -21,7 +21,7 @@ Tray is not read-only: auth, live state, inbox entry, send path. This module rep
 Envelope:
 
 ```js
-{ provider: "github"|"slack", event, payload, tray_state: "live"|"needs_auth"|"error"|"disconnected", at_you?, received_at? }
+{ provider: "github"|"slack"|"linear", event, payload, tray_state: "live"|"needs_auth"|"error"|"disconnected", at_you?, received_at? }
 ```
 
 Inbox item fields (closed): `id` · `provider` · `kind` · `need_you` · `needs_gate` · `dest` (`chat`|`board`|`chat+board`) · `thread_ref` · `title` · `body` · `actor` · `created_at` · `tray_state`.
@@ -34,6 +34,7 @@ Inbox item fields (closed): `id` · `provider` · `kind` · `need_you` · `needs
 | GitHub review requests | `kind=review_request`, `dest=chat+board` (gate) |
 | GitHub CI@you | `check_suite` / `workflow_run` failure **and** `at_you===true` → `kind=ci_failure`, `dest=board`. Other CI drops. |
 | Slack eng channel / DM @mentions | `app_mention` → `mention`; IM text with `<@…>` → `dm`. Channel chatter and un-@'d IMs drop. |
+| Linear issue assigned / comment / status | [Webhooks](https://linear.app/developers/webhooks) `Issue` assignee or state change, `Comment` create/update → `assigned` \| `comment` \| `status`. Title-only edits, unassigns, and `at_you===false` drop. |
 
 | Visibility | What |
 | --- | --- |
@@ -69,8 +70,9 @@ Outbound is a **closed op name** plus request fields — not a guessed URL:
 | GitHub | `pull_request_review_comment` | `create_pull_request_review_comment` | same family |
 | GitHub | `pull_request_review` | `create_pull_request_review` | same family |
 | Slack | `message` | `post_message` | [chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage) |
+| Linear | `comment` | `create_comment` | Official MCP [`https://mcp.linear.app/mcp`](https://mcp.linear.app/mcp) · [linear.app/docs/mcp](https://linear.app/docs/mcp) · GraphQL [`commentCreate`](https://linear.app/developers/graphql) |
 
-Ingest event names come from [GitHub webhook events](https://docs.github.com/en/webhooks/webhook-events-and-payloads) and the [Slack Events API](https://docs.slack.dev/apis/events-api/).
+Ingest event names come from [GitHub webhook events](https://docs.github.com/en/webhooks/webhook-events-and-payloads), the [Slack Events API](https://docs.slack.dev/apis/events-api/), and [Linear webhooks](https://linear.app/developers/webhooks) (`Linear-Event`: `Issue` \| `Comment`).
 
 ## Codes (closed)
 
@@ -86,6 +88,7 @@ Ingest event names come from [GitHub webhook events](https://docs.github.com/en/
 | `reply.js` | Cutover + human-gate hooks + outbound shape |
 | `providers/github.js` | GitHub webhook → inbox; comment/review out |
 | `providers/slack.js` | Slack Events API → inbox; `post_message` out |
+| `providers/linear.js` | Linear webhooks → inbox; `create_comment` toward official MCP |
 | `fixtures/good/` | Accepted ingest/reply (including noise drops) |
 | `fixtures/planted/` | One record per reject code |
 | `prove.js` | Expectation suite and `--gate` |

@@ -1,11 +1,11 @@
 "use strict";
 
 /**
- * Closed sets for the P0 GitHub + Slack two-way runtime.
+ * Closed sets for the GitHub + Slack + Linear two-way runtime.
  * Inventing a code, op, dest, or provider here is a bug — extend the set first.
  */
 
-const PROVIDERS = ["github", "slack"];
+const PROVIDERS = ["github", "slack", "linear"];
 
 const TRAY_STATES = ["live", "needs_auth", "error", "disconnected"];
 
@@ -21,6 +21,8 @@ const INBOX_KINDS = [
   "ci_failure",
   "mention",
   "dm",
+  "assigned",
+  "status",
   "auth_failure",
 ];
 
@@ -35,13 +37,16 @@ const GITHUB_EVENTS = [
 
 const SLACK_EVENTS = ["app_mention", "message", "event_callback"];
 
-const REPLY_KINDS = ["issue_comment", "pull_request_review_comment", "pull_request_review", "message"];
+const LINEAR_EVENTS = ["Issue", "Comment"];
+
+const REPLY_KINDS = ["issue_comment", "pull_request_review_comment", "pull_request_review", "message", "comment"];
 
 const OUTBOUND_OPS = [
   "create_issue_comment",
   "create_pull_request_review_comment",
   "create_pull_request_review",
   "post_message",
+  "create_comment",
 ];
 
 const CODES = [
@@ -79,6 +84,10 @@ const OFFICIAL_DOCS = {
   github_issue_comments: "https://docs.github.com/en/rest/issues/comments",
   slack_events: "https://docs.slack.dev/apis/events-api/",
   slack_post_message: "https://docs.slack.dev/reference/methods/chat.postMessage",
+  linear_webhooks: "https://linear.app/developers/webhooks",
+  linear_mcp: "https://mcp.linear.app/mcp",
+  linear_mcp_docs: "https://linear.app/docs/mcp",
+  linear_graphql: "https://linear.app/developers/graphql",
 };
 
 function isBlank(value) {
@@ -115,6 +124,7 @@ module.exports = {
   INBOX_KINDS,
   GITHUB_EVENTS,
   SLACK_EVENTS,
+  LINEAR_EVENTS,
   REPLY_KINDS,
   OUTBOUND_OPS,
   CODES,
