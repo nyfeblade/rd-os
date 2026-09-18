@@ -1,18 +1,15 @@
 # AI Coding Studio — design SoT
 
-**PRODUCT LAW (Luke).** Studio = everything Grok Bot can do, **OPTIMIZED FOR ENGINEERING.** See `PRODUCT-LAW.md` + `PRODUCT-NARRATIVE.md`. No life-OS theater.
-
-**PRODUCT LOCK.** Waiting-table-as-home is DEAD.
-
-**LAYOUT LOCK (Luke).** Code panel is NOT automatic / NOT always-on. Default chrome: **Chat + Board**. Code on demand. See `LAYOUT-LOCK.md`.
+**Luke law:** eng-specialized Grok Bot (full capability set). See `PRODUCT-NARRATIVE.md`.  
+**Layout:** Chat | Board default · Code on demand · Waiting-home dead. Unchanged. See `LAYOUT-LOCK.md`.
 
 | File | Use |
 | --- | --- |
-| `PRODUCT-LAW.md` | Grok-complete, eng-optimized; surface map |
-| `PRODUCT-NARRATIVE.md` | Eng Grok Bot story + Grok→Studio capability map |
-| `LAYOUT-LOCK.md` | Layout lock: Chat + Board default; Code on demand |
-| `STUDIO-SHELL-SPEC.md` | IA, panes, cutover, modes, acceptance |
-| `quiet-studio.html` | Preferred visual (Grok-clean); toggle Code |
+| `PRODUCT-NARRATIVE.md` | Capability map Grok Bot → Studio (full caps, eng-optimized) |
+| `PRODUCT-LAW.md` | Grok-complete lock; no life-OS theater |
+| `LAYOUT-LOCK.md` | Code not automatic; Chat + Board default |
+| `STUDIO-SHELL-SPEC.md` | Shell IA / acceptance |
+| `quiet-studio.html` | Preferred visual (toggle Code) |
 | `three-pane.html` | Denser wire — **superseded** for Code-always-on |
 | `tokens.css` | Dark studio tokens |
 

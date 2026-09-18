@@ -1,5 +1,6 @@
 # AI Coding Studio — product SoT (LOCK)
 
+**narrative:** `PRODUCT-NARRATIVE.md` — Studio = Grok Bot capability set, **OPTIMIZED FOR ENGINEERING** (full caps)  
 **status:** PRODUCT LAW (Luke) + PRODUCT LOCK + LAYOUT LOCK (Luke 2026-09-18)  
 **product law:** `PRODUCT-LAW.md` + `PRODUCT-NARRATIVE.md` — Studio = everything Grok Bot can do, **OPTIMIZED FOR ENGINEERING**  
 **kills:** Waiting-table-as-home · greyscale interrupt desk as product SoT · equal three-column forever · code forced open · life-OS theater  
@@ -7,7 +8,7 @@
 **keeps:** `attention.dump` / board packets as **data** under the hood; eng fences for CA  
 **surface:** local-first desktop (Mac + Win) — Tauri or equivalent  
 **Studio Designer:** spec + mock only — no CA launch  
-**layout lock:** `LAYOUT-LOCK.md` — default **Chat + Board**; Code on demand  
+**layout lock:** `LAYOUT-LOCK.md` — default **Chat + Board**; Code on demand (**unchanged**)  
 
 ---
 

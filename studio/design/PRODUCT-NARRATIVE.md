@@ -1,34 +1,34 @@
 # AI Coding Studio — product narrative (Luke law)
 
-**Studio = full Grok Bot capability set, specialized for engineering.**  
-Not a thin “chat + board” toy. Same power as Grok Bot; shaped for eng work.
+**Studio = Grok Bot capability set, OPTIMIZED FOR ENGINEERING.**  
+Not a thin chat+board app. Same class of power as Grok Bot; every surface bent toward eng.
 
-## Capability map (Grok Bot → Studio)
+## Capability → eng surface map
 
-| Grok Bot | Studio (eng-specialized) |
+| Grok Bot capability | Studio eng surface |
 | --- | --- |
-| Seats / agents | Seats in-studio-only while connected |
-| Chat 1:1 + rooms | Chat pane (default) |
-| Routines | Board watches / scheduled eng checks |
-| Skills / modes | Eng modes (build, proof, integrate…) |
-| Connectors | Connectors tray (GitHub, CA, Notion, …) |
-| Cloud Agents | CA map — who’s running, on which PR/repo |
-| Human gates | Board pane — Proof gates, approve/reject |
-| Desktop / computer | Code on demand (not automatic) |
+| **Seats** (agents) | Seat list in Chat; **in-studio-only** while connected |
+| **Rooms** (group chats) | Rooms in Chat list (`#rd-os`, etc.) — eng coordination threads |
+| **1:1 chat** | Chat pane (default half) — talk to seats/rooms |
+| **Routines** | **Board watches** — scheduled / event eng checks show as board rows or watch chips (not a separate “routines settings” as home) |
+| **Skills / modes** | **Eng modes** — Build, Proof, Integrate, Nightly… selectable on seat or as run presets |
+| **Memory** | Eng memory — project heart / SoT pointers / seat notes; surfaced in seat detail or Settings → Memory (not a third home column) |
+| **Connectors** | Connectors tray — GitHub, CloudAgent, Notion, … |
+| **Cloud Agents** | **CA map** — active agents, repo/PR, status (open from tray or Board-related row) |
+| **Proof / human gates** | **Board pane** — P0, gates, Approve/Reject (Proof lane visible here) |
+| **Desktop / files** | **Code on demand** — not automatic ([LAYOUT-LOCK.md](./LAYOUT-LOCK.md)) |
 
-## Layout lock (unchanged)
-- **Default:** Chat | Board  
+## Layout lock (still holds)
+- **Default:** Chat \| Board  
 - **Code:** on demand only  
-- Waiting-table-as-home: DEAD  
+- Waiting-table-as-home: **DEAD**
 
 ## Story
-An eng-optimized Grok Bot: talk to seats, watch the board, open code when a diff matters — with routines, skills, connectors, and CloudAgents in one desktop.
+Grok Bot, optimized for engineering: seats and rooms to talk, board to clear gates, code when a diff matters — routines become watches, skills become modes, connectors and CAs stay one tray away.
 
 ## Artifacts
-- `LAYOUT-LOCK.md` — Code on demand  
-- `quiet-studio.html` — visual mock  
-- `STUDIO-SHELL-SPEC.md` — amend with this narrative (see below)  
-- Design CA: patch `studio/design/**` in repo when landing  
+- This file · `LAYOUT-LOCK.md` · `quiet-studio.html` · `STUDIO-SHELL-SPEC.md` · `tokens.css`  
+- Land in repo under `studio/design/**` via Design CA  
 
 ## Out
-Mac-only; Code always-on; Waiting-as-home; Studio launching CAs from Design seat.
+Mac-only; Code always-on; Waiting-as-home; Design seat launching CAs.
