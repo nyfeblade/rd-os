@@ -1,0 +1,119 @@
+{
+  "schema": "studio.seats.dump/v1",
+  "product_lock": "connected_bots_speak_only_in_studio",
+  "seats": [
+    {
+      "id": "grok",
+      "kind": "bot",
+      "label": "Grok",
+      "presence": "connected",
+      "cutover": "attached",
+      "connected_at": "2026-09-18T12:00:00.000Z",
+      "last_seen_at": "2026-09-18T12:00:00.000Z"
+    },
+    {
+      "id": "claude",
+      "kind": "bot",
+      "label": "Claude",
+      "presence": "connected",
+      "cutover": "attached",
+      "connected_at": "2026-09-18T12:00:00.000Z",
+      "last_seen_at": "2026-09-18T12:00:00.000Z"
+    },
+    {
+      "id": "cursor",
+      "kind": "bot",
+      "label": "Cursor",
+      "presence": "disconnected",
+      "cutover": "unattached",
+      "connected_at": null,
+      "last_seen_at": null
+    },
+    {
+      "id": "human",
+      "kind": "human",
+      "label": "Human",
+      "presence": "connected",
+      "cutover": "attached",
+      "connected_at": "2026-09-18T12:00:00.000Z",
+      "last_seen_at": "2026-09-18T12:00:00.000Z"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "room:bots",
+      "title": "Bot sync",
+      "kind": "bot_bot",
+      "member_seat_ids": [
+        "grok",
+        "claude",
+        "cursor"
+      ],
+      "created_at": "2026-09-18T12:00:00.000Z"
+    },
+    {
+      "id": "room:desk",
+      "title": "Desk",
+      "kind": "human_bot",
+      "member_seat_ids": [
+        "grok",
+        "claude",
+        "cursor",
+        "human"
+      ],
+      "created_at": "2026-09-18T12:00:00.000Z"
+    },
+    {
+      "id": "room:floor",
+      "title": "Studio floor",
+      "kind": "studio_all",
+      "member_seat_ids": [
+        "grok",
+        "claude",
+        "cursor",
+        "human"
+      ],
+      "created_at": "2026-09-18T12:00:00.000Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg:1",
+      "room_id": "room:bots",
+      "from_seat": "grok",
+      "body": "cutover attached — bot sync stays in-studio",
+      "created_at": "2026-09-18T12:00:00.000Z"
+    },
+    {
+      "id": "msg:2",
+      "room_id": "room:bots",
+      "from_seat": "claude",
+      "body": "ack — no Luke/1:1 path from this seat",
+      "created_at": "2026-09-18T12:00:00.000Z"
+    }
+  ],
+  "cutover": {
+    "protocol": "hard",
+    "product_lock": "connected_bots_speak_only_in_studio",
+    "attached_seat_ids": [
+      "grok",
+      "claude",
+      "human"
+    ],
+    "legal_channel": "studio_room",
+    "forbidden_destinations": [
+      "luke",
+      "luke_1to1",
+      "1:1",
+      "1to1",
+      "dm:luke",
+      "grok:luke",
+      "external:luke",
+      "group",
+      "hq",
+      "factory",
+      "eng-hq",
+      "eng-factory"
+    ]
+  }
+}
