@@ -144,10 +144,24 @@ async function main() {
   if (!state.data.pane || state.data.pane.pane !== "code") {
     fail("state must declare Code pane contract");
   }
+  if (state.data.pane.draw !== "on-demand" || state.data.pane.default_visible !== false) {
+    fail("Code pane must draw on-demand, not as a default column");
+  }
+  if (state.data.pane.three_pane_always !== false) {
+    fail("three-pane-always must be false");
+  }
+  if (state.data.pane.default_chrome.join(",") !== "chat,board") {
+    fail("default chrome must be Chat + Board");
+  }
   if (state.data.pane.does_not_own.indexOf("shell") < 0 || state.data.pane.does_not_own.indexOf("chat") < 0) {
     fail("Code pane must not own shell/chat chrome");
   }
-  if (CODE_PANE.pane !== "code") {
+  const drawn = studio.drawPane();
+  const hidden = studio.hidePane();
+  if (!drawn.ok || drawn.data.visible !== true || hidden.data.visible !== false) {
+    fail("draw/hide must toggle Code pane visibility");
+  }
+  if (CODE_PANE.pane !== "code" || CODE_PANE.draw !== "on-demand") {
     fail("CODE_PANE drifted");
   }
   const tree = await studio.tree("");
@@ -234,6 +248,10 @@ async function main() {
     await close(server);
     fail("UI missing Code pane root");
   }
+  if (!String(html.raw).includes("data-draw=\"on-demand\"") || !String(html.raw).includes("data-default-visible=\"false\"")) {
+    await close(server);
+    fail("UI must mark Code pane on-demand, not always-visible");
+  }
   if (!String(html.raw).includes("data-nav=\"code\"") || !String(html.raw).includes("data-hook=\"file-tree\"")) {
     await close(server);
     fail("UI missing Code pane tree/nav");
@@ -270,6 +288,21 @@ async function main() {
     await close(server);
     fail("api/surface failed");
   }
+  const apiPane = await request(port, "GET", "/api/pane");
+  if (apiPane.status !== 200 || apiPane.body.data.draw !== "on-demand" || apiPane.body.data.three_pane_always !== false) {
+    await close(server);
+    fail(`api/pane must be on-demand: ${JSON.stringify(apiPane.body)}`);
+  }
+  const apiHide = await request(port, "POST", "/api/pane/hide", {});
+  if (!apiHide.body.ok || apiHide.body.data.visible !== false) {
+    await close(server);
+    fail("api/pane/hide must hide Code");
+  }
+  const apiDraw = await request(port, "POST", "/api/pane/draw", {});
+  if (!apiDraw.body.ok || apiDraw.body.data.visible !== true) {
+    await close(server);
+    fail("api/pane/draw must draw Code on demand");
+  }
   const spa = await request(port, "GET", "/pulls");
   if (spa.status !== 200 || !String(spa.raw).includes("data-pane=\"code\"")) {
     await close(server);
@@ -292,6 +325,9 @@ async function main() {
   }
   if (!readme.includes("Code pane") || !readme.includes("does **not** own studio shell chrome")) {
     fail("README must say this is Code pane payload, not shell chrome");
+  }
+  if (!readme.includes("on demand") || !readme.includes("Three-pane-always is wrong")) {
+    fail("README must lock Code as on-demand, not three-pane-always");
   }
 
   const wallMs = Date.now() - started;

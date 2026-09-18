@@ -4,7 +4,9 @@ Fence: **`studio/github/` only**. Not `studio/shell/`, not `studio/seats/`, not 
 
 This directory is the **Code pane** payload (repos / file tree / preview / PR list / GitHub attach). It does **not** own studio shell chrome: no titlebar, Chat, Board, presence, or connectors tray.
 
-Designer SoT (`studio/design/` on `main`) is consumed read-only. The shell draws this pane; `?embed=1` and `window.StudioGithub.mount(host)` are the hooks.
+**Layout lock:** default chrome is Chat + Board. Code draws **on demand**. Three-pane-always is wrong. This pane does not assume an always-visible Code column.
+
+Designer SoT (`studio/design/` on `main`) is consumed read-only. The shell calls `window.StudioGithub.show()` / `hide()` (or `POST /api/pane/draw|hide`). `?embed=1` starts hidden. Standalone `npm start` draws the pane so a stranger can browse.
 
 GitHub-like repo browse plus the first connector attach recipe. Grok / Claude / Cursor seats are **stubs** so a later max-connector wire has a place to land.
 
@@ -91,7 +93,7 @@ Seat stubs (`recipes/grok.json`, `recipes/claude.json`, `recipes/cursor.json`) r
 | `[data-hook=coding-surface]` | `studio:edit` | stub |
 | `[data-hook=connector-attach]` | `studio:attach` | ready |
 
-`window.StudioGithub.pane === "code"`. `window.StudioGithub.hooks` + `mount(host)` are the embed points for a later shell. This directory does not implement seats or shell chrome.
+`window.StudioGithub.pane === "code"` and `draw === "on-demand"`. Shell embed: `show()` / `hide()` / `mount(host)`. Events: `studio:draw-code`, `studio:hide-code`. This directory does not implement seats or shell chrome.
 
 ---
 

@@ -6,7 +6,7 @@ const { parseRepo, createGithubClient } = require("./github");
 const { createStore } = require("./store");
 const { createFixtureBrowse, sortEntries } = require("./fixtures");
 const { createRdosClient } = require("./rdos-client");
-const { codePaneContract } = require("./pane");
+const { codePaneContract, drawCodePane, hideCodePane } = require("./pane");
 
 function resolveSource(raw) {
   const value = String(raw || "fixture").trim().toLowerCase();
@@ -150,6 +150,18 @@ function createStudio(options) {
     }
   }
 
+  function pane() {
+    return ok(codePaneContract());
+  }
+
+  function drawPane() {
+    return drawCodePane();
+  }
+
+  function hidePane() {
+    return hideCodePane();
+  }
+
   function surface() {
     return ok(surfaceHooks());
   }
@@ -168,6 +180,9 @@ function createStudio(options) {
     recipe,
     setSource,
     attach,
+    pane,
+    drawPane,
+    hidePane,
     surface,
     rdosHint,
   };

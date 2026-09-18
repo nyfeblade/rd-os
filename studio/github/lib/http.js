@@ -99,6 +99,15 @@ function createStudioServer(options) {
     if (req.method === "GET" && pathname === "/api/surface") {
       return sendJson(res, 200, studio.surface());
     }
+    if (req.method === "GET" && pathname === "/api/pane") {
+      return sendJson(res, 200, studio.pane());
+    }
+    if (req.method === "POST" && pathname === "/api/pane/draw") {
+      return sendJson(res, 200, studio.drawPane());
+    }
+    if (req.method === "POST" && pathname === "/api/pane/hide") {
+      return sendJson(res, 200, studio.hidePane());
+    }
     if (req.method === "GET" && pathname === "/api/rdos") {
       const hint = studio.rdosHint();
       return sendJson(res, hint.ok ? 200 : 409, hint);

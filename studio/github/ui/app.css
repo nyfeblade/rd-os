@@ -33,6 +33,11 @@ body {
   background: var(--pane);
 }
 
+.code-pane[data-drawn="0"],
+.code-pane[hidden] {
+  display: none;
+}
+
 .pane-head {
   padding: 8px 10px;
   border-bottom: 1px solid var(--line);

@@ -5,11 +5,17 @@
   const treeAside = document.getElementById("tree");
   const pane = document.getElementById("code-pane");
 
-  const embed = new URLSearchParams(window.location.search).get("embed") === "1";
+  const params = new URLSearchParams(window.location.search);
+  const embed = params.get("embed") === "1";
+  const forceDraw = params.get("draw") === "1";
   document.documentElement.dataset.embed = embed ? "1" : "0";
   if (pane) {
     pane.dataset.embed = embed ? "1" : "0";
+    pane.dataset.draw = "on-demand";
+    pane.dataset.defaultVisible = "false";
   }
+
+  let drawn = !embed || forceDraw;
 
   let state = null;
   let tree = [];
@@ -24,8 +30,20 @@
   let surfaceFile = null;
   let surfacePr = null;
 
+  function applyDrawn() {
+    if (!pane) {
+      return;
+    }
+    pane.dataset.drawn = drawn ? "1" : "0";
+    pane.hidden = !drawn;
+  }
+
   window.StudioGithub = {
     pane: "code",
+    draw: "on-demand",
+    defaultVisible: false,
+    threePaneAlways: false,
+    defaultChrome: ["chat", "board"],
     owns: ["repo-switcher", "file-tree", "file-preview", "pr-list", "connector-attach"],
     doesNotOwn: ["shell", "chat", "board", "titlebar", "presence", "connectors-tray"],
     mount(host) {
@@ -34,7 +52,20 @@
       }
       host.setAttribute("data-pane", "code");
       document.dispatchEvent(new CustomEvent("studio:mount-code", { detail: { host } }));
-      return { ok: true, pane: "code" };
+      return window.StudioGithub.show();
+    },
+    show() {
+      drawn = true;
+      applyDrawn();
+      document.dispatchEvent(new CustomEvent("studio:draw-code", { detail: { visible: true } }));
+      refresh();
+      return { ok: true, pane: "code", visible: true, draw: "on-demand" };
+    },
+    hide() {
+      drawn = false;
+      applyDrawn();
+      document.dispatchEvent(new CustomEvent("studio:hide-code", { detail: { visible: false } }));
+      return { ok: true, pane: "code", visible: false, draw: "on-demand" };
     },
     hooks: {
       openFile(filePath) {
@@ -517,5 +548,8 @@
   });
 
   window.addEventListener("popstate", refresh);
-  refresh();
+  applyDrawn();
+  if (drawn) {
+    refresh();
+  }
 })();
