@@ -1,0 +1,179 @@
+{
+  "schema": "studio.seats.dump/v1",
+  "product_lock": "connected_bots_speak_only_in_studio",
+  "seats": [
+    {
+      "id": "grok",
+      "kind": "bot",
+      "label": "Grok",
+      "presence": "online",
+      "cutover": "attached",
+      "connected_at": "2026-09-18T12:00:00.000Z",
+      "last_seen_at": "2026-09-18T12:00:00.000Z",
+      "in_studio_only": true,
+      "surface": "eng",
+      "agent": "coding_agent"
+    },
+    {
+      "id": "claude",
+      "kind": "bot",
+      "label": "Claude",
+      "presence": "online",
+      "cutover": "attached",
+      "connected_at": "2026-09-18T12:00:00.000Z",
+      "last_seen_at": "2026-09-18T12:00:00.000Z",
+      "in_studio_only": true,
+      "surface": "eng",
+      "agent": "coding_agent"
+    },
+    {
+      "id": "cursor",
+      "kind": "bot",
+      "label": "Cursor",
+      "presence": "offline",
+      "cutover": "unattached",
+      "connected_at": null,
+      "last_seen_at": null,
+      "in_studio_only": false,
+      "surface": "eng",
+      "agent": "coding_agent"
+    },
+    {
+      "id": "human",
+      "kind": "human",
+      "label": "Human",
+      "presence": "online",
+      "cutover": "attached",
+      "connected_at": "2026-09-18T12:00:00.000Z",
+      "last_seen_at": "2026-09-18T12:00:00.000Z",
+      "in_studio_only": true,
+      "surface": "eng",
+      "agent": "human"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "room:bots",
+      "title": "Bots",
+      "kind": "bot_bot",
+      "member_seat_ids": [
+        "grok",
+        "claude",
+        "cursor"
+      ],
+      "created_at": "2026-09-18T12:00:00.000Z",
+      "surface": "eng"
+    },
+    {
+      "id": "room:chat",
+      "title": "Agents",
+      "kind": "human_bot",
+      "member_seat_ids": [
+        "grok",
+        "claude",
+        "cursor",
+        "human"
+      ],
+      "created_at": "2026-09-18T12:00:00.000Z",
+      "surface": "eng"
+    },
+    {
+      "id": "room:studio",
+      "title": "Studio",
+      "kind": "studio_all",
+      "member_seat_ids": [
+        "grok",
+        "claude",
+        "cursor",
+        "human"
+      ],
+      "created_at": "2026-09-18T12:00:00.000Z",
+      "surface": "eng"
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg:1",
+      "room_id": "room:bots",
+      "from_seat": "grok",
+      "body": "bot↔bot eng surface — in-studio only",
+      "created_at": "2026-09-18T12:00:00.000Z"
+    },
+    {
+      "id": "msg:2",
+      "room_id": "room:bots",
+      "from_seat": "claude",
+      "body": "ack — no Luke/1:1 or life-OS path",
+      "created_at": "2026-09-18T12:00:00.000Z"
+    }
+  ],
+  "cutover": {
+    "protocol": "hard",
+    "product_lock": "connected_bots_speak_only_in_studio",
+    "attached_seat_ids": [
+      "grok",
+      "claude",
+      "human"
+    ],
+    "legal_channel": "studio_room",
+    "forbidden_destinations": [
+      "operator",
+      "owner",
+      "operator_1to1",
+      "1:1",
+      "1to1",
+      "dm:human",
+      "dm:operator",
+      "luke",
+      "luke_1to1",
+      "dm:luke",
+      "group",
+      "hq",
+      "factory"
+    ],
+    "connect_ack": "This seat works in Studio only while connected.",
+    "in_studio_only_label": "in-studio-only"
+  },
+  "layout": {
+    "default_chrome": [
+      "Chat",
+      "Board"
+    ],
+    "code": "on-demand",
+    "three_pane_always": false
+  },
+  "eng": {
+    "domain": "eng",
+    "life_os": false,
+    "purpose": "coding_agent_bot_bot",
+    "surfaces": [
+      "seat",
+      "room",
+      "cutover"
+    ],
+    "multi_provider": true,
+    "luke_fleet_only": false
+  },
+  "north_star": {
+    "audience": "any_ai_developer_studio",
+    "providers": "multi",
+    "luke_fleet_only": false,
+    "stranger_usable": true
+  },
+  "chat": {
+    "pane": "Chat",
+    "pane_role": "eng seats / rooms",
+    "sibling_default": "Board",
+    "default_chrome": [
+      "Chat",
+      "Board"
+    ],
+    "code": "on-demand",
+    "three_pane_always": false,
+    "in_studio_only_label": "in-studio-only",
+    "connect_ack": "This seat works in Studio only while connected.",
+    "composer_placeholder": "Emit in-studio to {seat}",
+    "chrome": "not-owned"
+  },
+  "online_count": 3
+}
