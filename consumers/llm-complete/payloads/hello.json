@@ -1,0 +1,5 @@
+{
+  "prompt": "Reply with the single word pong.",
+  "system": "You are a terse probe. No punctuation.",
+  "max_tokens": 16
+}
