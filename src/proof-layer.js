@@ -31,21 +31,21 @@ function runProofLayerReject(options = {}) {
     };
   }
 
-  const ran = spawnSync("npm", ["run", "demo:reject"], {
+  const ran = spawnSync("node", ["./bin/apl.js", "prove", "claims/planted-false.json", "--require-result", "REJECTED"], {
     cwd: aplDir,
     encoding: "utf8",
     env: process.env,
   });
   const stdout = ran.stdout || "";
   const stderr = ran.stderr || "";
-  const firstLine = stdout.trim().split("\n")[0] || "";
+  const resultLine = (stdout.split("\n").map((line) => line.trim()).find((line) => {
+    return line === "REJECTED" || line === "VERIFIED" || line === "INCONCLUSIVE";
+  }) || "INCONCLUSIVE");
   const commit = matchField(stdout, /^commit:\s+(\S+)/m);
   const packetPath = matchField(stdout, /^packet:\s+(\S+)/m);
   const wallField = matchField(stdout, /^wall_ms:\s+(\S+)/m);
   const measuredExit = matchField(stdout, /measured_exit:\s+(\S+)/);
-  const runnerResult = firstLine === "REJECTED" || firstLine === "VERIFIED" || firstLine === "INCONCLUSIVE"
-    ? firstLine
-    : "INCONCLUSIVE";
+  const runnerResult = resultLine;
 
   return {
     ok: runnerResult === "REJECTED" && ran.status === 0,

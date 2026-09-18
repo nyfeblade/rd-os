@@ -57,12 +57,12 @@ chmod +x bin/rdos.js scripts/kill14d.sh scripts/proof-layer.sh scripts/wedge-mea
 home="$(mktemp -d "${TMPDIR:-/tmp}/rdos-stranger.XXXXXX")"
 export RDOS_HOME="$home"
 
-if node bin/rdos.js experiment.open --in fixtures/wedge/open-incomplete.json --home "$home" --out "$home/incomplete.json"; then
+if node bin/rdos.js experiment.open --in fixtures/wedge/open-incomplete.json --home "$home" --out "$home/incomplete.json" >/dev/null; then
   fail "incomplete packet must reject"
 fi
 grep -q '"code": "MISSING_MACHINE_TIME"' "$home/incomplete.json" || fail "incomplete open missing MISSING_MACHINE_TIME"
 
-node bin/rdos.js experiment.open --in fixtures/wedge/open-valid.json --home "$home" --out "$home/open.json" \
+node bin/rdos.js experiment.open --in fixtures/wedge/open-valid.json --home "$home" --out "$home/open.json" >/dev/null \
   || fail "valid packet must open"
 grep -q '"ok": true' "$home/open.json" || fail "valid open not ok"
 test -f "$home/board/experiments/exp-2-wedge-build.json" || fail "board packet not written"
@@ -71,7 +71,7 @@ grep -q '"estimate_proof_min": 25' "$home/board/experiments/exp-2-wedge-build.js
 grep -q '"human_gates"' "$home/board/experiments/exp-2-wedge-build.json" || fail "packet missing human_gates"
 grep -q '"actuals"' "$home/board/experiments/exp-2-wedge-build.json" || fail "packet missing actuals"
 
-node bin/rdos.js attention.dump --home "$home" --out "$home/attention.json" || fail "attention.dump failed"
+node bin/rdos.js attention.dump --home "$home" --out "$home/attention.json" >/dev/null || fail "attention.dump failed"
 test -f "$home/board/attention.dump.json" || fail "attention.dump file missing"
 node -e '
 const dump = require(process.argv[1]);
@@ -80,7 +80,7 @@ if (!dump.p0.id || dump.hard_law.length < 5) process.exit(1);
 console.log("attention.dump siblings ok");
 ' "$home/board/attention.dump.json" || fail "attention.dump missing p0/hard_law siblings"
 
-if node bin/rdos.js claim.submit --in fixtures/wedge/weight-only.json --home "$home" --out "$home/weight.json"; then
+if node bin/rdos.js claim.submit --in fixtures/wedge/weight-only.json --home "$home" --out "$home/weight.json" >/dev/null; then
   fail "weight-only claim must reject"
 fi
 grep -q '"code": "WEIGHT_ONLY"' "$home/weight.json" || fail "weight-only missing WEIGHT_ONLY"
