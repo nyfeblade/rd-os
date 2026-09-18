@@ -3,22 +3,29 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>rd-os studio — repo</title>
+    <title>rd-os · Code pane</title>
     <link rel="stylesheet" href="/app.css" />
   </head>
   <body>
-    <div class="wrap">
-      <header class="repo-head" id="repo-head">
-        <p class="quiet">Studio C · GitHub browse</p>
-      </header>
-      <nav class="tabs" aria-label="Primary">
-        <a href="/code" data-nav="code">Code</a>
-        <a href="/pulls" data-nav="pulls">Pull requests</a>
-        <a href="/connectors" data-nav="connectors">Connectors</a>
-        <a href="/surface" data-nav="surface">Surface</a>
+    <div
+      id="code-pane"
+      class="code-pane"
+      data-pane="code"
+      data-hook="coding-surface"
+      data-testid="coding-surface"
+      aria-label="Code pane"
+    >
+      <header class="pane-head" id="repo-head"></header>
+      <nav class="pane-sub" aria-label="Code pane">
+        <a href="/code" data-nav="code">Files</a>
+        <a href="/pulls" data-nav="pulls">Pulls</a>
+        <a href="/connectors" data-nav="connectors">Attach</a>
         <span class="meta" id="source-meta">fixture</span>
       </nav>
-      <main id="view" tabindex="-1">loading</main>
+      <div class="code-body">
+        <aside id="tree" data-hook="file-tree" data-testid="file-tree"></aside>
+        <main id="view" tabindex="-1">loading</main>
+      </div>
     </div>
     <script src="/app.js"></script>
   </body>

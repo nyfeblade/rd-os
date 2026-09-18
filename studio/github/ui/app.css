@@ -1,15 +1,15 @@
 :root {
-  --bg: #f6f8fa;
-  --panel: #ffffff;
-  --line: #d0d7de;
-  --ink: #1f2328;
-  --ink-2: #59636e;
-  --ink-3: #818b98;
-  --row: #f6f8fa;
-  --focus: #1f2328;
-  --open: #1a7f37;
-  --draft: #59636e;
+  --bg: #0e0e10;
+  --pane: #161618;
+  --pane-2: #1c1c1f;
+  --line: #2a2a2e;
+  --ink: #e8e8ea;
+  --ink-2: #9a9aa2;
+  --accent: #6b8afd;
+  --open: #3dd68c;
+  --draft: #9a9aa2;
   --merged: #8250df;
+  --focus: #e8e8ea;
 }
 
 * {
@@ -19,111 +19,144 @@
 html,
 body {
   margin: 0;
-  min-height: 100%;
+  height: 100%;
   color: var(--ink);
   background: var(--bg);
-  font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font: 12.5px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-.wrap {
-  max-width: 1100px;
-  margin: 20px auto 48px;
-  padding: 0 16px;
+.code-pane {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--pane);
 }
 
-.repo-head,
-.tabs,
-#view {
-  background: var(--panel);
-  border: 1px solid var(--line);
+.pane-head {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--pane);
 }
 
-.repo-head {
-  border-radius: 8px 8px 0 0;
-  padding: 16px 16px 12px;
-  border-bottom: none;
-}
-
-.repo-head h1 {
+.pane-head h1 {
   margin: 0;
-  font-size: 20px;
+  font-size: 13px;
   font-weight: 600;
 }
 
-.repo-head .name {
-  color: var(--ink);
+.pane-head .quiet {
+  margin: 0 0 4px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
 }
 
-.repo-head .slash {
-  color: var(--ink-3);
+.pane-head .desc {
+  margin: 4px 0 0;
+  color: var(--ink-2);
+  font-size: 12px;
+}
+
+.slash {
+  color: var(--ink-2);
   font-weight: 400;
 }
 
-.tabs {
+.pane-sub {
   display: flex;
-  gap: 18px;
+  gap: 14px;
   align-items: baseline;
-  padding: 0 16px;
-  border-top: none;
-  border-bottom: none;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
 }
 
-.tabs a {
+.pane-sub a {
   color: var(--ink-2);
   text-decoration: none;
-  padding: 10px 0 9px;
+  padding: 7px 0;
   border-bottom: 2px solid transparent;
 }
 
-.tabs a[aria-current="page"] {
+.pane-sub a[aria-current="page"] {
   color: var(--ink);
   font-weight: 600;
   border-bottom-color: var(--ink);
 }
 
-.tabs .meta {
+.pane-sub .meta {
   margin-left: auto;
-  color: var(--ink-3);
+  color: var(--ink-2);
+  font-size: 11px;
+}
+
+.code-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+#tree {
+  width: 200px;
+  flex: 0 0 200px;
+  border-right: 1px solid var(--line);
+  overflow: auto;
+  background: var(--bg);
+  padding: 8px 0;
+}
+
+#tree .repo {
+  padding: 4px 10px 8px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+#tree button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: 400;
+  padding: 4px 10px;
+}
+
+#tree button.on,
+#tree button:hover {
+  background: var(--pane-2);
+  color: var(--ink);
 }
 
 #view {
-  min-height: 280px;
-  border-radius: 0 0 8px 8px;
-  border-top: 1px solid var(--line);
-}
-
-h1,
-h2 {
-  margin: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  background: var(--pane);
 }
 
 h2,
 .section-label {
-  padding: 12px 16px 8px;
+  margin: 0;
+  padding: 10px 12px 6px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 
 .page-pad {
-  padding: 12px 16px 16px;
+  padding: 10px 12px;
 }
 
 .quiet,
 .muted,
 .meta {
-  color: var(--ink-2);
-}
-
-.quiet {
-  margin: 0 0 6px;
-  font-size: 12px;
-}
-
-.desc {
-  margin: 8px 0 0;
   color: var(--ink-2);
 }
 
@@ -134,7 +167,7 @@ table {
 
 th,
 td {
-  padding: 8px 16px;
+  padding: 7px 12px;
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
@@ -143,8 +176,8 @@ td {
 th {
   font-size: 11px;
   font-weight: 500;
-  color: var(--ink-3);
-  background: var(--row);
+  color: var(--ink-2);
+  background: var(--bg);
 }
 
 tr:last-child td {
@@ -160,7 +193,7 @@ tr.selected,
 tr[data-path]:hover,
 tr[data-pr]:hover,
 .row:hover {
-  background: var(--row);
+  background: var(--pane-2);
 }
 
 .crumb {
@@ -168,23 +201,16 @@ tr[data-pr]:hover,
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  padding: 10px 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--line);
   color: var(--ink-2);
 }
 
 .crumb a,
-.row a,
 td a {
   color: var(--ink);
   text-decoration: none;
   font-weight: 600;
-}
-
-.crumb a:hover,
-.row a:hover,
-td a:hover {
-  text-decoration: underline;
 }
 
 .branch {
@@ -193,7 +219,7 @@ td a:hover {
   border-radius: 16px;
   padding: 2px 8px;
   font-size: 12px;
-  background: var(--row);
+  background: var(--pane-2);
 }
 
 .file-name {
@@ -203,9 +229,9 @@ td a:hover {
 }
 
 .icon {
-  width: 16px;
-  height: 16px;
-  color: var(--ink-3);
+  width: 14px;
+  height: 14px;
+  color: var(--ink-2);
   flex: 0 0 auto;
 }
 
@@ -213,19 +239,15 @@ td a:hover {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--line);
-}
-
-.row:last-child {
-  border-bottom: none;
 }
 
 .actions {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  padding: 12px 16px 16px;
+  padding: 10px 12px 12px;
 }
 
 button,
@@ -236,14 +258,13 @@ button,
   padding: 5px 10px;
   border-radius: 6px;
   cursor: pointer;
-  border: 1px solid var(--ink);
-  background: var(--ink);
-  color: #fff;
+  border: 1px solid var(--line);
+  background: var(--pane-2);
+  color: var(--ink);
 }
 
 button.secondary {
-  background: var(--panel);
-  color: var(--ink);
+  background: transparent;
 }
 
 button:disabled {
@@ -255,14 +276,15 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 tr[data-path]:focus-visible,
-tr[data-pr]:focus-visible {
+tr[data-pr]:focus-visible,
+#tree button:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
 label {
   display: block;
-  margin: 8px 16px;
+  margin: 8px 12px;
   color: var(--ink-2);
   font-size: 11px;
 }
@@ -271,7 +293,7 @@ input {
   width: 100%;
   font: inherit;
   color: var(--ink);
-  background: var(--panel);
+  background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 8px;
@@ -280,32 +302,32 @@ input {
 
 pre.blob {
   margin: 0;
-  padding: 16px;
+  padding: 12px 14px;
   overflow: auto;
   font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  background: var(--panel);
+  color: #c8c8d0;
 }
 
 .empty,
 .error {
-  padding: 36px 16px;
+  padding: 28px 12px;
 }
 
 .empty h1,
 .error h1 {
-  font-size: 18px;
+  margin: 0 0 6px;
+  font-size: 16px;
   font-weight: 600;
 }
 
 .stop {
   box-shadow: inset 3px 0 0 var(--ink);
-  background: var(--row);
+  background: var(--pane-2);
 }
 
 .pill {
   font-size: 11px;
   font-weight: 600;
-  text-transform: lowercase;
 }
 
 .pill.open {
@@ -320,66 +342,38 @@ pre.blob {
   color: var(--merged);
 }
 
-.surface {
-  display: grid;
-  grid-template-columns: minmax(180px, 220px) 1fr minmax(200px, 260px);
-  min-height: 360px;
-}
-
-.surface > * {
-  border-right: 1px solid var(--line);
-  min-height: 360px;
-}
-
-.surface > *:last-child {
-  border-right: none;
-}
-
-.surface h2 {
-  padding-bottom: 4px;
-}
-
-.tree-list button.row {
-  width: 100%;
-  border: none;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  background: transparent;
-  color: inherit;
-  font-weight: 400;
-  text-align: left;
-}
-
-.editor-stub {
-  padding: 24px 16px;
-}
-
 .flash {
-  padding: 0 16px 14px;
+  padding: 0 12px 12px;
   color: var(--ink-2);
 }
 
 .about {
-  padding: 0 16px 16px;
+  padding: 0 12px 12px;
   color: var(--ink-2);
 }
 
 .skeleton {
-  height: 36px;
-  margin: 10px 16px;
+  height: 32px;
+  margin: 10px 12px;
   border-radius: 6px;
-  background: var(--row);
+  background: var(--pane-2);
+}
+
+html[data-embed="1"] .pane-sub .meta {
+  display: none;
 }
 
 @media (max-width: 800px) {
-  .surface {
-    grid-template-columns: 1fr;
+  .code-body {
+    flex-direction: column;
   }
 
-  .surface > * {
+  #tree {
+    width: 100%;
+    flex-basis: auto;
+    max-height: 180px;
     border-right: none;
     border-bottom: 1px solid var(--line);
-    min-height: 0;
   }
 
   th.message,

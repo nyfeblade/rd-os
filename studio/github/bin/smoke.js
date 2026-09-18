@@ -10,6 +10,7 @@ const { createStudio } = require("../lib/studio");
 const { createStudioServer } = require("../lib/http");
 const { listConnectors, loadRecipe, CONNECTOR_IDS } = require("../lib/connectors");
 const { REJECT_CODES, describeReject } = require("../lib/errors");
+const { CODE_PANE } = require("../lib/pane");
 
 const ROOT = path.resolve(__dirname, "..");
 
@@ -100,6 +101,7 @@ async function main() {
     "ui/app.css",
     "bin/studio.js",
     "lib/studio.js",
+    "lib/pane.js",
   ]) {
     if (!fs.existsSync(path.join(ROOT, file))) {
       fail(`missing ${file}`);
@@ -138,6 +140,15 @@ async function main() {
   }
   if (state.data.clock_started !== false || state.data.verdict !== null) {
     fail("studio must not start the 14d clock or self-cert");
+  }
+  if (!state.data.pane || state.data.pane.pane !== "code") {
+    fail("state must declare Code pane contract");
+  }
+  if (state.data.pane.does_not_own.indexOf("shell") < 0 || state.data.pane.does_not_own.indexOf("chat") < 0) {
+    fail("Code pane must not own shell/chat chrome");
+  }
+  if (CODE_PANE.pane !== "code") {
+    fail("CODE_PANE drifted");
   }
   const tree = await studio.tree("");
   if (!tree.ok || !tree.data.some((entry) => entry.name === "README.md")) {
@@ -219,13 +230,20 @@ async function main() {
   const { server } = createStudioServer({ home, root: ROOT, source: "fixture" });
   const port = await listen(server);
   const html = await request(port, "GET", "/");
-  if (html.status !== 200 || !String(html.raw).includes("data-nav=\"code\"")) {
+  if (html.status !== 200 || !String(html.raw).includes("data-pane=\"code\"")) {
     await close(server);
-    fail("UI missing Code nav");
+    fail("UI missing Code pane root");
   }
-  if (!String(html.raw).includes("data-hook=\"file-tree\"") && !String(html.raw).includes("id=\"view\"")) {
+  if (!String(html.raw).includes("data-nav=\"code\"") || !String(html.raw).includes("data-hook=\"file-tree\"")) {
     await close(server);
-    fail("UI shell missing");
+    fail("UI missing Code pane tree/nav");
+  }
+  const banned = ["AI Coding Studio", "aria-label=\"Chat\"", "aria-label=\"Board\"", "connectors ▾", "3 online"];
+  for (const token of banned) {
+    if (String(html.raw).includes(token)) {
+      await close(server);
+      fail(`Code pane must not own shell chrome: ${token}`);
+    }
   }
   const apiState = await request(port, "GET", "/api/state");
   if (apiState.status !== 200 || !apiState.body.ok || apiState.body.data.fence !== "studio/github") {
@@ -253,9 +271,13 @@ async function main() {
     fail("api/surface failed");
   }
   const spa = await request(port, "GET", "/pulls");
-  if (spa.status !== 200 || !String(spa.raw).includes("rd-os studio")) {
+  if (spa.status !== 200 || !String(spa.raw).includes("data-pane=\"code\"")) {
     await close(server);
-    fail("SPA /pulls did not serve the shell");
+    fail("SPA /pulls did not serve the Code pane");
+  }
+  if (!apiState.body.data.pane || apiState.body.data.pane.pane !== "code") {
+    await close(server);
+    fail("api/state missing Code pane contract");
   }
   await close(server);
   process.stdout.write("PASS http browse + recipe + surface\n");
@@ -267,6 +289,9 @@ async function main() {
   const readme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
   if (!readme.includes("cd rd-os/studio/github") || !readme.includes("npm test")) {
     fail("README missing stranger path");
+  }
+  if (!readme.includes("Code pane") || !readme.includes("does **not** own studio shell chrome")) {
+    fail("README must say this is Code pane payload, not shell chrome");
   }
 
   const wallMs = Date.now() - started;

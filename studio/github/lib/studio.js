@@ -6,6 +6,7 @@ const { parseRepo, createGithubClient } = require("./github");
 const { createStore } = require("./store");
 const { createFixtureBrowse, sortEntries } = require("./fixtures");
 const { createRdosClient } = require("./rdos-client");
+const { codePaneContract } = require("./pane");
 
 function resolveSource(raw) {
   const value = String(raw || "fixture").trim().toLowerCase();
@@ -56,6 +57,7 @@ function createStudio(options) {
     return ok({
       studio: "C",
       fence: "studio/github",
+      pane: codePaneContract(),
       source,
       repo: repoResult.data,
       connectors: listConnectors(),

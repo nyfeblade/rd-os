@@ -1,8 +1,12 @@
 # Studio C — GitHub browse / connector UI
 
-Fence: **`studio/github/` only**. Not `studio/shell/`, not `studio/seats/`, not `desktop/`, not the kernel, not `consumers/`.
+Fence: **`studio/github/` only**. Not `studio/shell/`, not `studio/seats/`, not `studio/design/`, not `desktop/`, not the kernel, not `consumers/`.
 
-GitHub-like repo browse plus the first connector attach recipe. Grok / Claude / Cursor seats are **stubs** so a later max-connector wire has a place to land. Human+AI coding surface hooks are the file tree and PR list (coding pane is a stub).
+This directory is the **Code pane** payload (repos / file tree / preview / PR list / GitHub attach). It does **not** own studio shell chrome: no titlebar, Chat, Board, presence, or connectors tray.
+
+Designer SoT (`studio/design/` on `main`) is consumed read-only. The shell draws this pane; `?embed=1` and `window.StudioGithub.mount(host)` are the hooks.
+
+GitHub-like repo browse plus the first connector attach recipe. Grok / Claude / Cursor seats are **stubs** so a later max-connector wire has a place to land.
 
 Not a 14-day PASS. `verdict` stays null. `clock_started` stays false. ResourceExhausted ⇒ STOP, no retry.
 
@@ -39,7 +43,7 @@ Then open the UI:
 npm start
 ```
 
-Browse: [http://127.0.0.1:7430](http://127.0.0.1:7430) — Code / Pull requests / Connectors / Surface.
+Code pane (standalone demo): [http://127.0.0.1:7430](http://127.0.0.1:7430) — Files / Pulls / Attach. Embed: [http://127.0.0.1:7430/?embed=1](http://127.0.0.1:7430/?embed=1).
 
 ---
 
@@ -87,7 +91,7 @@ Seat stubs (`recipes/grok.json`, `recipes/claude.json`, `recipes/cursor.json`) r
 | `[data-hook=coding-surface]` | `studio:edit` | stub |
 | `[data-hook=connector-attach]` | `studio:attach` | ready |
 
-`window.StudioGithub.hooks` is the embed point for a later shell. This directory does not implement seats.
+`window.StudioGithub.pane === "code"`. `window.StudioGithub.hooks` + `mount(host)` are the embed points for a later shell. This directory does not implement seats or shell chrome.
 
 ---
 

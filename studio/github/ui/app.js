@@ -2,9 +2,18 @@
   const view = document.getElementById("view");
   const repoHead = document.getElementById("repo-head");
   const sourceMeta = document.getElementById("source-meta");
+  const treeAside = document.getElementById("tree");
+  const pane = document.getElementById("code-pane");
+
+  const embed = new URLSearchParams(window.location.search).get("embed") === "1";
+  document.documentElement.dataset.embed = embed ? "1" : "0";
+  if (pane) {
+    pane.dataset.embed = embed ? "1" : "0";
+  }
 
   let state = null;
   let tree = [];
+  let rootTree = [];
   let pulls = [];
   let blob = null;
   let connectors = [];
@@ -16,6 +25,17 @@
   let surfacePr = null;
 
   window.StudioGithub = {
+    pane: "code",
+    owns: ["repo-switcher", "file-tree", "file-preview", "pr-list", "connector-attach"],
+    doesNotOwn: ["shell", "chat", "board", "titlebar", "presence", "connectors-tray"],
+    mount(host) {
+      if (!host) {
+        return { ok: false, detail: "host required" };
+      }
+      host.setAttribute("data-pane", "code");
+      document.dispatchEvent(new CustomEvent("studio:mount-code", { detail: { host } }));
+      return { ok: true, pane: "code" };
+    },
     hooks: {
       openFile(filePath) {
         document.dispatchEvent(new CustomEvent("studio:open-file", { detail: { path: filePath } }));
@@ -31,7 +51,7 @@
 
   function parseRoute() {
     const pathName = window.location.pathname || "/";
-    if (pathName === "/" || pathName === "/code" || pathName === "/index.html") {
+    if (pathName === "/" || pathName === "/code" || pathName === "/index.html" || pathName === "/surface") {
       return { name: "code", dir: "" };
     }
     const treeMatch = pathName.match(/^\/tree\/(.*)$/);
@@ -47,9 +67,6 @@
     }
     if (pathName === "/connectors") {
       return { name: "connectors" };
-    }
-    if (pathName === "/surface") {
-      return { name: "surface" };
     }
     return { name: "code", dir: "" };
   }
@@ -95,7 +112,7 @@
 
   function fileIcon(type) {
     if (type === "dir") {
-      return `<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M1.75 2A1.75 1.75 0 0 0 0 3.75v8.5C0 13.216.784 14 1.75 14h12.5A1.75 1.75 0 0 0 16 12.25v-6.5A1.75 1.75 0 0 0 14.25 4H7.5l-.884-1.326A.75.75 0 0 0 6 2.25H1.75Z"/></svg>`;
+      return `<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M1.75 2A1.75 1.75 0 0 0 0 3.75v8.5C0 13.216.784 14 1.75 14h12.5A1.75 1.75 0 0 0 16 12.25v-6.5A1.75 1.75 0 0 0 14.25 4H7.5l-.884-1.326A.75.75 0 0 1 6 2.25H1.75Z"/></svg>`;
     }
     return `<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 1.75A.75.75 0 0 1 2.75 1h6.5a.75.75 0 0 1 .53.22l4 4a.75.75 0 0 1 .22.53v8.5A.75.75 0 0 1 13.25 15h-10.5A.75.75 0 0 1 2 14.25Zm7 1.44L12.81 7H9.75a.75.75 0 0 1-.75-.75Z"/></svg>`;
   }
@@ -127,6 +144,11 @@
         loadError = null;
       }
       if (state) {
+        const rootRes = await fetch("/api/tree?path=");
+        const rootBody = await rootRes.json();
+        if (rootBody.ok) {
+          rootTree = rootBody.data;
+        }
         if (route.name === "code") {
           const treeRes = await fetch(`/api/tree?path=${encodeURIComponent(route.dir || "")}`);
           const treeBody = await treeRes.json();
@@ -144,22 +166,16 @@
             blob = null;
           } else {
             blob = blobBody.data;
+            surfaceFile = route.path;
           }
         }
-        if (route.name === "pulls" || route.name === "surface") {
+        if (route.name === "pulls") {
           const pullRes = await fetch("/api/pulls");
           const pullBody = await pullRes.json();
           if (!pullBody.ok) {
             loadError = pullBody;
           } else {
             pulls = pullBody.data;
-          }
-        }
-        if (route.name === "surface") {
-          const treeRes = await fetch("/api/tree?path=");
-          const treeBody = await treeRes.json();
-          if (treeBody.ok) {
-            tree = treeBody.data;
           }
         }
         if (route.name === "connectors") {
@@ -188,21 +204,45 @@
 
   function renderHead() {
     if (!state || !state.repo) {
-      repoHead.innerHTML = `<p class="quiet">Studio C · GitHub browse</p><h1>repo</h1>`;
+      repoHead.innerHTML = `<p class="quiet">Code</p><h1>repo</h1>`;
       sourceMeta.textContent = "offline";
       return;
     }
     const repo = state.repo;
-    repoHead.innerHTML = `<p class="quiet">Studio C · GitHub-like browse · fence studio/github</p>
+    repoHead.innerHTML = `<p class="quiet">Code</p>
       <h1><span class="name">${escapeHtml(repo.owner)}</span><span class="slash"> / </span>${escapeHtml(repo.name)}</h1>
       <p class="desc">${escapeHtml(repo.description || "")}</p>`;
     sourceMeta.textContent = `${state.source} · ${repo.default_branch}`;
+  }
+
+  function renderTree() {
+    const repo = state && state.repo ? state.repo.full_name : "repo";
+    const route = parseRoute();
+    const current = route.name === "blob" ? route.path : route.dir || "";
+    const rows = rootTree
+      .map((entry) => {
+        const href = entry.type === "dir" ? `/tree/${encodeURI(entry.path)}` : `/blob/${encodeURI(entry.path)}`;
+        const on = current === entry.path || (current && current.startsWith(`${entry.path}/`)) ? " on" : "";
+        return `<button type="button" class="${on.trim()}" data-path="${escapeHtml(entry.path)}" data-type="${escapeHtml(entry.type)}" data-href="${escapeHtml(href)}">${escapeHtml(entry.name)}</button>`;
+      })
+      .join("");
+    treeAside.innerHTML = `<div class="repo">${escapeHtml(repo)}</div>${rows}`;
+    treeAside.querySelectorAll("[data-href]").forEach((btn) => {
+      btn.onclick = () => {
+        const filePath = btn.getAttribute("data-path");
+        window.StudioGithub.hooks.openFile(filePath);
+        go(btn.getAttribute("data-href"));
+      };
+    });
   }
 
   function render() {
     const route = parseRoute();
     renderNav(route);
     renderHead();
+    if (state) {
+      renderTree();
+    }
     if (loading) {
       view.innerHTML = `<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>`;
       return;
@@ -228,10 +268,6 @@
       case "connectors":
         view.innerHTML = connectorsView();
         bindConnectors();
-        break;
-      case "surface":
-        view.innerHTML = surfaceView();
-        bindSurface();
         break;
       default:
         assertNeverRoute(route.name);
@@ -287,11 +323,10 @@
       .join("");
     return `${crumbs(dirPath)}
       <div class="page-pad"><span class="branch">${escapeHtml((state.repo && state.repo.default_branch) || "main")}</span></div>
-      <table data-hook="file-tree" data-testid="file-tree">
+      <table data-testid="file-table">
         <thead><tr><th>Name</th><th class="message">Message</th><th>Age</th></tr></thead>
         <tbody>${rows || `<tr><td colspan="3">Empty directory</td></tr>`}</tbody>
-      </table>
-      <p class="about">${escapeHtml((state.repo && state.repo.html_url) || "")}</p>`;
+      </table>`;
   }
 
   function bindCode() {
@@ -313,15 +348,13 @@
       return `<section class="empty"><h1>File not on the tree</h1><p class="quiet">${escapeHtml(filePath)}</p></section>`;
     }
     const parent = filePath.split("/").slice(0, -1).join("/");
-    const parentHref = parent ? `/tree/${encodeURI(parent)}` : "/code";
     const body =
       blob.encoding === "binary"
         ? `<p class="page-pad quiet">Binary file</p>`
         : `<pre class="blob" data-testid="blob">${escapeHtml(blob.content)}</pre>`;
     return `${crumbs(filePath)}
-      <div class="actions"><button class="secondary" type="button" id="back-tree">Back to tree</button></div>
-      ${body}
-      <p class="about"><a href="${escapeHtml(parentHref)}" id="parent-link">Parent directory</a></p>`;
+      <div class="actions"><button class="secondary" type="button" id="back-tree">Parent</button></div>
+      ${body}`;
   }
 
   function bindBlob(filePath) {
@@ -336,7 +369,8 @@
     const rows = pulls
       .map((item) => {
         const pill = item.draft ? "draft" : item.state;
-        return `<tr data-pr="${escapeHtml(String(item.number))}" tabindex="0">
+        const on = surfacePr === item.number ? " selected" : "";
+        return `<tr class="${on.trim()}" data-pr="${escapeHtml(String(item.number))}" tabindex="0">
           <td><a href="${escapeHtml(item.html_url)}">#${escapeHtml(String(item.number))}</a> ${escapeHtml(item.title)}</td>
           <td><span class="pill ${escapeHtml(pill)}">${escapeHtml(pill)}</span></td>
           <td class="quiet">${escapeHtml(item.author || "")}</td>
@@ -348,8 +382,7 @@
       <table data-hook="pr-list" data-testid="pr-list">
         <thead><tr><th>Title</th><th>State</th><th>Author</th><th>Age</th></tr></thead>
         <tbody>${rows || `<tr><td colspan="4">No pull requests in this browse snapshot.</td></tr>`}</tbody>
-      </table>
-      <p class="about">Stub detail is enough. Later the coding surface opens a PR here.</p>`;
+      </table>`;
   }
 
   function bindPulls() {
@@ -360,7 +393,8 @@
         }
         const number = Number(row.getAttribute("data-pr"));
         window.StudioGithub.hooks.openPull(number);
-        flash = `PR #${number} selected (surface hook).`;
+        surfacePr = number;
+        flash = `PR #${number} selected (Code pane hook).`;
         render();
       };
     });
@@ -372,16 +406,16 @@
         const status = item.attached ? "attached" : item.status;
         const action =
           item.id === "github"
-            ? `<div class="actions"><button type="submit" data-attach="github">Attach GitHub</button></div>`
+            ? ""
             : `<div class="actions"><button class="secondary" type="button" data-stub="${escapeHtml(item.id)}" disabled>${escapeHtml(item.label)} stub</button></div>`;
         return `<div class="row" data-connector="${escapeHtml(item.id)}">
           <span><strong>${escapeHtml(item.label)}</strong> · ${escapeHtml(item.kind)} · ${escapeHtml(status)}<br /><span class="quiet">${escapeHtml(item.summary)}</span></span>
-        </div>${item.id === "github" ? "" : action}`;
+        </div>${action}`;
       })
       .join("");
     const repo = (state.attach && state.attach.github && state.attach.github.repo) || "nyfeblade/rd-os";
-    return `<h2>Connectors</h2>
-      <p class="page-pad quiet">GitHub is first. Grok / Claude / Cursor seats are stubs for later studio/seats wiring.</p>
+    return `<h2>Attach</h2>
+      <p class="page-pad quiet">GitHub first. Seat stubs later via studio/seats. This is not the shell connectors tray.</p>
       <form id="attach-form" data-hook="connector-attach" data-testid="connector-attach">
         <label>GitHub repo<input name="repo" required value="${escapeHtml(repo)}" placeholder="owner/name" /></label>
         <label>Token (optional, public repos work without)<input name="token" type="password" autocomplete="off" /></label>
@@ -433,60 +467,6 @@
     });
   }
 
-  function surfaceView() {
-    const files = tree
-      .map((entry) => {
-        const cls = surfaceFile === entry.path ? "row selected" : "row";
-        return `<button class="${cls}" type="button" data-path="${escapeHtml(entry.path)}" data-type="${escapeHtml(entry.type)}">${escapeHtml(entry.name)}</button>`;
-      })
-      .join("");
-    const prs = pulls
-      .map((item) => {
-        const cls = surfacePr === item.number ? "row selected" : "row";
-        return `<button class="${cls}" type="button" data-pr="${escapeHtml(String(item.number))}">#${escapeHtml(String(item.number))} ${escapeHtml(item.title)}</button>`;
-      })
-      .join("");
-    const editor = surfaceFile
-      ? `<p>Opened <strong>${escapeHtml(surfaceFile)}</strong></p><p class="quiet">Human + AI coding surface hook. Seat stubs (Grok / Claude / Cursor) are not wired.</p>`
-      : `<p>Select a file or a pull request.</p><p class="quiet">This pane is the Human+AI coding surface stub. File tree and PR list are the hooks.</p>`;
-    return `<div class="surface" data-hook="coding-surface" data-testid="coding-surface">
-      <section>
-        <h2>Files</h2>
-        <div class="tree-list" data-hook="file-tree">${files}</div>
-      </section>
-      <section class="editor-stub">${editor}</section>
-      <section>
-        <h2>Pulls</h2>
-        <div data-hook="pr-list">${prs}</div>
-      </section>
-    </div>`;
-  }
-
-  function bindSurface() {
-    view.querySelectorAll("[data-path]").forEach((btn) => {
-      btn.onclick = () => {
-        const filePath = btn.getAttribute("data-path");
-        const type = btn.getAttribute("data-type");
-        window.StudioGithub.hooks.openFile(filePath);
-        if (type === "dir") {
-          go(`/tree/${encodeURI(filePath)}`);
-          return;
-        }
-        surfaceFile = filePath;
-        render();
-      };
-    });
-    view.querySelectorAll("[data-pr]").forEach((btn) => {
-      btn.onclick = () => {
-        const number = Number(btn.getAttribute("data-pr"));
-        window.StudioGithub.hooks.openPull(number);
-        surfacePr = number;
-        flash = `PR #${number} on the coding surface (stub).`;
-        render();
-      };
-    });
-  }
-
   async function post(url, body) {
     const res = await fetch(url, {
       method: "POST",
@@ -500,7 +480,7 @@
     if (event.key !== "j" && event.key !== "k" && event.key !== "ArrowDown" && event.key !== "ArrowUp") {
       return;
     }
-    const rows = Array.from(view.querySelectorAll("tr[data-path], tr[data-pr], button.row[data-path], button.row[data-pr]"));
+    const rows = Array.from(view.querySelectorAll("tr[data-path], tr[data-pr]"));
     if (!rows.length) {
       return;
     }
@@ -511,8 +491,17 @@
     rows[selected].focus();
   });
 
-  document.querySelector("nav[aria-label='Primary']").addEventListener("click", (event) => {
+  document.querySelector("nav[aria-label='Code pane']").addEventListener("click", (event) => {
     const link = event.target.closest("a[href]");
+    if (!link) {
+      return;
+    }
+    event.preventDefault();
+    go(link.getAttribute("href"));
+  });
+
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("#view a[href^='/']");
     if (!link) {
       return;
     }
