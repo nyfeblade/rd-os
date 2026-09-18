@@ -1,8 +1,8 @@
 # Studio A — desktop shell
 
-AI Coding Studio absorbs rd-os. Waiting-table-as-home is dead.
+Studio is a full Grok Bot **optimized for engineering** — not a life OS. Waiting-table-as-home is dead.
 
-Default chrome is **Chat + Board**. **Code is on demand** (toolbar Code, “Open code” in chat, or Close). It is not always-on.
+Default chrome is **Chat + Board**. **Code is on demand**. The connectors tray stays in the titlebar. The Board always shows **CloudAgent** and **Proof**.
 
 This package is Electron so the same stranger path runs on **macOS and Windows**. Linux can use the same commands.
 
@@ -30,8 +30,8 @@ A 1440×900 window titled **AI Coding Studio** should open on Chat + Board. Code
 ## What should be on screen
 
 1. **Chat** — seats, **in studio** chips on cutover seats, thread, composer
-2. **Board** — gates / P0 with Approve and Reject (not a Waiting home)
-3. Toolbar **Code** (off) · whisper **presence** (“N here”) · whisper **connectors** (GitHub)
+2. **Board** — CloudAgent + Proof instruments, gates / P0 with Approve and Reject (not a Waiting home)
+3. Toolbar **Code** (off) · **connectors tray** (GitHub, CloudAgent, Notion) · presence (“N here”)
 4. Connecting a seat or Notion asks once: *This seat works in Studio only while connected.*
 
 Code opens from the Code button, the chat hint, or Close to put it away.

@@ -15,17 +15,13 @@
       <header class="bar">
         <div class="name">Studio</div>
         <button type="button" class="bar-btn" id="btn-code" aria-pressed="false">Code</button>
+        <div class="tray" id="connectors-tray" aria-label="Connectors"></div>
         <div class="right">
           <button type="button" class="whisper" id="presence-btn" aria-expanded="false" aria-controls="presence-list">
             <span class="dot" aria-hidden="true"></span>
             <span id="presence-count">0 here</span>
           </button>
-          <span aria-hidden="true">·</span>
-          <button type="button" class="whisper" id="connectors-btn" aria-expanded="false" aria-controls="connectors-tray">
-            GitHub
-          </button>
           <div class="popover" id="presence-list" hidden role="list"></div>
-          <div class="popover" id="connectors-tray" hidden aria-label="Connectors"></div>
         </div>
       </header>
 
@@ -66,6 +62,7 @@
 
         <section class="pane" data-pane="board" id="pane-board" aria-label="Board">
           <div class="label">Board</div>
+          <div class="instruments" id="instruments" aria-label="CloudAgent and Proof"></div>
           <div class="board" id="board-body"></div>
         </section>
       </main>

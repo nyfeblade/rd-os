@@ -25,6 +25,7 @@ assert.match(html, /id="btn-code"/);
 assert.match(html, /id="hint-code"/);
 assert.match(html, /id="btn-close"/);
 assert.match(html, /id="connectors-tray"/);
+assert.match(html, /id="instruments"/);
 assert.match(html, /id="presence-btn"/);
 assert.match(html, /id="cutover-sheet"/);
 assert.match(html, /This seat works in Studio only while connected/);
@@ -39,6 +40,8 @@ assert.match(css, /\.main\.code-open \.code-pane/);
 assert.match(css, /grid-template-columns:\s*1\.35fr 0\.9fr/);
 assert.doesNotMatch(css, /minmax\(280px,\s*1\.05fr\).*minmax\(360px/);
 
+assert.match(js, /CloudAgent/);
+assert.match(js, /instrumentFor/);
 assert.match(js, /setCodeOpen/);
 assert.match(js, /codeOpen:\s*false/);
 assert.match(js, /setCodeOpen\(false\)/);

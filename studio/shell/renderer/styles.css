@@ -71,6 +71,29 @@ body[data-host="electron"][data-platform="mac"] .bar {
   background: var(--elev);
 }
 
+.tray {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+}
+
+.chip {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 560;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--elev);
+  color: var(--mute);
+  cursor: pointer;
+}
+
+.chip.on {
+  color: var(--ink);
+}
+
 .right {
   margin-left: auto;
   font-size: 12px;
@@ -422,6 +445,39 @@ pre {
   border: 0;
   cursor: pointer;
   padding: 4px 8px;
+}
+
+.instruments {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 16px 10px;
+}
+
+.instrument {
+  background: var(--elev);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.instrument .k {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.instrument .v {
+  margin-top: 3px;
+  font-size: 13px;
+  font-weight: 560;
+}
+
+.instrument .d {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--mute);
 }
 
 .board {

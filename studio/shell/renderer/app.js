@@ -26,8 +26,8 @@
 
   const THREADS = {
     "eng-lead": [
-      { who: "Eng Lead", body: "Coding stays optional — open it when a diff matters.", me: false },
-      { who: "You", body: "Default is talk + gates. Not an IDE that never shuts up.", me: true },
+      { who: "Eng Lead", body: "Studio is the eng desk — CloudAgent and Proof live on the Board. Not a life OS.", me: false },
+      { who: "You", body: "Chat + gates by default. Code only when a diff matters.", me: true },
     ],
     you: [{ who: "You", body: "Notes stay here. Code stays closed until a file matters.", me: true }],
     designer: [{ who: "Studio Designer", body: "Quiet chrome. Code stays away until a diff matters.", me: false }],
@@ -44,8 +44,8 @@
     presenceBtn: document.getElementById("presence-btn"),
     presenceCount: document.getElementById("presence-count"),
     presenceList: document.getElementById("presence-list"),
-    connectorsBtn: document.getElementById("connectors-btn"),
     connectors: document.getElementById("connectors-tray"),
+    instruments: document.getElementById("instruments"),
     seatList: document.getElementById("seat-list"),
     messages: document.getElementById("messages"),
     composer: document.getElementById("composer"),
@@ -75,7 +75,6 @@
     flash: null,
     pendingCutover: null,
     presenceOpen: false,
-    connectorsOpen: false,
     codeOpen: false,
   };
 
@@ -96,14 +95,14 @@
     }
   }
 
-  function connectorMeta(status) {
+  function connectorClass(status) {
     switch (status) {
       case "connected":
-        return "on";
+        return "chip on";
       case "needs-auth":
-        return "needs auth";
+        return "chip";
       case "add":
-        return "";
+        return "chip";
       default:
         return assertNever(status);
     }
@@ -114,11 +113,33 @@
       case "human":
         return "You";
       case "agent":
-        return "Agent";
+        return "CloudAgent";
       case "proof":
         return "Proof";
       default:
         return assertNever(who);
+    }
+  }
+
+  function instrumentFor(kind, dump) {
+    const who = dump && dump.p0 ? dump.p0.waiting_on : null;
+    const id = dump && dump.p0 ? dump.p0.id : "idle";
+    switch (kind) {
+      case "ca":
+        if (who === "agent") {
+          return { label: "CloudAgent", state: "running", detail: id };
+        }
+        return { label: "CloudAgent", state: "idle", detail: who ? "other lane" : "no run" };
+      case "proof":
+        if (who === "proof") {
+          return { label: "Proof", state: "checking", detail: "Eng Proof" };
+        }
+        if (who === "human") {
+          return { label: "Proof", state: "ready", detail: "checks in" };
+        }
+        return { label: "Proof", state: "idle", detail: "no packet" };
+      default:
+        return assertNever(kind);
     }
   }
 
@@ -144,11 +165,6 @@
     return FILES.find((file) => file.id === state.selectedFile) || FILES[0];
   }
 
-  function whisperConnectorLabel() {
-    const connected = state.connectors.filter((item) => item.status === "connected");
-    return connected[0] ? connected[0].label : "Connectors";
-  }
-
   function setCodeOpen(open) {
     state.codeOpen = open;
     els.main.classList.toggle("code-open", open);
@@ -161,27 +177,10 @@
     }
   }
 
-  function setMenu(which, open) {
-    switch (which) {
-      case "presence":
-        state.presenceOpen = open;
-        if (open) {
-          state.connectorsOpen = false;
-        }
-        break;
-      case "connectors":
-        state.connectorsOpen = open;
-        if (open) {
-          state.presenceOpen = false;
-        }
-        break;
-      default:
-        assertNever(which);
-    }
-    els.presenceBtn.setAttribute("aria-expanded", String(state.presenceOpen));
-    els.connectorsBtn.setAttribute("aria-expanded", String(state.connectorsOpen));
-    els.presenceList.hidden = !state.presenceOpen;
-    els.connectors.hidden = !state.connectorsOpen;
+  function setPresenceOpen(open) {
+    state.presenceOpen = open;
+    els.presenceBtn.setAttribute("aria-expanded", String(open));
+    els.presenceList.hidden = !open;
   }
 
   function renderPresence() {
@@ -205,21 +204,36 @@
   }
 
   function renderConnectors() {
-    els.connectorsBtn.textContent = whisperConnectorLabel();
     els.connectors.replaceChildren();
     for (const connector of state.connectors) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "connector-row";
+      button.className = connectorClass(connector.status);
       button.dataset.connector = connector.id;
-      const label = document.createElement("span");
-      label.textContent = connector.label;
-      const meta = document.createElement("span");
-      meta.className = "meta";
-      meta.textContent = connectorMeta(connector.status);
-      button.append(label, meta);
+      button.textContent = connector.label;
       button.addEventListener("click", () => onConnector(connector.id));
       els.connectors.appendChild(button);
+    }
+  }
+
+  function renderInstruments() {
+    els.instruments.replaceChildren();
+    for (const kind of ["ca", "proof"]) {
+      const item = instrumentFor(kind, state.dump);
+      const card = document.createElement("div");
+      card.className = "instrument";
+      card.dataset.instrument = kind;
+      const k = document.createElement("div");
+      k.className = "k";
+      k.textContent = item.label;
+      const v = document.createElement("div");
+      v.className = "v";
+      v.textContent = item.state;
+      const d = document.createElement("div");
+      d.className = "d";
+      d.textContent = item.detail;
+      card.append(k, v, d);
+      els.instruments.appendChild(card);
     }
   }
 
@@ -309,25 +323,38 @@
   }
 
   function boardRows(dump) {
-    if (!dump || !dump.p0) {
-      return [];
+    const rows = [];
+    if (dump && dump.p0 && dump.p0.waiting_on === "human") {
+      rows.push({
+        id: dump.p0.id,
+        what: "Merge gate",
+        sub: "Studio shell",
+        waitingOn: "human",
+        ageS: dump.p0.age_s,
+      });
     }
-    const primary = {
-      id: dump.p0.id,
-      what: dump.p0.waiting_on === "human" ? "Merge gate" : dump.p0.why,
-      sub: dump.p0.waiting_on === "human" ? "Studio shell" : dump.p0.why,
-      waitingOn: dump.p0.waiting_on,
-      ageS: dump.p0.age_s,
-    };
-    const rows = [primary];
-    if (dump.p0.waiting_on === "human") {
-      rows.push({ id: "proof-checks", what: "PR checks", sub: "", waitingOn: "proof", ageS: 240 });
-    }
+    const ca = instrumentFor("ca", dump);
+    const proof = instrumentFor("proof", dump);
+    rows.push({
+      id: "ca",
+      what: "CloudAgent",
+      sub: ca.detail,
+      waitingOn: "agent",
+      ageS: dump && dump.p0 && dump.p0.waiting_on === "agent" ? dump.p0.age_s : 0,
+    });
+    rows.push({
+      id: "proof",
+      what: "Proof",
+      sub: proof.detail,
+      waitingOn: "proof",
+      ageS: dump && dump.p0 && dump.p0.waiting_on === "proof" ? dump.p0.age_s : 240,
+    });
     return rows;
   }
 
   function renderBoard() {
     const dump = state.dump;
+    renderInstruments();
     els.boardBody.replaceChildren();
 
     if (!dump) {
@@ -335,18 +362,6 @@
       empty.className = "foot";
       empty.textContent = "Can't reach the board stub.";
       els.boardBody.appendChild(empty);
-      return;
-    }
-
-    if (!dump.p0) {
-      const empty = document.createElement("p");
-      empty.className = "foot";
-      empty.textContent = state.flash || "Nothing on the board. Chat stays open.";
-      els.boardBody.appendChild(empty);
-      const note = document.createElement("p");
-      note.className = "foot";
-      note.textContent = "Code closed by default";
-      els.boardBody.appendChild(note);
       return;
     }
 
@@ -395,7 +410,7 @@
       on.textContent = waitingLabel(row.waitingOn);
       const age = document.createElement("td");
       age.className = row.waitingOn === "human" ? "" : "mute";
-      age.textContent = formatAge(row.ageS);
+      age.textContent = row.ageS > 0 ? formatAge(row.ageS) : "—";
       tr.append(what, on, age);
       tbody.appendChild(tr);
     }
@@ -440,7 +455,6 @@
     }
     switch (connector.status) {
       case "connected":
-        setMenu("connectors", false);
         return;
       case "needs-auth":
         openCutover({
@@ -468,8 +482,7 @@
     els.cutoverTitle.textContent = pending.title;
     els.cutoverCopy.textContent = pending.copy;
     els.cutoverSheet.hidden = false;
-    setMenu("connectors", false);
-    setMenu("presence", false);
+    setPresenceOpen(false);
     els.cutoverConfirm.focus();
   }
 
@@ -529,21 +542,12 @@
     });
     els.presenceBtn.addEventListener("click", (event) => {
       event.stopPropagation();
-      setMenu("presence", !state.presenceOpen);
-    });
-    els.connectorsBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      setMenu("connectors", !state.connectorsOpen);
+      setPresenceOpen(!state.presenceOpen);
     });
     document.addEventListener("click", (event) => {
       if (!els.presenceBtn.contains(event.target) && !els.presenceList.contains(event.target)) {
         if (state.presenceOpen) {
-          setMenu("presence", false);
-        }
-      }
-      if (!els.connectorsBtn.contains(event.target) && !els.connectors.contains(event.target)) {
-        if (state.connectorsOpen) {
-          setMenu("connectors", false);
+          setPresenceOpen(false);
         }
       }
     });
