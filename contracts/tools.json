@@ -1,0 +1,23 @@
+{
+  "families": ["board", "packet", "lock", "proof", "gate", "budget"],
+  "clock_started": false,
+  "mutators_require": "idempotency_key",
+  "tools": [
+    { "name": "board.dump", "mutator": false },
+    { "name": "board.get", "mutator": false },
+    { "name": "board.set", "mutator": true },
+    { "name": "board.list_seats", "mutator": false },
+    { "name": "board.assign_seat", "mutator": true },
+    { "name": "packet.index", "mutator": false },
+    { "name": "packet.upsert", "mutator": true },
+    { "name": "lock.acquire", "mutator": true },
+    { "name": "lock.release", "mutator": true },
+    { "name": "proof.verdict", "mutator": true },
+    { "name": "gate.list", "mutator": false },
+    { "name": "gate.add", "mutator": true },
+    { "name": "gate.resolve", "mutator": true },
+    { "name": "budget.list", "mutator": false },
+    { "name": "budget.set", "mutator": true },
+    { "name": "budget.spend", "mutator": true }
+  ]
+}

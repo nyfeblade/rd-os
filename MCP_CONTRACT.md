@@ -193,3 +193,11 @@ Cockpit = `attention.dump` (source of truth) + reject codes. The Waiting UI is a
 - Not Sightline's in-process Claude MCP. Portable beside hosts, not inside one host.
 - Not Exp-3 governor. Quota freeze remains playbook: ResourceExhausted ⇒ STOP, no second CA.
 - Not a self-cert path. `runner_result` ≠ `verdict`.
+
+---
+
+## Control-plane contract (CA2)
+
+Board, packet, lock, proof, gate, and budget tools live in `docs/mcp-control-plane.md` (reject catalog: `docs/mcp-reject-codes.md`). Runtime is `src/mcp/` — this PR does **not** swap them into `bin/mcp.js` (fence; v0 Tool surface table above stays the attach list).
+
+Mutators are idempotent (`idempotency_key`). `RESOURCE_EXHAUSTED` means STOP, no retry. Tools refuse `clock_started=true`. Stranger: `node contracts/run.js`. When CA1 lands `src/board`, `src/mcp/adapters/plane.js` requires it; until then the stub keeps rejects testable.

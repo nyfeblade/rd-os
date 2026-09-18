@@ -1,0 +1,7 @@
+{
+  "experiment_id": "exp-ca2-contract",
+  "packet_id": "pkt-weight",
+  "body": "LGTM — I am 90% sure this works",
+  "confidence": 0.9,
+  "idempotency_key": "pkt-weight-1"
+}
