@@ -1,6 +1,6 @@
 # AI Coding Studio — shell-local SoT copies
 
-Live chrome follows **quiet-studio** + the reconciled spec: **Chat | Board** default, **Code on demand**. Waiting-home is dead. Does **not** write `studio/design/**`.
+Live chrome follows **quiet-studio** + the reconciled spec: **Chat | Board** default, **Code on demand**. Waiting-home is dead. Consumes `studio/design/**` on main read-only (CONNECTORS-TWO-WAY + quiet-studio). Does **not** write `studio/design/**`.
 
 | File | Use |
 | --- | --- |

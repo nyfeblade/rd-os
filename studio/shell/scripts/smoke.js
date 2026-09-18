@@ -224,6 +224,14 @@ assert.match(read("design/CONNECTORS-TWO-WAY.md"), /bidirectional|HITL/);
 assert.ok(fs.existsSync(path.join(root, "design", "HITL.md")));
 assert.match(read("design/quiet-studio.html"), /HITL · high-risk outbound/);
 assert.match(read("design/quiet-studio.html"), /Send to GitHub/);
+
+const designSot = path.resolve(root, "..", "design");
+assert.ok(fs.existsSync(path.join(designSot, "CONNECTORS-TWO-WAY.md")), "studio/design CONNECTORS-TWO-WAY is consumed read-only");
+assert.ok(fs.existsSync(path.join(designSot, "quiet-studio.html")), "studio/design quiet-studio is consumed read-only");
+assert.match(fs.readFileSync(path.join(designSot, "CONNECTORS-TWO-WAY.md"), "utf8"), /HITL pending card|bound to/);
+assert.match(fs.readFileSync(path.join(designSot, "quiet-studio.html"), "utf8"), /Send to GitHub/);
+assert.doesNotMatch(js, /studio\/design\//);
+assert.doesNotMatch(read("lib/two-way.js"), /studio\/design\//);
 assert.match(read("design/CONNECTORS-TWOWAY.md"), /inbox entry/);
 assert.match(read("lib/two-way.js"), /P0_WIRE/);
 assert.match(read("lib/two-way.js"), /runtime not present/);
