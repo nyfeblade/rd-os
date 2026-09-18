@@ -11,8 +11,11 @@
  *     Exit 0 if every fixture evaluates ok=true, exit 2 if any reject.
  *     Planted fixtures are expected to bite.
  *
+ *   node studio/connectors/egress/slack/cli.js --dry
+ *     Measured Chat stand-in (PR#11 not on main). Never HTTP.
+ *
  *   node studio/connectors/egress/slack/prove.js --live
- *     Lead-approved only. Requires SLACK_BOT_TOKEN and SLACK_DM_USER_ID.
+ *     Optional. Requires SLACK_BOT_TOKEN and SLACK_DM_USER_ID.
  *     Not a CI step. Refuses without both env vars — does not invent tokens.
  *
  * Node 18+. No npm install. Does not write a verdict. Does not arm the clock.
@@ -20,9 +23,11 @@
 
 const fs = require("fs");
 const path = require("path");
+const { spawnSync } = require("child_process");
 
 const slack = require("./index");
 const contract = require("./contract");
+const cli = require("./cli");
 
 const root = path.resolve(__dirname, "..", "..", "..", "..");
 const FIXTURES = path.join(__dirname, "fixtures");
@@ -172,6 +177,82 @@ async function checkLibrary() {
     fail("dm missing env", JSON.stringify({ ok: dmNoEnv.ok, code: dmNoEnv.code, fetches }));
   } else {
     pass("live DM without SLACK_DM_USER_ID is NEEDS_AUTH and does not fetch");
+  }
+
+  if (typeof cli.dryRun !== "function" || typeof cli.publicReport !== "function") {
+    fail("cli", "dryRun/publicReport export missing");
+  } else {
+    pass("cli dryRun is the Chat stand-in export");
+  }
+
+  const cliDry = await cli.dryRun(cli.loadInput(cli.DEFAULT_DRY));
+  if (!cliDry.ok || cliDry.dry !== true || cliDry.request.channel !== "Ceng") {
+    fail("cli dryRun", JSON.stringify({ ok: cliDry.ok, dry: cliDry.dry, request: cliDry.request }));
+  } else {
+    pass("cli dryRun maps the measured draft fixture");
+  }
+
+  const published = cli.publicReport(cliDry);
+  const pubExtra = extraKeys(published, cli.PUBLIC_FIELDS);
+  if (pubExtra.length) fail("cli publicReport", `extra ${pubExtra.join(",")}`);
+  else pass("cli publicReport stays on the closed public fields");
+  if (typeof published.auth_present.SLACK_BOT_TOKEN !== "boolean") {
+    fail("cli publicReport", "auth_present must be booleans, never token values");
+  } else {
+    pass("cli publicReport reports auth presence only");
+  }
+
+  const leakProbe = cli.publicReport({
+    ok: true,
+    dry: true,
+    request: { channel: "Ceng", text: "xoxb-should-not-print" },
+    token: "xoxb-should-not-print",
+    Authorization: "Bearer xoxb-should-not-print",
+  });
+  const leaked = JSON.stringify(leakProbe);
+  if (/xoxb-should-not-print/.test(leaked) || leaked.includes("Bearer ")) {
+    fail("cli redact", leaked);
+  } else {
+    pass("cli publicReport redacts token-shaped strings");
+  }
+
+  const childEnv = Object.assign({}, process.env);
+  delete childEnv.SLACK_BOT_TOKEN;
+  delete childEnv.SLACK_DM_USER_ID;
+  const dryChild = spawnSync(process.execPath, [path.join(__dirname, "cli.js"), "--dry"], {
+    encoding: "utf8",
+    env: childEnv,
+  });
+  if (dryChild.status !== 0) {
+    fail("cli --dry", dryChild.stderr || dryChild.stdout);
+  } else {
+    const body = JSON.parse(dryChild.stdout);
+    if (body.ok !== true || body.dry !== true || body.verdict !== null || body.clock_started !== false) {
+      fail("cli --dry", JSON.stringify(body));
+    } else {
+      pass("cli --dry exits 0 with dry JSON; verdict=null");
+    }
+  }
+
+  const plantedChild = spawnSync(
+    process.execPath,
+    [path.join(__dirname, "cli.js"), "--dry", "--in", path.join(__dirname, "fixtures", "planted", "empty-body.json")],
+    { encoding: "utf8", env: childEnv }
+  );
+  if (plantedChild.status !== 2) {
+    fail("cli --dry planted", `exit ${plantedChild.status}: ${plantedChild.stdout}`);
+  } else {
+    pass("cli --dry of planted empty-body exits 2");
+  }
+
+  const liveChild = spawnSync(process.execPath, [path.join(__dirname, "cli.js"), "--live", "--dm"], {
+    encoding: "utf8",
+    env: childEnv,
+  });
+  if (liveChild.status !== 2 || !/NEEDS_AUTH/.test(liveChild.stdout + liveChild.stderr)) {
+    fail("cli --live no env", `exit ${liveChild.status}: ${liveChild.stdout} ${liveChild.stderr}`);
+  } else {
+    pass("cli --live --dm without env is NEEDS_AUTH exit 2");
   }
 }
 

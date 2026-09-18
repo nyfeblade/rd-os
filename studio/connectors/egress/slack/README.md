@@ -1,6 +1,8 @@
 # studio/connectors/egress/slack
 
-Contract → HTTP harness for Slack [`chat.postMessage`](https://docs.slack.dev/reference/methods/chat.postMessage). Studio can later DM from the app path. This lane maps the runtime closed op `post_message` (and a runtime-style reply draft) onto the official Web API. It does not rewrite `runtime/**`, `ingress/**`, the catalog, or shell chrome.
+Contract → HTTP harness for Slack [`chat.postMessage`](https://docs.slack.dev/reference/methods/chat.postMessage). Studio can later DM from the app path. Until [`studio/shell` Chat (PR#11)](https://github.com/nyfeblade/rd-os/pull/11) is on main, the **Lead-approved consumer is this package's CLI/gate**.
+
+Runtime outbound shape is consume-only. This lane does not rewrite `runtime/**`, `ingress/**`, the catalog, or shell chrome.
 
 ```js
 const { map, send, dm } = require("./studio/connectors/egress/slack");
@@ -8,18 +10,25 @@ const { map, send, dm } = require("./studio/connectors/egress/slack");
 
 ```bash
 node studio/connectors/egress/slack/prove.js
-# exit 0 — mapping + missing-env reject. No HTTP.
+# exit 0 — mapping + missing-env reject + CLI dry-run. No HTTP.
 
-node studio/connectors/egress/slack/prove.js --gate studio/connectors/egress/slack/fixtures/good
+node studio/connectors/egress/slack/cli.js --dry
+# measured Chat stand-in. Prints mapped chat.postMessage JSON. Never HTTP.
+
+node studio/connectors/egress/slack/cli.js --dry --in studio/connectors/egress/slack/fixtures/good/outbound-post-message.json
+
+node studio/connectors/egress/slack/cli.js --prove
+
+node studio/connectors/egress/slack/cli.js --gate studio/connectors/egress/slack/fixtures/good
 # exit 0
 
-node studio/connectors/egress/slack/prove.js --gate studio/connectors/egress/slack/fixtures/planted
+node studio/connectors/egress/slack/cli.js --gate studio/connectors/egress/slack/fixtures/planted
 # exit 2
 ```
 
-Node 18+. No npm install. Default is **DRY**. `verdict` stays null. `clock_started` stays false.
+Node 18+. No npm install. Default is **DRY**. Secrets never live in this tree. `verdict` stays null. `clock_started` stays false.
 
-`--live` is documented below and is **not** a CI step.
+`--live` is optional, env-gated, and **not** a CI step.
 
 ## What it accepts
 
@@ -36,13 +45,15 @@ DM helper (optional): [`conversations.open`](https://docs.slack.dev/reference/me
 
 | Call | HTTP? |
 | --- | --- |
-| `map(input)` | Never. |
+| `map(input)` / `cli.js --dry` | Never. |
 | `send(input)` / `send(input, { live: false })` | Never. Returns the mapped request with `dry: true`. |
 | `send(input, { live: true })` | Only if `SLACK_BOT_TOKEN` is set. Else `{ ok: false, code: "NEEDS_AUTH" }`. |
-| `dm(input)` dry | Never. Needs a user id (`input.user` or `SLACK_DM_USER_ID`). |
-| `dm(input, { live: true })` | Only with `SLACK_BOT_TOKEN`. Live prove (below) also requires `SLACK_DM_USER_ID`. |
+| `dm(input)` dry / `cli.js --dry --dm` | Never. Needs a user id (`input.user` or `SLACK_DM_USER_ID`). |
+| `dm(input, { live: true })` / `cli.js --live --dm` | Only with `SLACK_BOT_TOKEN` + `SLACK_DM_USER_ID`. |
 
-Tokens are never invented. Slack is never called when the token env is missing. A token sitting in the environment does **not** send — `live: true` (or `--live`) is required.
+Tokens are never invented. Slack is never called when the token env is missing. A token sitting in the environment does **not** send — `live: true` (or `--live`) is required. CLI `--dry` passes an empty env into `send`/`dm` so process secrets cannot leak into a dry run.
+
+`publicReport` prints `auth_present: { SLACK_BOT_TOKEN, SLACK_DM_USER_ID }` as booleans only. It never prints token values.
 
 ## Tokens (Luke secret-request)
 
@@ -53,27 +64,27 @@ Luke secret-requests these names into the Cloud Agent run (Cursor environment se
 | Env | Required for | What |
 | --- | --- | --- |
 | `SLACK_BOT_TOKEN` | live HTTP | Bot User OAuth Token. Scope `chat:write`. DM helper also needs `im:write`. |
-| `SLACK_DM_USER_ID` | live `--live` DM | Slack member id (`U…`) passed as `users` to `conversations.open`. |
+| `SLACK_DM_USER_ID` | live `--live --dm` | Slack member id (`U…`) passed as `users` to `conversations.open`. |
 
-Mint on a Slack app (official site, not this repo): create/install the app, grant those bot scopes, copy the bot token and the target member id, then secret-request the two names. Default `prove.js` does not need them.
+Mint on a Slack app (official site, not this repo): create/install the app, grant those bot scopes, copy the bot token and the target member id, then secret-request the two names. Default `prove.js` and `cli.js --dry` do not need them.
 
-## No live-send from this lane
+## Live CLI (optional, not CI)
 
-Do **not** live-send until:
-
-1. the Studio shell consumes this module from the app path, or
-2. Lead approves the CLI below.
+Lead approved this CLI as the send path until Chat lands. Live still requires env on the process — never a file in the repo.
 
 ```bash
-# Lead-approved only. Both env vars required. Not CI.
-SLACK_BOT_TOKEN=… SLACK_DM_USER_ID=U… node studio/connectors/egress/slack/prove.js --live
+# optional. Both env vars required. Not CI.
+SLACK_BOT_TOKEN=… SLACK_DM_USER_ID=U… node studio/connectors/egress/slack/cli.js --live --dm
+
+# or a closed outbound JSON (no secrets in the file)
+SLACK_BOT_TOKEN=… node studio/connectors/egress/slack/cli.js --live --in outbound.json
 ```
 
-Without both vars, `--live` prints `{ ok: false, code: "NEEDS_AUTH" }` and exits 2. It does not invent a token and does not call Slack.
+Without the required vars, `--live` prints `{ ok: false, code: "NEEDS_AUTH" }` and exits 2. It does not invent a token and does not call Slack.
 
 ## Out of this fence
 
 - `studio/connectors/ingress/**`
 - `studio/connectors/runtime/**` (shape consume only)
 - `studio/connectors/CATALOG.md`, `ARCHITECTURE.md`, `DO-NOT-SHIP.md`
-- `studio/shell`, seats, github, design consumers
+- `studio/shell`, seats, github, design consumers (Chat consume comes after PR#11 merges)

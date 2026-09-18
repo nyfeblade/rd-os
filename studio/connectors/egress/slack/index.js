@@ -8,7 +8,8 @@
  *   dm(input, opts)       → conversations.open + postMessage to IM.
  *
  * Default is DRY. Tokens are never invented. Slack is never called without env.
- * Shell / seats consume this export later. This lane does not wire chrome.
+ * CLI (`cli.js`) is the Lead-approved Chat stand-in until studio/shell Chat
+ * (PR#11) is on main. This lane does not wire chrome. Secrets never in repo.
  * verdict stays null. clock_started stays false.
  */
 
