@@ -148,10 +148,15 @@
     els.boardBody.replaceChildren();
 
     if (state.view !== "cold") {
-      for (const item of inboxGates(state)) {
-        renderInboxGate(els, item, handlers);
+      const pending = state.pendingBotSend;
+      const botPending = pending && pending.status !== "sent" && pending.status !== "denied";
+      if (botPending) {
+        renderBotSendGate(els, state, handlers);
+      } else {
+        for (const item of inboxGates(state)) {
+          renderInboxGate(els, item, handlers);
+        }
       }
-      renderBotSendGate(els, state, handlers);
     }
 
     if (state.dump) {

@@ -99,7 +99,11 @@
     who.textContent = bound.provider === "github" ? "GitHub" : "Slack";
     els.inboxCtx.append(who, document.createTextNode(` · ${bound.title}`));
     els.composeHint.hidden = false;
-    els.composeHint.textContent = `Outbound bound to this notification · ${bound.id}`;
+    const slack = (state.connectors || []).find((row) => row.id === "slack");
+    const slackAuth = slack && (slack.status === "needs_auth" || slack.status === "error");
+    els.composeHint.textContent = slackAuth
+      ? "Outbound bound to this notification · Slack needs sign-in in tray"
+      : "Outbound bound to this notification";
   }
 
   function renderThread(els, state, handlers) {
@@ -142,6 +146,19 @@
           wrap.append(who, body);
           els.messages.appendChild(wrap);
         }
+      } else if (bound) {
+        const wrap = document.createElement("div");
+        wrap.className = "msg";
+        const who = document.createElement("div");
+        who.className = "who";
+        who.textContent = "You (draft out)";
+        const body = document.createElement("div");
+        body.className = "txt draft";
+        body.textContent = `Composer below sends the reply to ${
+          bound.provider === "github" ? "GitHub" : "Slack"
+        } on this thread.`;
+        wrap.append(who, body);
+        els.messages.appendChild(wrap);
       }
       els.composerInput.placeholder = bound
         ? `Reply on ${bound.provider === "github" ? "GitHub" : "Slack"}…`

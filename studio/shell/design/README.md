@@ -12,6 +12,6 @@ Live chrome follows **quiet-studio** + the reconciled spec: **Chat | Board** def
 | `CONNECTORS-TWO-WAY.md` | Bidirectional tray + inbox + gated bot send |
 | `CONNECTORS-TWOWAY.md` | Luke lock: tray auth + inbox entry; Chat inbox; optional Board cards |
 | `TOKEN-UX.md` | Token meter on Board + seat/thread; unknown omitted |
-| `quiet-studio.html` | Visual + layout mock |
+| `quiet-studio.html` | Visual + layout mock (tray live|auth, GitHub inbox, Slack bot gate) |
 | `three-pane.html` | Historical denser wire — not the live default |
 | `tokens.css` | Dark tokens from design lane |

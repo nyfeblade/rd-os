@@ -77,13 +77,13 @@
       button.dataset.connector = connector.id;
       button.dataset.status = connector.status;
       button.dataset.inboxEntry = connector.status === "live" ? "true" : "false";
-      button.title = connector.status === "live" ? "inbox" : connector.status;
+      button.title = connector.status;
       button.setAttribute("aria-label", trayLabel(connector));
       button.setAttribute("aria-pressed", String(state.inboxFilter === connector.id));
       if (state.inboxFilter === connector.id) {
         button.classList.add("on");
       }
-      button.textContent = trayLabel(connector);
+      button.textContent = connector.label;
       button.addEventListener("click", () => onConnector(connector.id));
       els.connectors.appendChild(button);
     }

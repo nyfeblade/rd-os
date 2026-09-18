@@ -110,31 +110,30 @@ body[data-host="electron"][data-platform="mac"] .bar {
   flex-wrap: wrap;
 }
 
-.warn,
-.tray button.auth {
+.warn {
+  color: var(--warn);
+}
+
+.tray button {
   font: inherit;
   font-size: 12px;
-  color: var(--warn);
-  background: none;
+  padding: 2px 0;
   border: 0;
-  padding: 0;
+  background: none;
+  color: var(--mute);
   cursor: pointer;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .tray button.live {
-  font: inherit;
-  font-size: 12px;
   color: var(--ink);
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
   text-decoration: none;
+  font-weight: 600;
 }
 
-.tray button.on {
-  text-decoration: underline;
+.tray button.auth {
+  color: var(--warn);
 }
 
 .ctx {
@@ -234,6 +233,10 @@ body[data-host="electron"][data-platform="mac"] .bar {
 .msg .bodytxt {
   font-size: 14px;
   line-height: 1.5;
+}
+
+.msg .txt.draft {
+  color: #666;
 }
 
 .compose {

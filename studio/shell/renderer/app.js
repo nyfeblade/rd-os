@@ -201,8 +201,23 @@
   }
 
   function bindFirstInbox() {
-    const chatItems = Studio.panes.inboxForChat(state);
-    state.boundTo = chatItems.length ? chatItems[0].id : null;
+    const github = (state.inbox || []).find((item) => item.provider === "github" && item.need_you);
+    const slack = (state.inbox || []).find((item) => item.provider === "slack" && item.need_you);
+    state.inboxFilter = github ? "github" : slack ? "slack" : null;
+    state.boundTo = github ? github.id : slack ? slack.id : null;
+    if (slack) {
+      state.pendingBotSend = {
+        id: `bot:${slack.id}`,
+        provider: "slack",
+        bound_to: slack.id,
+        kind: Studio.panes.replyKindFor(slack),
+        title: "Bot Slack reply (cutover)",
+        body: "bot follow-up after human gate",
+        thread_ref: slack.thread_ref,
+        status: "pending",
+      };
+      return;
+    }
     const bound = Studio.panes.boundItem(state);
     if (bound && connectorStatus(bound.provider) === "live") {
       state.pendingBotSend = {
