@@ -243,6 +243,8 @@ assert.equal(quiet.shouldTrayPing({ kind: "review_request", need_you: true }), t
 assert.equal(quiet.shouldTrayPing({ kind: "ci_failure", need_you: true }), true);
 assert.equal(quiet.shouldTrayPing({ kind: "review_request", need_you: false }), false);
 assert.match(read("lib/read-ingress.js"), /tryLoadIngress/);
+assert.match(read("lib/two-way.js"), /ingestViaIngress/);
+assert.match(read("lib/two-way.js"), /ingress\.ingest/);
 assert.doesNotMatch(read("lib/read-ingress.js"), /writeFile|writeFileSync/);
 assert.ok(fs.existsSync(path.join(root, "design", "CONNECTORS-TWO-WAY.md")));
 assert.ok(fs.existsSync(path.join(root, "design", "CONNECTORS-TWOWAY.md")));
@@ -372,7 +374,25 @@ if (catalogPresent()) {
   assert.ok(inbox.some((item) => item.kind === "dm"), "Slack DM mention lands on inbox");
   if (ingressPresent()) {
     assert.equal(INGRESS_REL, "studio/connectors/ingress");
-    assert.ok(tryLoadIngress());
+    const ingress = tryLoadIngress();
+    assert.ok(ingress);
+    assert.equal(typeof ingress.ingest, "function");
+    assert.equal(typeof ingress.Inbox, "function");
+    const via = twoWay.ingestViaIngress([
+      "github-review-request.json",
+      "github-ci-failure.json",
+      "slack-mention.json",
+    ]);
+    assert.ok(via && via.items.length >= 1, "ingress.ingest fills Inbox for Chat/Board");
+    assert.ok(
+      via.items.some((item) => item.dest === "chat" || item.dest === "chat+board"),
+      "PR/mention ingest lands in Chat",
+    );
+    assert.ok(
+      via.items.some((item) => item.dest === "board" || item.dest === "chat+board"),
+      "gate/CI ingest lands on Board",
+    );
+    assert.ok(via.reports.every((row) => row.result && row.result.verdict === null));
     const quiet = twoWay.quietPingDropped();
     assert.equal(quiet.dropped, true, "github ping must drop");
     assert.equal(quiet.items.length, 0, "dropped ping must not enter inbox");

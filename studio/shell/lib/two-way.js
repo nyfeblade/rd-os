@@ -289,6 +289,7 @@ module.exports = {
   chatInbox,
   cutoverFromSeats,
   demoInbox,
+  ingestViaIngress,
   ingressPresent,
   quietPingDropped,
   shouldTrayPing,
