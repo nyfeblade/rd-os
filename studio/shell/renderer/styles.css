@@ -1,5 +1,13 @@
 @import "./tokens.css";
 
+@font-face {
+  font-family: "Studio Signal";
+  src: url("./fonts/StudioSignal-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -11,14 +19,15 @@ body {
 }
 
 body {
-  font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font: 13px/1.45 var(--font-ui);
   background: var(--void);
   color: var(--ink);
+  -webkit-font-smoothing: antialiased;
 }
 
 .frame {
   height: 100%;
-  max-width: 960px;
+  max-width: 1080px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -32,13 +41,14 @@ body[data-host="electron"] .frame {
   border: 0;
 }
 
+/* Demo switcher — quiet meta strip */
 .demo,
 .switcher {
-  padding: 6px 12px;
+  padding: 4px 14px;
   font-size: 11px;
-  color: #999;
+  color: var(--faint);
   border-bottom: 1px solid var(--line);
-  background: #f7f7f7;
+  background: var(--bg);
   flex-shrink: 0;
 }
 
@@ -49,24 +59,30 @@ body[data-host="electron"] .frame {
   margin-left: 6px;
   padding: 1px 6px;
   border: 1px solid var(--line);
-  background: #fff;
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--mute);
   cursor: pointer;
 }
 
 .demo button.on,
 .switcher button.on {
-  background: #111;
-  color: #fff;
+  background: var(--ink);
+  color: var(--accent-ink);
+  border-color: var(--ink);
 }
 
+/* Header — thin, problems only vibe */
 .bar {
   position: relative;
   display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 10px 14px;
+  align-items: center;
+  gap: 14px;
+  height: 40px;
+  padding: 0 14px;
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
+  font-size: 13px;
 }
 
 body[data-host="electron"][data-platform="mac"] .bar {
@@ -75,127 +91,145 @@ body[data-host="electron"][data-platform="mac"] .bar {
 
 .name {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .with {
   color: var(--mute);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .grow {
   flex: 1;
 }
 
+.modes {
+  display: none;
+}
+
 .bar > #btn-code,
-.code-h button {
+.code-h button,
+.bar .here {
   font: inherit;
   font-size: 12px;
-  padding: 3px 8px;
-  border: 1px solid var(--line);
-  background: #fff;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mute);
   cursor: pointer;
 }
 
-.bar > #btn-code.on {
-  background: #111;
-  color: #fff;
-  border-color: #111;
+.bar > #btn-code:hover,
+.code-h button:hover,
+.bar .here:hover {
+  color: var(--ink);
 }
 
+.bar > #btn-code.on {
+  color: var(--ink);
+}
+
+/* Connectors — problem lines only (live hidden) */
 .tray {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.tray button {
+  font: inherit;
+  font-size: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--slate);
+  cursor: pointer;
+}
+
+.tray button:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tray button.live,
+.tray button.off {
+  display: none;
+}
+
+.tray button.auth,
+.tray button.error,
+.tray button.warn {
+  color: var(--warn);
+}
+
+.tray button.on {
+  color: var(--ink);
+  font-weight: 500;
 }
 
 .warn {
   color: var(--warn);
 }
 
-.tray button {
-  font: inherit;
+.ctx {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
   font-size: 12px;
-  padding: 2px 0;
+  color: var(--mute);
+  background: var(--bg);
+}
+
+.ctx b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.hint,
+.onboard,
+.open-code-hint {
+  font-size: 11px;
+  color: var(--faint);
+  padding: 0 16px 8px;
+  margin: 0;
+}
+
+.open-code-hint button,
+#hint-code {
+  font: inherit;
+  font-size: 11px;
   border: 0;
   background: none;
   color: var(--mute);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
+  padding: 0;
 }
 
-.tray button.live {
+.open-code-hint button:hover,
+#hint-code:hover {
   color: var(--ink);
-  text-decoration: none;
-  font-weight: 600;
 }
 
-.tray button.auth {
-  color: var(--warn);
-}
-
-.tray button.error {
-  color: var(--err);
-}
-
-.ctx {
-  padding: 8px 14px;
-  border-bottom: 1px solid var(--line);
-  font-size: 12px;
-  color: var(--mute);
-  background: var(--wash);
-}
-
-.ctx b {
-  color: var(--ink);
-  font-weight: 600;
-}
-
-.hint {
-  font-size: 11px;
-  color: #888;
-  padding: 0 10px 8px;
-  margin: 0;
-}
-
-.meter {
-  font-size: 11px;
-  color: #888;
-  padding: 4px 14px;
-}
-
+.meter,
 #cutover-chip {
   font-size: 11px;
-  color: var(--mute);
+  color: var(--faint);
+  padding: 0;
 }
 
-.msg.inbound {
-  display: block;
-  width: 100%;
-  text-align: left;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  padding: 10px;
-  border: 1px solid var(--line);
-  background: #fffef5;
-}
-
-.msg.inbound.on {
-  border-color: #111;
-}
-
+/* Main grid */
 .main {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: 1fr 300px;
 }
 
 .main.code-open {
-  grid-template-columns: 1fr 340px 260px;
+  grid-template-columns: 1fr 300px 280px;
 }
 
 .pane {
@@ -204,10 +238,15 @@ body[data-host="electron"][data-platform="mac"] .bar {
   min-width: 0;
   min-height: 0;
   border-right: 1px solid var(--line);
+  background: var(--bg);
 }
 
 .pane:last-child {
   border-right: 0;
+}
+
+.seats {
+  display: none;
 }
 
 #chat-live {
@@ -221,6 +260,7 @@ body[data-host="electron"][data-platform="mac"] .bar {
   display: none;
 }
 
+/* Chat — plain Grok-like thread */
 .msgs {
   flex: 1;
   overflow: auto;
@@ -228,54 +268,94 @@ body[data-host="electron"][data-platform="mac"] .bar {
 }
 
 .msg {
-  margin-bottom: 16px;
-  max-width: 34em;
+  margin: 0 0 18px;
+  max-width: 40em;
+  border: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .msg .who {
-  font-size: 11px;
-  color: #888;
-  margin-bottom: 3px;
+  font-size: 12px;
+  color: var(--mute);
+  margin-bottom: 4px;
 }
 
 .msg .txt,
 .msg .bodytxt {
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
+  color: var(--ink);
 }
 
 .msg .txt.draft {
-  color: #666;
+  color: var(--mute);
+}
+
+/* Inbound inbox — flush, not card/wash */
+.msg.inbound {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  max-width: none;
+  margin-bottom: 0;
+}
+
+.msg.inbound:hover {
+  background: var(--hover);
+}
+
+.msg.inbound.on {
+  background: var(--hover);
+}
+
+.msg.inbound .who,
+.msg.inbound .txt {
+  padding: 0 2px;
 }
 
 .compose {
   border-top: 1px solid var(--line);
-  padding: 10px;
+  padding: 12px 16px;
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  align-items: flex-end;
 }
 
 .compose textarea {
   flex: 1;
-  border: 1px solid var(--line);
-  padding: 8px;
+  border: 0;
+  padding: 0;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   resize: none;
-  min-height: 52px;
-  background: #fff;
+  min-height: 40px;
+  background: transparent;
   color: var(--ink);
+  outline: none;
 }
 
 .compose button,
 .send {
   font: inherit;
   font-size: 12px;
-  padding: 0 12px;
-  border: 1px solid #111;
-  background: #111;
-  color: #fff;
+  padding: 0 0 2px;
+  border: 0;
+  background: none;
+  color: var(--mute);
   cursor: pointer;
+}
+
+.compose button:hover,
+.send:hover {
+  color: var(--ink);
 }
 
 .empty {
@@ -290,7 +370,8 @@ body[data-host="electron"][data-platform="mac"] .bar {
 .empty h1 {
   margin: 0 0 8px;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
 
 .empty p {
@@ -304,38 +385,61 @@ body[data-host="electron"][data-platform="mac"] .bar {
   padding: 6px 10px;
   margin-right: 6px;
   border: 1px solid var(--line);
-  background: #fff;
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
   cursor: pointer;
 }
 
 .empty button.ok,
 .empty button.primary {
-  background: #111;
-  color: #fff;
-  border-color: #111;
+  background: var(--ink);
+  color: var(--accent-ink);
+  border-color: var(--ink);
 }
 
+/* Code drawer — on demand, ≤180ms */
 .code-pane {
   display: none;
-  background: var(--wash);
+  background: var(--bg);
+  overflow: hidden;
+  min-width: 0;
 }
 
 .main.code-open .code-pane {
   display: flex;
+  animation: drawer-in var(--motion-drawer) var(--ease-out);
+}
+
+@keyframes drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .code-h {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--line);
-  background: #fff;
+  background: var(--bg);
   font-size: 12px;
+  color: var(--mute);
+}
+
+.code-h b {
+  color: var(--ink);
+  font-weight: 500;
 }
 
 .code-h span {
-  color: #888;
+  color: var(--faint);
 }
 
 .code-h button {
@@ -348,88 +452,217 @@ body[data-host="electron"][data-platform="mac"] .bar {
   min-height: 0;
 }
 
+.tree {
+  display: none;
+}
+
 pre {
   margin: 0;
   flex: 1;
   overflow: auto;
-  padding: 12px;
-  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  background: #fff;
-  color: #222;
+  padding: 14px;
+  font: 12px/1.5 var(--font-mono);
+  background: var(--bg);
+  color: var(--slate);
 }
 
 .add {
-  color: #080;
+  color: var(--ink);
 }
 
 .del {
-  color: #a00;
+  color: var(--mute);
+  text-decoration: line-through;
 }
 
+/* Board — need-you rows (Linear / GitHub) */
 .board {
-  background: var(--wash);
+  background: var(--bg);
 }
 
-.gate {
-  background: #fff;
+.board-h {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--mute);
   border-bottom: 1px solid var(--line);
-  padding: 14px;
+  flex-shrink: 0;
 }
 
-.gate .label {
-  font-size: 11px;
-  color: #888;
+#board-body {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+.instruments,
+.watches {
+  display: none;
+}
+
+/* Gate → row aesthetic */
+.gate,
+.row {
+  background: var(--bg);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 12px 14px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.gate:hover,
+.row:hover {
+  background: var(--hover);
+}
+
+.gate.open,
+.row.open {
+  background: var(--hover);
+}
+
+.gate .label,
+.row .m {
+  font-size: 12px;
+  color: var(--mute);
   margin-bottom: 4px;
 }
 
-.gate .title {
-  font-size: 14px;
-  font-weight: 600;
+.gate .title,
+.row .t {
+  font-size: 13px;
+  font-weight: 450;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.gate .label.dest,
+.gate .label.actor,
+.gate .label.payload-label {
+  margin-top: 8px;
+  margin-bottom: 2px;
+  color: var(--faint);
 }
 
 .gate pre.payload,
-.gate pre.diff {
-  margin: 6px 0;
-  padding: 8px;
-  border: 1px solid var(--line);
-  font-size: 11px;
-  background: var(--wash);
+.gate pre.diff,
+.detail pre {
+  margin: 6px 0 0;
+  padding: 0;
+  border: 0;
+  font: 12px/1.45 var(--font-mono);
+  background: transparent;
+  color: var(--faint);
   white-space: pre-wrap;
   flex: none;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height var(--motion-row) var(--ease-out),
+    opacity var(--motion-row) var(--ease-out),
+    margin var(--motion-row) var(--ease-out);
 }
 
-.gate .actions {
+.gate.open pre.payload,
+.gate.open pre.diff,
+.gate:focus-within pre.payload,
+.gate:focus-within pre.diff,
+.row.open + .detail pre,
+.detail.open pre {
+  max-height: 240px;
+  opacity: 1;
+  overflow: auto;
+}
+
+/* Always reveal HITL payload when present (high-risk) */
+.gate#hitl-pending pre.payload,
+.gate#hitl-pending pre.diff {
+  max-height: 320px;
+  opacity: 1;
+  overflow: auto;
+  margin-top: 6px;
+}
+
+.gate .actions,
+.detail .acts,
+.dialog-actions {
   margin-top: 10px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .gate button,
+.detail .acts button,
 .dialog-actions button {
   font: inherit;
   font-size: 12px;
-  margin-right: 6px;
-  padding: 5px 10px;
-  border: 1px solid var(--line);
-  background: #fff;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
   cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .gate button.ok,
 .dialog-actions .go {
-  background: #111;
-  color: #fff;
-  border-color: #111;
+  text-decoration: underline;
+  background: none;
+  color: var(--ink);
+  border: 0;
+  padding: 0;
+}
+
+.gate button:not(.ok),
+.detail .acts button.mute,
+.dialog-actions .no {
+  color: var(--mute);
+  text-decoration: none;
+}
+
+.gate button:not(.ok):hover,
+.detail .acts button.mute:hover,
+.dialog-actions .no:hover {
+  color: var(--ink);
 }
 
 .quiet {
-  padding: 12px 14px;
+  padding: 14px;
   font-size: 12px;
-  color: #888;
+  color: var(--faint);
 }
 
+.detail {
+  padding: 0 14px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--mute);
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition:
+    max-height var(--motion-row) var(--ease-out),
+    opacity var(--motion-row) var(--ease-out),
+    padding var(--motion-row) var(--ease-out);
+}
+
+.row.open + .detail,
+.detail.open {
+  max-height: 480px;
+  opacity: 1;
+  padding: 0 14px 14px;
+}
+
+/* Sheet / dialog — hairline, no soft card glow */
 .sheet {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(10, 10, 10, 0.2);
   display: grid;
   place-items: center;
   z-index: 40;
@@ -441,14 +674,17 @@ pre {
 
 .sheet-card {
   width: min(400px, 100%);
-  background: #fff;
+  background: var(--bg);
   border: 1px solid var(--line);
+  border-radius: var(--radius);
   padding: 16px;
+  box-shadow: none;
 }
 
 .sheet-card h2 {
   margin: 0 0 8px;
   font-size: 15px;
+  font-weight: 500;
 }
 
 .sheet-card p {
@@ -457,9 +693,21 @@ pre {
 }
 
 .dialog-actions {
-  display: flex;
   justify-content: flex-end;
-  gap: 8px;
+}
+
+.popover {
+  position: absolute;
+  top: 100%;
+  right: 14px;
+  margin-top: 4px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 6px 0;
+  min-width: 160px;
+  z-index: 20;
+  font-size: 12px;
 }
 
 button:focus-visible,
@@ -473,7 +721,10 @@ textarea:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
     transition: none !important;
   }
 }

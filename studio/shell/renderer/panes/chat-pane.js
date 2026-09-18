@@ -2,17 +2,11 @@
 
 (function attachChatPane(Studio) {
   const THREADS = {
-    human: [
-      {
-        who: "Studio",
-        body: "Talk to agents here. The Board shows what’s blocked on you. Code stays closed until you ask.",
-        me: false,
-      },
-    ],
-    grok: [{ who: "Grok", body: "Connect this seat to chat. Work stays in Studio only while connected.", me: false }],
-    claude: [{ who: "Claude", body: "Connect this seat to chat. Work stays in Studio only while connected.", me: false }],
-    cursor: [{ who: "Cursor", body: "Connect this seat to chat. Work stays in Studio only while connected.", me: false }],
-    "room:chat": [{ who: "Agents", body: "A project room. Connect to cut over — any provider.", me: false }],
+    human: [],
+    grok: [{ who: "Grok", body: "Connect to chat.", me: false }],
+    claude: [{ who: "Claude", body: "Connect to chat.", me: false }],
+    cursor: [{ who: "Cursor", body: "Connect to chat.", me: false }],
+    "room:chat": [{ who: "Agents", body: "Connect to chat.", me: false }],
   };
 
   function coldOpenSeats() {
@@ -121,7 +115,6 @@
     }
     els.inboxCtx.hidden = false;
     els.inboxCtx.replaceChildren();
-    els.inboxCtx.appendChild(document.createTextNode("Replying on "));
     const who = document.createElement("b");
     who.textContent = bound.provider === "github" ? "GitHub" : "Slack";
     els.inboxCtx.append(who, document.createTextNode(` · ${bound.title}`));
@@ -130,11 +123,11 @@
     const slackAuth = slack && (slack.status === "needs_auth" || slack.status === "error");
     const hitl = Studio.panes.hitlPending && Studio.panes.hitlPending(state);
     if (hitl) {
-      els.composeHint.textContent = "Low-risk reply on this thread · HITL pending on Board";
+      els.composeHint.textContent = "HITL pending";
     } else if (slackAuth) {
-      els.composeHint.textContent = "Outbound bound to this notification · Slack needs sign-in in tray";
+      els.composeHint.textContent = "Slack · sign in";
     } else {
-      els.composeHint.textContent = "Outbound bound to this notification";
+      els.composeHint.textContent = "Bound";
     }
   }
 
@@ -153,7 +146,7 @@
         wrap.setAttribute("aria-pressed", String(item.id === state.boundTo));
         const who = document.createElement("div");
         who.className = "who";
-        who.textContent = `${item.provider === "github" ? "GitHub" : "Slack"} → inbox`;
+        who.textContent = item.provider === "github" ? "GitHub" : "Slack";
         const body = document.createElement("div");
         body.className = "txt";
         body.textContent = item.body || item.title;
@@ -171,7 +164,7 @@
           wrap.className = "msg";
           const who = document.createElement("div");
           who.className = "who";
-          who.textContent = sent.actor === "bot" ? "Bot (gated)" : "You (from Studio)";
+          who.textContent = sent.actor === "bot" ? "Bot" : "You";
           const body = document.createElement("div");
           body.className = "txt";
           body.textContent = sent.body;
@@ -179,31 +172,21 @@
           els.messages.appendChild(wrap);
         }
       } else if (bound) {
-        const wrap = document.createElement("div");
-        wrap.className = "msg";
-        const who = document.createElement("div");
-        who.className = "who";
-        who.textContent = "You (draft out)";
-        const body = document.createElement("div");
-        body.className = "txt draft";
-        body.textContent = `Composer below sends the reply to ${
-          bound.provider === "github" ? "GitHub" : "Slack"
-        } on this thread.`;
-        wrap.append(who, body);
-        els.messages.appendChild(wrap);
+        /* composer is the draft — no essay bubble */
       }
       els.composerInput.placeholder = bound
-        ? `Reply on ${bound.provider === "github" ? "GitHub" : "Slack"}…`
-        : "Select an inbox thread to reply…";
+        ? `${bound.provider === "github" ? "GitHub" : "Slack"}…`
+        : "Select thread…";
       els.composerInput.disabled = !bound;
       if (els.composeSend) {
-        els.composeSend.textContent = bound
-          ? `Send to ${bound.provider === "github" ? "GitHub" : "Slack"}`
-          : "Send";
+        els.composeSend.textContent = "Send";
       }
     } else {
       const messages = THREADS[seat.id] || [];
       for (const message of messages) {
+        if (!message.body) {
+          continue;
+        }
         const wrap = document.createElement("div");
         wrap.className = "msg";
         const who = document.createElement("div");

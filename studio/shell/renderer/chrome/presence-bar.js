@@ -27,12 +27,12 @@
     }
     const attached = (state.seats || []).some((seat) => seat.kind === "bot" && seat.cutover === true);
     chip.hidden = state.view === "cold" || !attached;
-    chip.textContent = "in-studio only";
+    chip.textContent = "in-studio";
   }
 
   function renderPresence(els, state) {
     const online = onlineMembers(state.seats);
-    els.presenceCount.textContent = `${online.length} online`;
+    els.presenceCount.textContent = String(online.length);
     els.presenceBtn.hidden = true;
     els.presenceBtn.setAttribute("aria-hidden", "true");
     els.presenceList.hidden = true;
