@@ -1,0 +1,7 @@
+{
+  "recipe": "design-rerunnable",
+  "base": "design",
+  "description": "Design rail pack: a design claim still cites a spec or artifact, and any command it cites is retained against a recorded git ref.",
+  "rails": ["research-before-claim", "multi-lane-awareness", "no-self-cert"],
+  "tighten": { "require_retained": true, "verdict_words": ["approved", "signed-off"] }
+}

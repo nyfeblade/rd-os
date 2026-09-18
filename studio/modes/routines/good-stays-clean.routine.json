@@ -1,0 +1,8 @@
+{
+  "routine": "good-stays-clean",
+  "description": "Standing check that the rails still accept the known-good run records.",
+  "cadence": "on-push",
+  "owner_lane": "studio-d-modes",
+  "target": "studio/modes/fixtures/good",
+  "expect_exit": 0
+}

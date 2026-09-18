@@ -14,6 +14,9 @@ const VIOLATION_CODES = [
   "UNKNOWN_EVIDENCE_KIND",
   "UNMEASURED_EVIDENCE",
   "NO_KILL_LINE",
+  "NO_RETAIN_BASE",
+  "UNRETAINED_EVIDENCE",
+  "RETAINED_DRIFT",
   // rail: multi-lane-awareness
   "NO_FENCE",
   "FENCE_OVERLAP",
@@ -136,6 +139,49 @@ function researchBeforeClaim(run, mode) {
 
     if (mode.require_kill_line && isBlank(claim && claim.kill)) {
       out.push(violation("research-before-claim", "NO_KILL_LINE", where, "claim states nothing that would falsify it"));
+    }
+
+    if (mode.require_retained) out.push(...retentionGaps(run, evidence, measured, where));
+  });
+
+  if (mode.require_retained && isBlank(run.retain && run.retain.base)) {
+    out.push(
+      violation("research-before-claim", "NO_RETAIN_BASE", "retain.base", "no git ref recorded to re-run the claims against")
+    );
+  }
+
+  return out;
+}
+
+/**
+ * Retained evidence: what has to be remembered so a stranger can re-run a claim later.
+ * Every measured command a claim cites must be retained with the exit code it was measured at.
+ */
+function retentionGaps(run, evidence, measured, where) {
+  const out = [];
+  const retained = new Map();
+  for (const row of Array.isArray(run.retain && run.retain.rerun) ? run.retain.rerun : []) {
+    if (row && !isBlank(row.cmd)) retained.set(row.cmd.trim(), row.exit_code);
+  }
+
+  evidence.forEach((item, j) => {
+    if (!item || item.kind !== "command" || isBlank(item.ref)) return;
+    const cmd = item.ref.trim();
+    if (!measured.has(cmd)) return; // already UNMEASURED_EVIDENCE
+    const at = `${where}.evidence[${j}]`;
+    if (!retained.has(cmd)) {
+      out.push(
+        violation("research-before-claim", "UNRETAINED_EVIDENCE", at, `command "${cmd}" is not in retain.rerun`)
+      );
+    } else if (retained.get(cmd) !== measured.get(cmd)) {
+      out.push(
+        violation(
+          "research-before-claim",
+          "RETAINED_DRIFT",
+          at,
+          `retain.rerun expects exit ${JSON.stringify(retained.get(cmd))}, run measured ${measured.get(cmd)}`
+        )
+      );
     }
   });
 

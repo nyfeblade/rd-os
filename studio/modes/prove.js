@@ -8,6 +8,9 @@
  *     Runs every fixture against the rails and checks each fixture's own `expect`
  *     block. Exit 0 only if the rails agree with every expectation.
  *
+ *   node studio/modes/prove.js --routine <name>
+ *     Runs one standing routine's gate now. Exit 0 if its gate exit matches expect_exit, else 1.
+ *
  *   node studio/modes/prove.js --gate <dir-or-file>
  *     Uses the rails as a gate over run records. Exit 0 if every record is clean,
  *     exit 2 if any rail is violated.
@@ -112,6 +115,94 @@ function checkLibrary() {
   }
 }
 
+function mustThrow(label, fn, pattern) {
+  try {
+    fn();
+  } catch (err) {
+    if (pattern.test(err.message)) return pass(`${label} is refused`);
+    return fail(label, `threw the wrong error: ${err.message}`);
+  }
+  fail(label, "was accepted");
+}
+
+/** Recipes compose modes; they may only tighten. */
+function checkRecipes() {
+  const names = modes.listRecipes();
+  if (names.length === 0) fail("recipes", "no .recipe.json files found");
+  for (const name of names) {
+    let composed;
+    try {
+      composed = modes.loadRecipe(name);
+    } catch (err) {
+      fail(`recipe ${name}`, err.message);
+      continue;
+    }
+    const base = modes.loadMode(composed.mode);
+    if (composed.rails.length !== modes.RAILS.length) fail(`recipe ${name}`, "does not enable all three rails");
+    if (composed.min_evidence < base.min_evidence) fail(`recipe ${name}`, "loosened min_evidence");
+    for (const word of base.verdict_words) {
+      if (!composed.verdict_words.includes(word)) fail(`recipe ${name}`, `dropped reserved word ${word}`);
+    }
+  }
+  pass(`recipes compose over their base mode and only tighten (${names.join(", ")})`);
+
+  const eng = modes.loadMode("eng");
+  const r = (tighten, extra) => ({ recipe: "planted", base: "eng", tighten, ...extra });
+  mustThrow("recipe dropping a rail", () => modes.composeMode(eng, r({}, { rails: ["research-before-claim", "multi-lane-awareness"] })), /drops rail no-self-cert/);
+  mustThrow("recipe lowering min_evidence", () => modes.composeMode(eng, r({ min_evidence: 0 })), /lowers min_evidence/);
+  mustThrow("recipe switching off measured evidence", () => modes.composeMode(eng, r({ require_measured_evidence: false })), /only set require_measured_evidence to true/);
+  mustThrow("recipe widening evidence kinds", () => modes.composeMode(eng, r({ evidence_kinds: ["command", "vibes"] })), /only narrow evidence_kinds/);
+  mustThrow("recipe with an unknown knob", () => modes.composeMode(eng, r({ verdict: "PASS" })), /unknown field verdict/);
+  mustThrow("recipe on the wrong base", () => modes.composeMode(eng, { recipe: "planted", base: "design", tighten: {} }), /built on "design"/);
+}
+
+/** Routines are cadence metadata over a gate; each one is run once, now. */
+function checkRoutines() {
+  const names = modes.listRoutines();
+  if (names.length === 0) fail("routines", "no .routine.json files found");
+  let bites = 0;
+  for (const name of names) {
+    let result;
+    try {
+      result = modes.runRoutine(name);
+    } catch (err) {
+      fail(`routine ${name}`, err.message);
+      continue;
+    }
+    if (result.expect_exit === 2) bites += 1;
+    if (result.ok) pass(`routine ${name} [${result.cadence}] gate exit ${result.exit} over ${result.records} records`);
+    else fail(`routine ${name}`, `expected gate exit ${result.expect_exit}, got ${result.exit} over ${result.records} records`);
+  }
+  if (bites === 0) fail("routines", "no routine expects the rails to bite");
+
+  const lanes = modes.loadLanes();
+  const base = { routine: "planted", cadence: "daily", owner_lane: "studio-d-modes", target: "studio/modes/fixtures/good", expect_exit: 0 };
+  const { validateRoutine } = require("./routines");
+  mustThrow("routine with an unknown cadence", () => validateRoutine({ ...base, cadence: "every-tuesday-9am" }, lanes), /cadence/);
+  mustThrow("routine with a cron line", () => validateRoutine({ ...base, cron: "0 9 * * 1" }, lanes), /reserved field cron/);
+  mustThrow("routine writing a verdict", () => validateRoutine({ ...base, verdict: "PASS" }, lanes), /reserved field verdict/);
+  mustThrow("routine arming the clock", () => validateRoutine({ ...base, clock_started: true }, lanes), /arm the clock/);
+  mustThrow("routine gating another lane's paths", () => validateRoutine({ ...base, target: "studio/shell" }, lanes), /outside studio-d-modes's fence/);
+}
+
+/** Retained evidence: the record a stranger needs to re-run each claim. */
+function checkRetained() {
+  const file = path.join(FIXTURES, "good", "eng-rerunnable.json");
+  const run = JSON.parse(fs.readFileSync(file, "utf8"));
+  const kept = modes.retainedRecord(run);
+  const retained = new Map((run.retain.rerun || []).map((row) => [row.cmd, row.exit_code]));
+  let gaps = 0;
+  for (const claim of kept.claims) {
+    if (claim.rerun.length === 0) gaps += 1;
+    for (const row of claim.rerun) if (retained.get(row.cmd) !== row.exit_code) gaps += 1;
+  }
+  if (!kept.base || gaps || kept.verdict !== null || kept.clock_started !== false) {
+    fail("retained record", JSON.stringify(kept));
+  } else {
+    pass(`retained record re-runs ${kept.claims.length} claims against ${kept.base}`);
+  }
+}
+
 /** Every fixture is checked against its own declared expectation. */
 function checkFixtures() {
   const files = listRecords(FIXTURES);
@@ -191,6 +282,17 @@ function gate(target) {
 
 function main() {
   const argv = process.argv.slice(2);
+  const routineAt = argv.indexOf("--routine");
+  if (routineAt !== -1) {
+    const name = argv[routineAt + 1];
+    if (!name) {
+      process.stderr.write(`--routine needs a name; have ${modes.listRoutines().join(", ")}\n`);
+      process.exit(2);
+    }
+    const result = modes.runRoutine(name);
+    process.stdout.write(`${JSON.stringify(result)}\n`);
+    process.exit(result.ok ? 0 : 1);
+  }
   const gateAt = argv.indexOf("--gate");
   if (gateAt !== -1) {
     const target = argv[gateAt + 1];
@@ -203,6 +305,9 @@ function main() {
   }
 
   checkLibrary();
+  checkRecipes();
+  checkRoutines();
+  checkRetained();
   checkFixtures();
   process.stdout.write(
     `mode rails ${passed} passed, ${failed} failed; verdict=null; clock_started=false; not a 14d verdict\n`

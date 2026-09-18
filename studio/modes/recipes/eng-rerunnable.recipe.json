@@ -1,0 +1,7 @@
+{
+  "recipe": "eng-rerunnable",
+  "base": "eng",
+  "description": "Eng rail pack for claims that must survive a cold re-run: every measured command a claim cites is retained with its exit code, against a recorded git ref.",
+  "rails": ["research-before-claim", "multi-lane-awareness", "no-self-cert"],
+  "tighten": { "require_retained": true }
+}

@@ -1,0 +1,8 @@
+{
+  "routine": "retention-drift",
+  "description": "Standing check on the retained-evidence fixtures: a claim whose retained exit code drifted from its measurement must still be caught.",
+  "cadence": "weekly",
+  "owner_lane": "studio-d-modes",
+  "target": "studio/modes/fixtures/planted/retained-drift.json",
+  "expect_exit": 2
+}
