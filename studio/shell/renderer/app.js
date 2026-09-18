@@ -492,6 +492,23 @@
       }
       const bound = Studio.panes.boundItem(state);
       if (bound) {
+        const kind = Studio.panes.replyKindFor(bound);
+        if (Studio.panes.needsHitlCard(kind)) {
+          state.pendingHitl = {
+            id: `hitl:${kind}:${bound.id}`,
+            kind,
+            title: bound.title || "High-risk outbound",
+            destination: bound.provider === "github" ? "GitHub" : "Slack",
+            actor: "human",
+            payload: text,
+            diff: "",
+            status: "pending",
+          };
+          state.flash = "high-risk send needs Board HITL";
+          els.composerInput.value = "";
+          renderChrome();
+          return;
+        }
         postReply({
           provider: bound.provider,
           actor: "human",

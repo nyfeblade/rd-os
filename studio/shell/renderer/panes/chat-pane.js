@@ -108,9 +108,14 @@
     els.composeHint.hidden = false;
     const slack = (state.connectors || []).find((row) => row.id === "slack");
     const slackAuth = slack && (slack.status === "needs_auth" || slack.status === "error");
-    els.composeHint.textContent = slackAuth
-      ? "Outbound bound to this notification · Slack needs sign-in in tray"
-      : "Outbound bound to this notification";
+    const hitl = Studio.panes.hitlPending && Studio.panes.hitlPending(state);
+    if (hitl) {
+      els.composeHint.textContent = "Low-risk reply on this thread · HITL pending on Board";
+    } else if (slackAuth) {
+      els.composeHint.textContent = "Outbound bound to this notification · Slack needs sign-in in tray";
+    } else {
+      els.composeHint.textContent = "Outbound bound to this notification";
+    }
   }
 
   function renderThread(els, state, handlers) {

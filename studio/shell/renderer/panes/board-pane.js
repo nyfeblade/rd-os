@@ -76,6 +76,36 @@
     els.boardBody.appendChild(gate);
   }
 
+  function egressRisk(kind) {
+    switch (kind) {
+      case "merge":
+      case "deploy":
+      case "db":
+      case "public_post":
+        return "high";
+      case "reply":
+      case "comment":
+      case "review":
+      case "review_comment":
+      case "review_request":
+      case "ci_failure":
+      case "auth_failure":
+      case "mention":
+      case "dm":
+      case "message":
+      case "issue_comment":
+      case "pull_request_review":
+      case "pull_request_review_comment":
+        return "low";
+      default:
+        return assertNever(kind);
+    }
+  }
+
+  function needsHitlCard(kind) {
+    return egressRisk(kind) === "high";
+  }
+
   function hitlKindLabel(kind) {
     switch (kind) {
       case "merge":
@@ -89,6 +119,14 @@
       default:
         return assertNever(kind);
     }
+  }
+
+  function actorLabel(pending) {
+    if (!pending || pending.actor !== "bot") {
+      return "human";
+    }
+    const seat = pending.seat ? ` · ${pending.seat}` : "";
+    return `bot${seat} · in-studio-only`;
   }
 
   function hitlPending(state) {
@@ -111,6 +149,12 @@
     const title = document.createElement("div");
     title.className = "title";
     title.textContent = pending.title || hitlKindLabel(pending.kind);
+    const dest = document.createElement("div");
+    dest.className = "label dest";
+    dest.textContent = `Destination · ${pending.destination || "unknown"}`;
+    const actor = document.createElement("div");
+    actor.className = "label actor";
+    actor.textContent = `Actor · ${actorLabel(pending)}`;
     const payloadLabel = document.createElement("div");
     payloadLabel.className = "label payload-label";
     payloadLabel.textContent = "Payload";
@@ -135,7 +179,7 @@
     deny.textContent = "Deny";
     deny.addEventListener("click", () => handlers.resolveHitl("rejected"));
     acts.append(allow, deny);
-    gate.append(label, title, payloadLabel, payload, diffLabel, diff, acts);
+    gate.append(label, title, dest, actor, payloadLabel, payload, diffLabel, diff, acts);
     els.boardBody.appendChild(gate);
   }
 
@@ -216,7 +260,10 @@
   Studio.panes.waitingLabel = waitingLabel;
   Studio.panes.instrumentFor = instrumentFor;
   Studio.panes.inboxGates = inboxGates;
+  Studio.panes.egressRisk = egressRisk;
+  Studio.panes.needsHitlCard = needsHitlCard;
   Studio.panes.hitlKindLabel = hitlKindLabel;
+  Studio.panes.actorLabel = actorLabel;
   Studio.panes.hitlPending = hitlPending;
   Studio.panes.renderInstruments = renderInstruments;
   Studio.panes.renderWatches = renderWatches;

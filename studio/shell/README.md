@@ -34,7 +34,7 @@ A 1440×900 window titled **AI Coding Studio** should open on Chat + Board with 
 1. **Chat** — current conversation (who + thread + composer). Full seat roster is hidden
 2. **Board** — human gates only (“Needs you”). Idle CA map and disconnected watches are hidden
 3. Toolbar **Code** (off) · **ConnectorsTray** for P0 GitHub + Slack: `live` / `error` are inbox filters; `needs_auth` opens connect; `disconnected` is hidden. Catalog **P0** is consumed read-only from `studio/connectors/CATALOG.md` when present. Slack is P1 in the catalog table and `p0_wire` yes. Idle catalog stays hidden
-4. **Inbox** — GitHub comments + Slack `app_mention`/DM in Chat. Composer `bound_to` the active item (low-risk send, no HITL card). Board **HITL** pending card (payload + diff, Approve send) for high-risk egress. Bot high-risk also needs in-studio-only cutover
+4. **Inbox** — GitHub comments + Slack `app_mention`/DM in Chat. Composer `bound_to` the active item — **low-risk replies skip the HITL card**. Board **pending-approval** card (kind, destination, actor, payload + diff, Approve send / Deny) before high-risk egress. Bot high-risk also needs in-studio-only cutover
 5. Connecting a seat or provider asks once: *This seat works in Studio only while connected.*
 
 Code opens from the Code button or Close to put it away.
