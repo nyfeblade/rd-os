@@ -11,8 +11,8 @@ Source of truth for the Studio **connectors tray**: which eng tools exist, how t
 
 The Studio chrome (`connectors ▾` in `studio/design/STUDIO-SHELL-SPEC.md`) **consumes** this catalog. It must not invent tools, invent endpoints, or write credentials back into this tree.
 
-- Tray state (`live` / `needs_auth` / `error` / `idle`) lives in the seat/session. Pass it into `runtime.ingest` / `runtime.reply`; do not write credentials here.
-- Inbox + reply-composer: Chat/Board consume `runtime` inbox items and send `reply(draft)` through this module. Bot send uses the `humanGateAllows` hook.
+- Tray state (`live` / `needs_auth` / `error` / `disconnected`) lives in the seat/session. Pass it into `runtime.ingest` / `runtime.reply`; do not write credentials here.
+- Inbox + reply-composer: Chat/Board consume `runtime` inbox items. The composer is bound to the active notification (`bound_to`), not a global outbox. Bot send requires `cutoverAllows` (in-studio-only attached) **and** `humanGateAllows`.
 - A missing official URL is `UNVERIFIED` — do not guess a host.
 - This lane owns `studio/connectors/**` only. Do not edit `studio/shell`, `studio/seats`, `studio/github`, or kernel paths from here.
 

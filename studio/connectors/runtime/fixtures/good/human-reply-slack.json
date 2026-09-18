@@ -10,6 +10,7 @@
     "actor": "human",
     "kind": "message",
     "tray_state": "live",
+    "bound_to": "slack:mention:Ceng:1726665600.000100",
     "body": "acked from studio",
     "thread_ref": {
       "channel": "Ceng",

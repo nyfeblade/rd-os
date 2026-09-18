@@ -1,13 +1,6 @@
 {
   "op": "ingest",
-  "expect": {
-    "ok": true,
-    "dropped": false,
-    "kind": "dm",
-    "need_you": true,
-    "dest": "chat",
-    "provider": "slack"
-  },
+  "expect": { "ok": true, "dropped": true },
   "envelope": {
     "provider": "slack",
     "event": "message",
@@ -16,7 +9,7 @@
       "type": "message",
       "channel_type": "im",
       "user": "U123",
-      "text": "<@Ubot> can you reply from studio?",
+      "text": "can you reply from studio?",
       "ts": "1726665660.000200",
       "channel": "Ddm"
     }

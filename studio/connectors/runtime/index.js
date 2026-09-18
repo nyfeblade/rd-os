@@ -21,7 +21,7 @@ const {
   drop,
 } = require("./contract");
 const { authFailure } = require("./inbox");
-const { humanGateAllows, gateDraft } = require("./reply");
+const { humanGateAllows, cutoverAllows, gateDraft } = require("./reply");
 const github = require("./providers/github");
 const slack = require("./providers/slack");
 
@@ -50,7 +50,7 @@ function ingest(envelope) {
   const bad = validateEnvelope(envelope);
   if (bad) return pin(bad);
   if (envelope.tray_state === "needs_auth") return pin(authFailure(envelope.provider, envelope.tray_state));
-  if (envelope.tray_state === "idle") return pin(drop("idle"));
+  if (envelope.tray_state === "disconnected") return pin(drop("disconnected"));
   const provider = REGISTRY[envelope.provider];
   return pin(provider.ingest(envelope));
 }
@@ -71,6 +71,9 @@ function validateDraft(draft) {
   if (!draft.thread_ref || typeof draft.thread_ref !== "object") {
     return fail("INVALID_EVENT", "reply needs thread_ref");
   }
+  if (typeof draft.bound_to !== "string" || draft.bound_to.trim() === "") {
+    return fail("UNBOUND_REPLY", "reply composer must bind to the active notification/thread");
+  }
   return gateDraft(draft);
 }
 
@@ -85,6 +88,7 @@ module.exports = {
   ingest,
   reply,
   humanGateAllows,
+  cutoverAllows,
   PROVIDERS,
   TRAY_STATES,
   CODES,

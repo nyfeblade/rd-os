@@ -54,8 +54,13 @@ function fromMention(envelope, event) {
   });
 }
 
+function isAtMention(text) {
+  return typeof text === "string" && /<@[A-Z0-9]+(?:\|[^>]+)?>/i.test(text);
+}
+
 function fromMessage(envelope, event) {
   if (event.channel_type === "im") {
+    if (!isAtMention(event.text)) return drop("NOISE");
     if (isBlank(event.channel) || isBlank(event.ts)) {
       return fail("INVALID_EVENT", "im message needs channel and ts");
     }
@@ -71,7 +76,7 @@ function fromMessage(envelope, event) {
         thread_ts: typeof event.thread_ts === "string" ? event.thread_ts : event.ts,
         team: typeof event.team === "string" ? event.team : undefined,
       },
-      title: `DM from ${event.user || "unknown"}`,
+      title: `DM @mention from ${event.user || "unknown"}`,
       body: typeof event.text === "string" ? event.text : "",
       actor: { id: typeof event.user === "string" ? event.user : "" },
       created_at: slackTime(event.ts, envelope.received_at),
@@ -112,6 +117,7 @@ function reply(draft) {
     provider: "slack",
     actor: draft.actor,
     kind: "message",
+    bound_to: draft.bound_to,
     request,
     human_gate: draft.human_gate,
   });

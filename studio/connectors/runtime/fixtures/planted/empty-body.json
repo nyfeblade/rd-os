@@ -6,6 +6,7 @@
     "actor": "human",
     "kind": "issue_comment",
     "tray_state": "live",
+    "bound_to": "github:comment:nyfeblade/rd-os:18:1",
     "body": "   ",
     "thread_ref": { "owner": "nyfeblade", "repo": "rd-os", "issue_number": 18 }
   }

@@ -1,0 +1,15 @@
+{
+  "op": "reply",
+  "expect": { "ok": false, "code": "BOT_SEND_NO_CUTOVER" },
+  "draft": {
+    "provider": "slack",
+    "actor": "bot",
+    "kind": "message",
+    "tray_state": "live",
+    "bound_to": "slack:mention:Ceng:1726665600.000100",
+    "body": "bot send without in-studio-only cutover",
+    "human_gate": { "status": "approved", "by": "luke" },
+    "cutover": { "status": "unattached", "in_studio_only": false },
+    "thread_ref": { "channel": "Ceng" }
+  }
+}

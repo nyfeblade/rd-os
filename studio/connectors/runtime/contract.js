@@ -7,7 +7,7 @@
 
 const PROVIDERS = ["github", "slack"];
 
-const TRAY_STATES = ["live", "needs_auth", "error", "idle"];
+const TRAY_STATES = ["live", "needs_auth", "error", "disconnected"];
 
 const DEST = ["chat", "board", "chat+board"];
 
@@ -46,6 +46,8 @@ const OUTBOUND_OPS = [
 
 const CODES = [
   "BOT_SEND_NO_GATE",
+  "BOT_SEND_NO_CUTOVER",
+  "UNBOUND_REPLY",
   "EMPTY_BODY",
   "UNKNOWN_PROVIDER",
   "UNKNOWN_EVENT",
@@ -58,6 +60,7 @@ const INBOX_FIELDS = [
   "provider",
   "kind",
   "need_you",
+  "needs_gate",
   "dest",
   "thread_ref",
   "title",
@@ -68,6 +71,8 @@ const INBOX_FIELDS = [
 ];
 
 const GATE_STATUSES = ["approved", "pending", "rejected"];
+
+const CUTOVER_STATUSES = ["attached", "unattached"];
 
 const OFFICIAL_DOCS = {
   github_webhooks: "https://docs.github.com/en/webhooks/webhook-events-and-payloads",
@@ -115,6 +120,7 @@ module.exports = {
   CODES,
   INBOX_FIELDS,
   GATE_STATUSES,
+  CUTOVER_STATUSES,
   OFFICIAL_DOCS,
   isBlank,
   fail,

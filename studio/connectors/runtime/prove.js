@@ -113,6 +113,16 @@ function checkLibrary() {
   } else {
     pass("humanGateAllows lets approved bot through");
   }
+
+  if (runtime.cutoverAllows({ actor: "human" }) !== true) fail("cutover", "human was blocked");
+  else pass("cutoverAllows lets human through");
+  if (runtime.cutoverAllows({ actor: "bot" }) !== false) fail("cutover", "uncutover bot was allowed");
+  else pass("cutoverAllows blocks bot without in-studio-only attach");
+  if (runtime.cutoverAllows({ actor: "bot", cutover: { status: "attached", in_studio_only: true } }) !== true) {
+    fail("cutover", "attached in-studio-only bot was blocked");
+  } else {
+    pass("cutoverAllows lets attached in-studio-only bot through");
+  }
 }
 
 function matchExpect(result, expect) {
@@ -137,6 +147,9 @@ function matchExpect(result, expect) {
   }
   if (typeof expect.need_you === "boolean" && (!result.item || result.item.need_you !== expect.need_you)) {
     return `expected need_you=${expect.need_you}, got ${result.item && result.item.need_you}`;
+  }
+  if (typeof expect.needs_gate === "boolean" && (!result.item || result.item.needs_gate !== expect.needs_gate)) {
+    return `expected needs_gate=${expect.needs_gate}, got ${result.item && result.item.needs_gate}`;
   }
   if (expect.provider && result.item && result.item.provider !== expect.provider) {
     return `expected provider=${expect.provider}, got ${result.item.provider}`;

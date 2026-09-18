@@ -26,6 +26,13 @@ function item(fields) {
   if (typeof fields.need_you !== "boolean") {
     return { ok: false, error: fail("INVALID_EVENT", "need_you must be boolean") };
   }
+  const needsGate = fields.dest === "board" || fields.dest === "chat+board";
+  if (fields.needs_gate !== undefined && fields.needs_gate !== needsGate) {
+    return {
+      ok: false,
+      error: fail("INVALID_EVENT", "needs_gate must match dest (Board card only when a gate is required)"),
+    };
+  }
   if (typeof fields.id !== "string" || fields.id.trim() === "") {
     return { ok: false, error: fail("INVALID_EVENT", "inbox id is empty") };
   }
@@ -47,6 +54,7 @@ function item(fields) {
 
   const built = {};
   for (const key of INBOX_FIELDS) built[key] = fields[key];
+  built.needs_gate = needsGate;
   return { ok: true, item: built };
 }
 

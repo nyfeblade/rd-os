@@ -10,6 +10,7 @@
     "actor": "human",
     "kind": "pull_request_review_comment",
     "tray_state": "live",
+    "bound_to": "github:review_comment:nyfeblade/rd-os:18:99",
     "body": "inline reply from studio",
     "thread_ref": {
       "owner": "nyfeblade",

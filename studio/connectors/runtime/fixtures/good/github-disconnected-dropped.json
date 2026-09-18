@@ -4,7 +4,7 @@
   "envelope": {
     "provider": "github",
     "event": "issue_comment",
-    "tray_state": "idle",
+    "tray_state": "disconnected",
     "payload": {}
   }
 }

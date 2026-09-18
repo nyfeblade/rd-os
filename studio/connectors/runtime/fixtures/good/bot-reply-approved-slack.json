@@ -10,7 +10,9 @@
     "actor": "bot",
     "kind": "message",
     "tray_state": "live",
+    "bound_to": "slack:dm:Ddm:1726665660.000200",
     "body": "bot follow-up after human gate",
+    "cutover": { "status": "attached", "in_studio_only": true },
     "human_gate": { "status": "approved", "by": "luke" },
     "thread_ref": {
       "channel": "Ddm",

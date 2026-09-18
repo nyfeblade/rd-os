@@ -6,7 +6,9 @@
     "actor": "bot",
     "kind": "message",
     "tray_state": "live",
+    "bound_to": "slack:mention:Ceng:1726665600.000100",
     "body": "ungated bot send",
+    "cutover": { "status": "attached", "in_studio_only": true },
     "thread_ref": { "channel": "Ceng" }
   }
 }

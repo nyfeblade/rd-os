@@ -1,13 +1,12 @@
 {
   "op": "reply",
-  "expect": { "ok": false, "code": "NEEDS_AUTH" },
+  "expect": { "ok": false, "code": "UNBOUND_REPLY" },
   "draft": {
     "provider": "github",
     "actor": "human",
     "kind": "issue_comment",
-    "tray_state": "needs_auth",
-    "bound_to": "github:comment:nyfeblade/rd-os:18:1",
-    "body": "cannot send while disconnected",
+    "tray_state": "live",
+    "body": "free-floating global outbox",
     "thread_ref": { "owner": "nyfeblade", "repo": "rd-os", "issue_number": 18 }
   }
 }

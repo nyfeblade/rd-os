@@ -158,6 +158,7 @@ function ciFailure(envelope, source, node) {
     return fail("INVALID_EVENT", `${source} payload is missing`);
   }
   if (node.conclusion !== "failure") return drop("NOISE");
+  if (envelope.at_you !== true) return drop("NOT_AT_YOU");
   const repo = repoParts(envelope.payload || {});
   if (!repo) return fail("INVALID_EVENT", `${source} needs repository`);
   const sha = typeof node.head_sha === "string" ? node.head_sha : "";
@@ -232,6 +233,7 @@ function reply(draft) {
     provider: "github",
     actor: draft.actor,
     kind: draft.kind,
+    bound_to: draft.bound_to,
     request,
     human_gate: draft.human_gate,
   });

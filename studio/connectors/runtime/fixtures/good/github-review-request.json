@@ -5,6 +5,7 @@
     "dropped": false,
     "kind": "review_request",
     "need_you": true,
+    "needs_gate": true,
     "dest": "chat+board",
     "provider": "github"
   },
