@@ -1,0 +1,26 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2A2D31"/>
+      <stop offset="1" stop-color="#0E0F11"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="256" y1="300" x2="768" y2="724" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#C9CDD2"/>
+    </linearGradient>
+  </defs>
+  <rect x="80" y="80" width="864" height="864" rx="196" fill="url(#bg)"/>
+  <rect x="80.5" y="80.5" width="863" height="863" rx="195.5" stroke="#3C4046" stroke-opacity="0.6"/>
+  <!-- quiet chat plate holding a code glyph -->
+  <rect x="236" y="286" width="552" height="392" rx="64" fill="url(#chip)"/>
+  <path d="M236 630 v-8 a56 56 0 0 0 56 56 h8 l-64 -48 z" fill="url(#chip)"/>
+  <path d="M470 690 l84 -84 -70 70 z" fill="url(#chip)"/>
+  <!-- code caret </> -->
+  <g stroke="#16181B" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M446 420 L372 482 L446 544"/>
+    <path d="M578 420 L652 482 L578 544"/>
+    <path d="M534 402 L490 562"/>
+  </g>
+  <!-- presence dot -->
+  <circle cx="748" cy="316" r="30" fill="#2A2D31" stroke="#FFFFFF" stroke-width="10"/>
+</svg>

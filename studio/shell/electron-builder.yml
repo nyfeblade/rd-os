@@ -1,0 +1,43 @@
+appId: com.rdos.aicodingstudio
+productName: AI Coding Studio
+copyright: Copyright © 2026 rd-os
+directories:
+  output: dist
+  buildResources: build
+files:
+  - electron/**
+  - lib/**
+  - renderer/**
+  - package.json
+asar: true
+mac:
+  category: public.app-category.developer-tools
+  darkModeSupport: true
+  icon: build/icon.png
+  target:
+    - target: dir
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  # Signing/notarization require a real Mac + Apple Developer creds.
+  # We produce an unsigned bundle here; identity:null keeps electron-builder from
+  # attempting (and failing) ad-hoc signing on Linux.
+  identity: null
+dmg:
+  title: AI Coding Studio
+  format: UDZO
+  window:
+    width: 540
+    height: 380
+  contents:
+    - x: 140
+      y: 200
+      type: file
+    - x: 400
+      y: 200
+      type: link
+      path: /Applications
