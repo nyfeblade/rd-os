@@ -12,11 +12,7 @@
   </head>
   <body data-host="preview">
     <div class="frame" role="application" aria-label="Studio">
-      <div class="demo switcher" id="view-switcher" aria-label="Coverage states">
-        demo
-        <button type="button" id="view-live">working</button>
-        <button type="button" class="on" id="view-cold">first open</button>
-      </div>
+      <div class="demo switcher" id="view-switcher" hidden aria-hidden="true"></div>
       <header class="bar">
         <b class="name">Studio</b>
         <span class="with" id="with"></span>
@@ -37,9 +33,11 @@
         <section class="pane chat" data-pane="chat" data-module="chat-pane" id="pane-chat" aria-label="Chat">
           <aside class="seats" id="seat-list" hidden aria-hidden="true" aria-label="Seats"></aside>
           <div id="chat-cold" class="empty" hidden>
-            <h1>Connect GitHub</h1>
-            <button class="ok" type="button" id="cta-github">Connect</button>
-            <button type="button" id="cta-seat">Add seat</button>
+            <h1>Connect</h1>
+            <div class="cold-actions">
+              <button class="ok" type="button" id="cta-github">GitHub</button>
+              <button type="button" id="cta-seat">Seat</button>
+            </div>
           </div>
           <div id="chat-live">
             <p class="onboard" id="chat-onboard" hidden></p>

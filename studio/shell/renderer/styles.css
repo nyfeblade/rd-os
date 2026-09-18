@@ -41,6 +41,43 @@ body[data-host="electron"] .frame {
   border: 0;
 }
 
+/* Product: no demo pantheon */
+.demo.switcher,
+#view-switcher {
+  display: none !important;
+}
+
+/* macOS traffic lights — content never under lights */
+body[data-host="electron"][data-platform="mac"] .frame {
+  /* top inset when titleBarStyle hiddenInset */
+  padding-top: 0;
+}
+body[data-host="electron"][data-platform="mac"] .bar {
+  height: 52px;
+  padding-left: 86px;
+  padding-right: 14px;
+  padding-top: 0;
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+body[data-host="electron"][data-platform="mac"] .bar button,
+body[data-host="electron"][data-platform="mac"] .bar a,
+body[data-host="electron"][data-platform="mac"] .bar input,
+body[data-host="electron"][data-platform="mac"] .bar textarea,
+body[data-host="electron"][data-platform="mac"] .bar .tray,
+body[data-host="electron"][data-platform="mac"] .bar .popover {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.cold-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  justify-content: center;
+}
+
+
 /* Demo switcher — quiet meta strip */
 .demo,
 .switcher {
@@ -85,8 +122,9 @@ body[data-host="electron"] .frame {
   font-size: 13px;
 }
 
+/* mac bar rules expanded below */
 body[data-host="electron"][data-platform="mac"] .bar {
-  padding-left: 78px;
+  padding-left: 86px;
 }
 
 .name {
