@@ -1,19 +1,17 @@
 "use strict";
 
 /**
- * studio/connectors/ingress — GitHub + Slack webhook gateway stubs.
+ * studio/connectors/ingress — ingest API for the Studio shell (consume-only).
  *
- *   accept(request) → verify → Studio Ingest Schema → runtime.ingest → inbox
+ *   ingest(request) → verify → Studio Ingest Schema → runtime.ingest → report
  *
+ * Shell / Chat / Board require this module. No chrome, no HTTP listen, no UI.
  * Does not rewrite runtime providers. Linear/Sentry/Vercel stay later wire order.
  * verdict stays null. clock_started stays false.
  */
 
-const http = require("http");
-const { URL } = require("url");
-
 const runtime = require("../runtime");
-const { P0, LATER, buildEnvelope } = require("./envelope");
+const { P0, LATER, ENVELOPE_FIELDS, IDENTITY_FIELDS, buildEnvelope } = require("./envelope");
 const { Inbox } = require("./inbox");
 const { sanitizePayload } = require("./sanitize");
 const { header, verify } = require("./verify");
@@ -28,6 +26,21 @@ const CODES = [
   "UNKNOWN_EVENT",
 ];
 
+const REPORT_FIELDS = [
+  "ok",
+  "dropped",
+  "code",
+  "detail",
+  "reason",
+  "item",
+  "envelope",
+  "challenge",
+  "verdict",
+  "clock_started",
+];
+
+const INBOX_FIELDS = runtime.INBOX_FIELDS;
+
 const FIXTURE_SECRETS = {
   github: "fixture-github-webhook-secret",
   slack: "fixture-slack-signing-secret",
@@ -38,23 +51,26 @@ const MAPPERS = {
   slack,
 };
 
-function pin(result) {
-  return Object.assign({}, result, { verdict: null, clock_started: false });
+function report(partial) {
+  return {
+    ok: Boolean(partial.ok),
+    dropped: Boolean(partial.dropped),
+    code: partial.code || null,
+    detail: partial.detail || null,
+    reason: partial.reason || null,
+    item: partial.item || null,
+    envelope: partial.envelope || null,
+    challenge: partial.challenge == null ? null : partial.challenge,
+    verdict: null,
+    clock_started: false,
+  };
 }
 
 function fail(code, detail) {
   if (!CODES.includes(code)) {
     throw new Error(`ingress code not in closed set: ${code}`);
   }
-  return pin({
-    ok: false,
-    dropped: false,
-    code,
-    detail: detail || code,
-    item: null,
-    envelope: null,
-    challenge: null,
-  });
+  return report({ ok: false, code, detail: detail || code });
 }
 
 function headerProvider(headers) {
@@ -107,7 +123,12 @@ function laterOrUnknown(provider) {
   return fail("UNKNOWN_PROVIDER", `provider=${JSON.stringify(provider)}`);
 }
 
-function accept(request, options) {
+/**
+ * Shell-facing ingest API.
+ * `request` is a vendor webhook (headers + body). Result.item is the inbox row
+ * Chat/Board consume. Drops never become items. No HTTP server required.
+ */
+function ingest(request, options) {
   const opts = options || {};
   const inbox = opts.inbox || null;
   const req = materialize(request);
@@ -140,24 +161,15 @@ function accept(request, options) {
   });
   if (!mapped.ok) return fail(mapped.code, mapped.detail);
   if (mapped.handshake) {
-    return pin({
+    return report({
       ok: true,
       dropped: true,
       reason: "URL_VERIFICATION",
       challenge: mapped.challenge,
-      item: null,
-      envelope: null,
     });
   }
   if (mapped.drop) {
-    return pin({
-      ok: true,
-      dropped: true,
-      reason: mapped.drop,
-      challenge: null,
-      item: null,
-      envelope: null,
-    });
+    return report({ ok: true, dropped: true, reason: mapped.drop });
   }
 
   const trayState = req.tray_state || opts.tray_state || "live";
@@ -178,7 +190,7 @@ function accept(request, options) {
     inbox.push(ingested.item);
   }
 
-  return pin({
+  return report({
     ok: ingested.ok,
     dropped: Boolean(ingested.dropped),
     reason: ingested.reason || null,
@@ -186,87 +198,18 @@ function accept(request, options) {
     detail: ingested.detail || null,
     item: ingested.item || null,
     envelope: built.envelope,
-    challenge: null,
-    sanitized: true,
   });
-}
-
-function routeProvider(urlPath) {
-  const pathname = urlPath || "";
-  if (pathname === "/hooks/github" || pathname === "/github") return "github";
-  if (pathname === "/hooks/slack" || pathname === "/slack") return "slack";
-  return "";
-}
-
-function readRawBody(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    req.on("data", (chunk) => chunks.push(chunk));
-    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
-    req.on("error", reject);
-  });
-}
-
-function sendJson(res, status, body) {
-  const json = JSON.stringify(body);
-  res.writeHead(status, { "content-type": "application/json" });
-  res.end(json);
-}
-
-function statusFor(result) {
-  if (result.ok) return 200;
-  if (result.code === "BAD_SIGNATURE") return 401;
-  if (result.code === "UNKNOWN_PROVIDER" || result.code === "UNSUPPORTED_PROVIDER") return 404;
-  return 400;
-}
-
-function createServer(options) {
-  const inbox = (options && options.inbox) || new Inbox();
-  const opts = Object.assign({}, options, { inbox });
-  return http.createServer((req, res) => {
-    const url = new URL(req.url || "/", "http://127.0.0.1");
-    if (req.method !== "POST") {
-      sendJson(res, 405, pin({ ok: false, code: "INVALID_EVENT", detail: "POST only" }));
-      return;
-    }
-    const provider = routeProvider(url.pathname);
-    if (!provider) {
-      sendJson(res, 404, fail("UNKNOWN_PROVIDER", `path=${url.pathname}`));
-      return;
-    }
-    readRawBody(req)
-      .then((raw) => {
-        const result = accept(
-          {
-            provider,
-            headers: req.headers,
-            raw_body: raw,
-          },
-          opts
-        );
-        if (result.challenge != null) {
-          sendJson(res, 200, { challenge: result.challenge, verdict: null, clock_started: false });
-          return;
-        }
-        sendJson(res, statusFor(result), result);
-      })
-      .catch((err) => {
-        sendJson(res, 400, fail("INVALID_EVENT", err.message));
-      });
-  });
-}
-
-function listen(port, options) {
-  const server = createServer(options);
-  return server.listen(port);
 }
 
 module.exports = {
-  accept,
-  createServer,
-  listen,
+  ingest,
+  accept: ingest,
   Inbox,
   CODES,
+  REPORT_FIELDS,
+  INBOX_FIELDS,
+  ENVELOPE_FIELDS,
+  IDENTITY_FIELDS,
   FIXTURE_SECRETS,
   P0,
   LATER,

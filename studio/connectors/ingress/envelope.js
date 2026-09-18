@@ -9,6 +9,8 @@ const ACTOR_KINDS = ["user", "bot", "app"];
 const TRAY_STATES = ["live", "needs_auth", "error", "disconnected"];
 const P0 = ["github", "slack"];
 const LATER = ["linear", "sentry", "vercel", "cloudflare", "supabase"];
+const ENVELOPE_FIELDS = ["provider", "event", "received_at", "at_you", "tray_state", "identity", "payload"];
+const IDENTITY_FIELDS = ["actor_kind", "actor_id", "as_user"];
 
 function isObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -78,5 +80,7 @@ module.exports = {
   TRAY_STATES,
   P0,
   LATER,
+  ENVELOPE_FIELDS,
+  IDENTITY_FIELDS,
   buildEnvelope,
 };

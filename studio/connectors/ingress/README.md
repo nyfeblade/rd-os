@@ -1,6 +1,10 @@
 # studio/connectors/ingress
 
-GitHub + Slack webhook stubs → Studio Ingest Schema → `runtime.ingest` → inbox dump.
+Shell consume — module export, not chrome:
+
+```js
+const { ingest, Inbox } = require("./studio/connectors/ingress");
+```
 
 ```bash
 node studio/connectors/ingress/prove.js
@@ -16,4 +20,4 @@ node studio/connectors/ingress/prove.js --gate studio/connectors/ingress/fixture
 # exit 2
 ```
 
-Node 18+. No npm install. No live secrets. Fixture HMAC is enough. `verdict` stays null. `clock_started` stays false.
+Node 18+. No npm install. No live secrets. No HTTP listen. `verdict` stays null. `clock_started` stays false.

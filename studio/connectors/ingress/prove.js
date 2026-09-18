@@ -5,7 +5,7 @@
  * Stranger-reproducible connectors-ingress prove script.
  *
  *   node studio/connectors/ingress/prove.js
- *     Cold-runs good + planted webhook fixtures through accept() → runtime.ingest.
+ *     Cold-runs good + planted webhook fixtures through ingest() → runtime.ingest.
  *     Exit 0 only if every expect block matches and inbox items were produced.
  *
  *   node studio/connectors/ingress/prove.js --gate <dir-or-file>
@@ -77,11 +77,21 @@ function materializeRequest(record) {
   return request;
 }
 
+function extraKeys(object, allowed) {
+  if (!object || typeof object !== "object") return ["<missing>"];
+  return Object.keys(object).filter((key) => !allowed.includes(key)).sort();
+}
+
+function missingKeys(object, required) {
+  if (!object || typeof object !== "object") return required.slice();
+  return required.filter((key) => !Object.prototype.hasOwnProperty.call(object, key));
+}
+
 function evaluateFixture(record, inbox) {
-  if (record.op !== "accept") {
-    throw new Error(`fixture op must be accept, got ${JSON.stringify(record.op)}`);
+  if (record.op !== "ingest" && record.op !== "accept") {
+    throw new Error(`fixture op must be ingest|accept, got ${JSON.stringify(record.op)}`);
   }
-  return ingress.accept(materializeRequest(record), { inbox, fixture: record.fixture === true });
+  return ingress.ingest(materializeRequest(record), { inbox, fixture: record.fixture === true });
 }
 
 function uniqueClosed(name, list) {
@@ -96,6 +106,35 @@ function uniqueClosed(name, list) {
 function checkLibrary() {
   uniqueClosed("CODES", ingress.CODES);
   uniqueClosed("P0", ingress.P0);
+  uniqueClosed("REPORT_FIELDS", ingress.REPORT_FIELDS);
+  uniqueClosed("INBOX_FIELDS", ingress.INBOX_FIELDS);
+  uniqueClosed("ENVELOPE_FIELDS", ingress.ENVELOPE_FIELDS);
+
+  if (typeof ingress.ingest !== "function") fail("api", "ingest export missing");
+  else pass("ingest is the shell consume export");
+  if (ingress.accept !== ingress.ingest) fail("api", "accept alias drifted from ingest");
+  else pass("accept aliases ingest");
+  if (typeof ingress.createServer === "function" || typeof ingress.listen === "function") {
+    fail("api", "HTTP chrome leaked on the consume export");
+  } else {
+    pass("no HTTP listen/createServer on consume export");
+  }
+  if (typeof ingress.Inbox !== "function") fail("api", "Inbox export missing");
+  else pass("Inbox dump is the consumer surface");
+
+  const later = ["linear", "sentry", "vercel"];
+  let laterOk = true;
+  for (const provider of later) {
+    const result = ingress.ingest(
+      { provider, headers: {}, raw_body: "{}", body: {}, fixture: true },
+      { fixture: true }
+    );
+    if (result.code !== "UNSUPPORTED_PROVIDER") {
+      fail("wire order", `${provider} → ${result.code}`);
+      laterOk = false;
+    }
+  }
+  if (laterOk) pass("linear/sentry/vercel are UNSUPPORTED_PROVIDER (later lane)");
 
   const secret = ingress.FIXTURE_SECRETS.github;
   const body = "{\"ok\":true}";
@@ -130,14 +169,7 @@ function checkLibrary() {
     pass("sanitize strips instruction + token");
   }
 
-  const linear = ingress.accept(
-    { provider: "linear", headers: {}, raw_body: "{}", body: {}, fixture: true },
-    { fixture: true }
-  );
-  if (linear.code !== "UNSUPPORTED_PROVIDER") fail("wire order", `linear → ${linear.code}`);
-  else pass("linear is UNSUPPORTED_PROVIDER (later wire order)");
-
-  const pinned = ingress.accept(
+  const pinned = ingress.ingest(
     {
       provider: "github",
       headers: { "x-github-event": "ping" },
@@ -232,6 +264,29 @@ function checkFixtures() {
     if (result.verdict !== null || result.clock_started !== false) {
       fail(name, `pins drifted: verdict=${JSON.stringify(result.verdict)} clock_started=${result.clock_started}`);
       continue;
+    }
+
+    const reportExtra = extraKeys(result, ingress.REPORT_FIELDS);
+    const reportMissing = missingKeys(result, ingress.REPORT_FIELDS);
+    if (reportExtra.length || reportMissing.length) {
+      fail(name, `report fields extra=${reportExtra.join(",")} missing=${reportMissing.join(",")}`);
+      continue;
+    }
+    if (result.item) {
+      const itemExtra = extraKeys(result.item, ingress.INBOX_FIELDS);
+      const itemMissing = missingKeys(result.item, ingress.INBOX_FIELDS);
+      if (itemExtra.length || itemMissing.length) {
+        fail(name, `item fields extra=${itemExtra.join(",")} missing=${itemMissing.join(",")}`);
+        continue;
+      }
+    }
+    if (result.envelope) {
+      const envExtra = extraKeys(result.envelope, ingress.ENVELOPE_FIELDS);
+      const envMissing = missingKeys(result.envelope, ingress.ENVELOPE_FIELDS);
+      if (envExtra.length || envMissing.length) {
+        fail(name, `envelope fields extra=${envExtra.join(",")} missing=${envMissing.join(",")}`);
+        continue;
+      }
     }
 
     const mismatch = matchExpect(result, expect);

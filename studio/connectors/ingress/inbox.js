@@ -2,7 +2,8 @@
 
 /**
  * Minimal inbox consumer surface — in-memory list + optional file dump.
- * Shell/seats are consume-only; this dump is what a stranger can cat after prove.
+ * Shell requires ingest(); this dump is what a stranger can cat after prove.
+ * No chrome. No tray UI.
  */
 
 const fs = require("fs");
