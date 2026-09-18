@@ -1,6 +1,8 @@
 # Studio connectors catalog
 
-**SoT for the connectors tray.** Official vendor docs fetched 2026-09-18; cited HTTP URLs re-scanned the same day (docs 2xx; hosted MCP often 401/405 on bare GET). A cell marked **UNVERIFIED** means no official page confirmed the endpoint; do not invent one.
+**SoT for the connectors tray.** Ingress vs egress, ingest sketch, HITL, wire order: [`ARCHITECTURE.md`](ARCHITECTURE.md). Denylist: [`DO-NOT-SHIP.md`](DO-NOT-SHIP.md).
+
+Official vendor docs fetched 2026-09-18; cited HTTP URLs re-scanned the same day (docs 2xx; hosted MCP often 401/405 on bare GET). A cell marked **UNVERIFIED** means no official page confirmed the endpoint; do not invent one. Do not cite 404s.
 
 `verdict` stays null. `clock_started` stays false. Listing a tool is not a claim that Studio is wired to it.
 
@@ -31,9 +33,9 @@ P1+ rows keep the same two-way pattern when a later runtime PR enables them. `p0
 | Cursor / Cloud Agents | P0 | connector | [Cloud Agents](https://cursor.com/docs/cloud-agent) · [MCP in Cursor](https://cursor.com/docs/mcp) · [Cloud Agents API](https://cursor.com/docs/cloud-agent/api/endpoints) | Cursor Dashboard API key (Basic or Bearer). Team MCP via Dashboard → Integrations & MCP. | Seat host: launch/inspect Cloud Agent runs; attach other tray MCPs to the run. |
 | Claude | P0 | connector | [MCP connector (Messages API)](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector) · [Claude Code MCP](https://code.claude.com/docs/en/mcp) · [Claude API](https://platform.claude.com/docs) | API key (`x-api-key`) for the Messages API. Remote MCP: OAuth / `authorization_token` on `mcp_servers`. Claude Code: `/mcp` login. | Seat: Claude Code / API complete; pull remote MCP tools into the thread. |
 | Grok / xAI | P0 | API | [docs.x.ai overview](https://docs.x.ai/overview) · [quickstart / API key](https://docs.x.ai/developers/quickstart) · REST [api.x.ai/docs](https://api.x.ai/docs/) | Bearer `XAI_API_KEY` minted from the xAI console (steps on the quickstart). **No official xAI MCP found** — do not invent one. | Seat: Grok / Grok Build complete. |
-| Linear MCP | P0 | MCP | [linear.app/docs/mcp](https://linear.app/docs/mcp) · hosted `https://mcp.linear.app/mcp` | OAuth 2.1 (DCR) or `Authorization: Bearer` API key. Read-only: `https://mcp.linear.app/mcp/readonly`. | Issues / projects for board intake and eng tickets. |
-| Sentry MCP | P0 | MCP | [mcp.sentry.dev](https://mcp.sentry.dev/) · [getsentry/sentry-mcp](https://github.com/getsentry/sentry-mcp) · hosted `https://mcp.sentry.dev/mcp` | OAuth on first connect. Optional org/project path scope. Token header: `Authorization: Sentry-Bearer` (not `Bearer`). | Live errors / traces for the current repo. |
-| Vercel MCP | P0 | MCP | [Vercel MCP docs](https://vercel.com/docs/agent-resources/vercel-mcp) · hosted `https://mcp.vercel.com` | OAuth. Public doc tools without auth; project tools after Vercel login. Project-scoped URL via `vercel mcp --project`. | Preview deploys, logs, project status for the current app. |
+| Linear MCP | P0 | MCP | [linear.app/docs/mcp](https://linear.app/docs/mcp) · hosted `https://mcp.linear.app/mcp` | OAuth 2.1 (DCR) or `Authorization: Bearer` API key. Read-only: `https://mcp.linear.app/mcp/readonly`. Do not use `jerhadf/linear-mcp*` or `/sse` ([DO-NOT-SHIP](DO-NOT-SHIP.md)). | Issues / projects for board intake. Wire #1 after GitHub+Slack. |
+| Sentry MCP | P0 | MCP | [mcp.sentry.dev](https://mcp.sentry.dev/) · [getsentry/sentry-mcp](https://github.com/getsentry/sentry-mcp) · hosted `https://mcp.sentry.dev/mcp` | OAuth on first connect. Optional org/project path scope. Token header: `Authorization: Sentry-Bearer` (not `Bearer`). | Live errors / traces for the current repo. Wire #2 after GitHub+Slack. |
+| Vercel MCP | P0 | MCP | [Vercel MCP docs](https://vercel.com/docs/agent-resources/vercel-mcp) · hosted `https://mcp.vercel.com` | OAuth. Public doc tools without auth; project tools after Vercel login. Project-scoped URL via `vercel mcp --project`. | Preview deploys, logs, project status. Wire #3 after GitHub+Slack. Distinct from local Next.js DevTools MCP. |
 
 ---
 
@@ -42,19 +44,20 @@ P1+ rows keep the same two-way pattern when a later runtime PR enables them. `p0
 | Name | Priority | Type | Official MCP / docs | Auth (public) | Tray use |
 | --- | --- | --- | --- | --- | --- |
 | Atlassian Rovo MCP | P1 | MCP | [Getting started](https://support.atlassian.com/atlassian-rovo-mcp-server/docs/getting-started-with-the-atlassian-remote-mcp-server/) · [developer.atlassian.com/cloud/rovo-mcp](https://developer.atlassian.com/cloud/rovo-mcp/) · [atlassian/atlassian-mcp-server](https://github.com/atlassian/atlassian-mcp-server) · hosted `https://mcp.atlassian.com/v2/mcp` | OAuth 2.1 or API token. Actions stay inside the user's Atlassian ACL. | Jira / Confluence / Bitbucket for tickets and specs. |
-| GitLab | P1 | MCP | [GitLab MCP server](https://docs.gitlab.com/user/model_context_protocol/mcp_server/) · HTTP path `/api/v4/mcp` on the GitLab host · [glab mcp serve](https://docs.gitlab.com/cli/mcp/serve/) (stdio, experimental) | OAuth (dynamic client registration) or PAT on the GitLab instance. | GitLab issues / MRs / pipelines when the repo is not GitHub. |
+| GitLab | P1 | MCP | [GitLab MCP server](https://docs.gitlab.com/user/model_context_protocol/mcp_server/) · HTTP `https://<host>/api/v4/mcp` · GitLab.com `https://gitlab.com/api/v4/mcp` (GET **401**, not 404) · [glab mcp serve](https://docs.gitlab.com/cli/mcp/serve/) (stdio, experimental) | OAuth (DCR) or PAT on the GitLab instance. | GitLab issues / MRs / pipelines when the repo is not GitHub. |
 | Datadog | P1 | MCP | [Datadog MCP Server](https://docs.datadoghq.com/mcp_server/) · [setup](https://docs.datadoghq.com/mcp_server/setup/) | OAuth 2.0, or headers `DD_API_KEY` + `DD_APPLICATION_KEY`. URL is **site-specific** (see setup page). Official Datadog Labs README documents US1 `https://mcp.datadoghq.com/v1/mcp`. | Prod metrics / logs / monitors next to a failing deploy. |
 | Grafana | P1 | MCP | [grafana/mcp-grafana](https://github.com/grafana/mcp-grafana) · [Grafana MCP client setup](https://grafana.com/docs/grafana/latest/developer-resources/mcp/set-up/client-configuration-examples/) | Service account token: `GRAFANA_URL` + `GRAFANA_SERVICE_ACCOUNT_TOKEN`. Local `uvx mcp-grafana` (stdio). **No vendor-hosted MCP URL published** on those pages. | Dashboards / datasources for the same on-call slice as Datadog. |
-| Cloudflare MCP | P1 | MCP | [Cloudflare's own MCP servers](https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/) · hosted `https://mcp.cloudflare.com/mcp` · docs server `https://docs.mcp.cloudflare.com/mcp` | OAuth (permission picker) or Cloudflare API token. | Workers / DNS / cache / logs for edge deploys. |
+| Cloudflare MCP (Code Mode) | P1 | MCP | [Cloudflare's own MCP servers](https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/) · **Code Mode** hosted `https://mcp.cloudflare.com/mcp` (`search` + `execute`) · [Code Mode pattern](https://developers.cloudflare.com/agents/model-context-protocol/codemode/) · [cloudflare/mcp](https://github.com/cloudflare/mcp) · docs server `https://docs.mcp.cloudflare.com/mcp` | OAuth (permission picker) or Cloudflare API token as Bearer. | Workers / DNS / cache / logs. Wire #4 after GitHub+Slack. Community CF wrappers: [DO-NOT-SHIP](DO-NOT-SHIP.md). |
 | Figma MCP | P1 | MCP | [Figma MCP server](https://developers.figma.com/docs/figma-mcp-server/) · remote `https://mcp.figma.com/mcp` | Figma OAuth. Remote recommended; desktop Dev Mode server is `http://127.0.0.1:3845/mcp`. Client allowlist applies. | Design-to-code context for UI work in the Code pane. |
+| Next.js DevTools MCP | P1 | MCP | [Next.js MCP guide](https://nextjs.org/docs/app/guides/mcp) · [vercel/next-devtools-mcp](https://github.com/vercel/next-devtools-mcp) · local stdio `npx -y next-devtools-mcp@latest` · Next 16+ built-in `http://localhost:<port>/_next/mcp` while `next dev` runs. **No hosted MCP URL.** | Local only. No OAuth. | Live routes / errors / logs for the app under `next dev`. Distinct from hosted Vercel MCP (`https://mcp.vercel.com`). |
 | Docker | P1 | MCP | [Docker MCP Catalog](https://docs.docker.com/ai/mcp-catalog-and-toolkit/catalog/) · [MCP Toolkit](https://docs.docker.com/ai/mcp-catalog-and-toolkit/toolkit/) · browse [hub.docker.com/mcp](https://hub.docker.com/mcp) | Docker Desktop login. Remote catalog servers often OAuth via Toolkit. Local servers run as signed `mcp/*` images. | Run / attach containerized MCP servers; image + compose context. |
 | Kubernetes | P1 | CLI | [Kubernetes API](https://kubernetes.io/docs/reference/using-api/) · [kubectl](https://kubernetes.io/docs/reference/kubectl/) | kubeconfig / in-cluster SA. **No Kubernetes-project official MCP** on kubernetes.io. Docker Catalog lists a third-party `mcp/kubernetes` image — not K8s SIGs. | Cluster get/apply/logs via kubectl or official API only until an official MCP exists. |
 | Terraform MCP | P1 | MCP | [Terraform MCP server](https://developer.hashicorp.com/terraform/mcp-server) · [hashicorp/terraform-mcp-server](https://github.com/hashicorp/terraform-mcp-server) | Public registry: none. HCP / TFE: `TFE_TOKEN` (+ `TFE_HOSTNAME` / `TFE_ADDRESS` for TFE). | Provider docs + workspace/runs when generating or reviewing Terraform. |
-| Notion | P1 | MCP | [Notion MCP overview](https://developers.notion.com/guides/mcp/overview) · [get started](https://developers.notion.com/guides/mcp/get-started-with-mcp) · hosted `https://mcp.notion.com/mcp` | OAuth (hosted). Legacy SSE: `https://mcp.notion.com/sse`. Open-source bearer server is unmaintained per Notion. | Specs / experiment notes (eng-readable), not a second board SoT. |
-| Slack (eng) | P1 | MCP | [Slack MCP server](https://docs.slack.dev/ai/slack-mcp-server) · hosted `https://mcp.slack.com/mcp` | Confidential OAuth (`client_id` / `client_secret`) on a registered Slack app. Admin-approved clients. Partner one-click: Claude, Cursor, others. | Eng channels / threads — search and post, not a chat home. |
+| Notion | P1 | MCP | [Notion MCP overview](https://developers.notion.com/guides/mcp/overview) · [get started](https://developers.notion.com/guides/mcp/get-started-with-mcp) · hosted `https://mcp.notion.com/mcp` | OAuth (hosted). Open-source bearer server is unmaintained per Notion. Do not add `/sse` (legacy; see [DO-NOT-SHIP](DO-NOT-SHIP.md)). | Specs / experiment notes (eng-readable), not a second board SoT. |
+| Slack (eng) | P1 | MCP | [Slack MCP server](https://docs.slack.dev/ai/slack-mcp-server) · hosted `https://mcp.slack.com/mcp` (docs **200**; bare GET **401** — live, not archived). **Ingress is not MCP:** [Events API](https://docs.slack.dev/apis/events-api/) + [Bolt](https://docs.slack.dev/tools/bolt-js). Archived `@modelcontextprotocol/server-slack` is a different binary — [DO-NOT-SHIP](DO-NOT-SHIP.md) + [conflict](#slack-official-mcp--not-archived). | Confidential OAuth (`client_id` / `client_secret`) on a registered Slack app. **No DCR.** Admin-approved clients. User-token MCP tools ≠ bot token for in-Slack Bolt. Partner one-click: Claude, Cursor, others. | Tray egress: official MCP or `chat.postMessage`. P0 two-way ingest stays Events API. Not a chat home. |
 | LaunchDarkly | P1 | MCP | [Hosted MCP](https://launchdarkly.com/docs/home/getting-started/mcp-hosted) · hosted `https://mcp.launchdarkly.com/mcp/launchdarkly` | OAuth. | Flag read/toggle while shipping a gated change. |
 | Neon | P1 | MCP | [Neon MCP server](https://neon.com/docs/ai/neon-mcp-server) · hosted `https://mcp.neon.tech/mcp` | OAuth or Bearer API key. Optional `?readonly=true`, `?projectId=`, `?category=`. | Postgres branches / SQL for the app database. |
-| Supabase | P1 | MCP | [Supabase MCP](https://supabase.com/docs/guides/ai-tools/mcp) · hosted `https://mcp.supabase.com/mcp` · [supabase/mcp](https://github.com/supabase/mcp) | OAuth 2.1 (DCR). Local CLI: `http://localhost:54321/mcp` (subset, no OAuth). Query: `project_ref`, `read_only`, `features`. | Project schema / SQL / auth config. |
+| Supabase | P1 | MCP | [Supabase MCP](https://supabase.com/docs/guides/ai-tools/mcp) · hosted `https://mcp.supabase.com/mcp` · [supabase/mcp](https://github.com/supabase/mcp) | OAuth 2.1 (DCR). Local CLI: `http://localhost:54321/mcp` (subset, no OAuth). Query: `project_ref`, `read_only`, `features`. | Project schema / SQL / auth config. DB writes are HITL. Wire #5 after GitHub+Slack. Community wrappers: [DO-NOT-SHIP](DO-NOT-SHIP.md). |
 | Prisma | P1 | MCP | [Prisma MCP server](https://www.prisma.io/docs/ai/tools/mcp-server) · hosted `https://mcp.prisma.io/mcp` · [prisma/mcp](https://github.com/prisma/mcp) | Prisma Console OAuth on first use. Local: `npx -y prisma mcp`. | Prisma Postgres + schema/migrate from the seat. |
 | Postman | P1 | MCP | [Remote Postman MCP](https://learning.postman.com/docs/developer/postman-api/postman-mcp-server/postman-mcp-remote-server) · US full `https://mcp.postman.com/mcp` · default `https://mcp.postman.com/minimal` | US: OAuth (DCR/PKCE) or Bearer Postman API key. EU: API key only (`mcp.eu.postman.com`). | Collections / specs so agents call the real API, not a guessed path. |
 | CodeRabbit | P1 | connector | [CodeRabbit API](https://docs.coderabbit.ai/api) · [CLI](https://docs.coderabbit.ai/cli/headless-cli-integration) · [MCP *client*](https://docs.coderabbit.ai/connections/mcp-servers) | API: `https://api.coderabbit.ai` + `x-coderabbitai-api-key`. CLI: Agentic API key. **CodeRabbit is an MCP client, not a hosted MCP server.** | PR review bot + CLI review; do not add a fake `mcp.coderabbit` URL. |
@@ -99,8 +102,65 @@ P1+ rows keep the same two-way pattern when a later runtime PR enables them. `p0
 ## Notes
 
 - **Type** is the tray-primary surface. Most MCP rows also have a REST API; do not duplicate the row unless the tray treats them as separate tiles.
-- **UNVERIFIED** is reserved for endpoints we could not pin to an official page. None of the hosted MCP URLs above are marked UNVERIFIED.
+- **UNVERIFIED** is reserved for endpoints we could not pin to an official page. None of the hosted MCP URLs above are marked UNVERIFIED. **No 404s in this file.**
 - Kubernetes, Jenkins, CodeRabbit, and xAI have official **API/CLI/connector** docs but **no official MCP server URL** on the pages checked.
-- Grafana and Snyk official MCPs are **local** (stdio / CLI), not a single public vendor MCP host.
+- Grafana and Snyk official MCPs are **local** (stdio / CLI), not a single public vendor MCP host. Next.js DevTools MCP is local-only (`next-devtools-mcp` + `/_next/mcp`).
 - Google Cloud MCP URLs are **per product**, not one org-wide host.
+- Ingress vs egress + wire order after GitHub+Slack (Linear → Sentry → Vercel → Cloudflare Code Mode → Supabase): [`ARCHITECTURE.md`](ARCHITECTURE.md). Archived / community / `/sse`: [`DO-NOT-SHIP.md`](DO-NOT-SHIP.md).
 - Shell / seats: consume this file only. Auth material never lands in `studio/connectors/**`.
+
+---
+
+## Slack official MCP — not archived
+
+Blueprint conflict: “Slack official MCP archived → API/Bolt only.” This catalog listed `https://mcp.slack.com/mcp`. Live docs win.
+
+| Check (2026-09-18) | Result |
+| --- | --- |
+| [docs.slack.dev/ai/slack-mcp-server](https://docs.slack.dev/ai/slack-mcp-server) | **200**. Documents JSON-RPC over Streamable HTTP at `https://mcp.slack.com/mcp`. “We do not support SSE-based connections or Dynamic Client Registration.” |
+| `GET https://mcp.slack.com/mcp` | **401** — OAuth required. Not 404 / 410. |
+| `GET https://mcp.slack.com/.well-known/oauth-protected-resource` | **200** — hosted MCP is an OAuth resource. |
+| `GET https://mcp.slack.com/sse` | **404** — do not ship `/sse`. |
+| [servers-archived/src/slack](https://github.com/modelcontextprotocol/servers-archived/tree/main/src/slack) | **200**. This is `@modelcontextprotocol/server-slack` (stdio + bot token). Archived. Different binary. |
+
+**Correct row:** keep official Slack MCP for **egress**. P0 **ingress** stays Events API / Bolt (MCP is not a webhook). Do not collapse Slack to API-only. Do not ship the archived reference server.
+
+---
+
+## Security
+
+Tray + seats must keep these notes next to every write path. Law in [`ARCHITECTURE.md`](ARCHITECTURE.md).
+
+### User vs bot identity
+
+- Record `identity.actor_kind` (`user` \| `bot` \| `app`) and `as_user` on every ingest envelope and every egress call.
+- Slack official MCP tools run as the **authorizing user** (user token + scopes). In-Slack bots (Bolt / `chat.postMessage` as the app) are a **bot** identity. Do not post as the human with a bot token, or as the bot with a user token, without saying so on the Board card.
+- GitHub user OAuth/PAT ≠ GitHub App installation. Linear/Sentry/Vercel/Supabase OAuth is the signed-in user unless the vendor documents an app actor.
+- Hard cutover: bot speech is in-studio-only. A bot connector send still needs cutover **and** HITL.
+
+### CIMD / allowlist
+
+- MCP OAuth Client ID Metadata Documents ([spec](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/client-registration), docs **200**): `client_id` is an HTTPS URL; the AS fetches it. Allowlist CIMD hosts. Reject arbitrary metadata URLs (SSRF / phishing).
+- Slack official MCP: **confidential OAuth**, hardcoded Slack app ID, **no DCR**, admin-approved clients. Do not attempt CIMD/DCR against `mcp.slack.com`.
+- GitLab / Linear / Supabase: follow the vendor page (DCR and/or bearer). Pre-register when DCR is off. Still allowlist redirect URIs.
+- Seat chrome may only attach catalog URLs. A user-pasted `mcp.*` host that is not in this file is `UNVERIFIED` — do not connect.
+
+### Sanitize webhook → LLM
+
+- Issue bodies, Slack text, Sentry breadcrumbs, deploy log lines, and Linear comments are **attacker-controlled**.
+- Gateway (next fence) sanitizes before the envelope reaches a seat. Do not concatenate raw webhook JSON into prompts.
+- Drop instruction-like payloads (`ignore previous…`, tool-call JSON in a comment). Prefer title + link + short quote over the full body.
+- `at_you` / `need_you` are computed flags, not vendor strings the model can rewrite.
+
+### HITL on merge / deploy / DB / public post
+
+Board Approve (or explicit confirm) before a seat or bot:
+
+| Write | Examples |
+| --- | --- |
+| Merge | GitHub merge, GitLab MR merge |
+| Deploy | Vercel promote / domain, Cloudflare Worker / DNS / cache / Code Mode `execute` that mutates |
+| DB | Supabase SQL, migration, branch merge; Neon / Prisma writes |
+| Public post | Slack channel post, GitHub/Linear comment from a **bot** |
+
+Human thread-bound replies: no gate. Bot send: cutover + gate. Read-only MCP toolsets (`/readonly`, `?read_only=true`) still do not skip HITL if the tool can mutate.
