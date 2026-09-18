@@ -51,8 +51,6 @@
     chatLive: document.getElementById("chat-live"),
     chatCold: document.getElementById("chat-cold"),
     chatOnboard: document.getElementById("chat-onboard"),
-    viewLive: document.getElementById("view-live"),
-    viewCold: document.getElementById("view-cold"),
     ctaGithub: document.getElementById("cta-github"),
     ctaSeat: document.getElementById("cta-seat"),
     threadMeter: document.getElementById("thread-meter"),
@@ -274,10 +272,12 @@
         Studio.assertNever(view);
     }
     state.view = view;
-    els.viewCold.classList.toggle("on", view === "cold");
-    els.viewLive.classList.toggle("on", view === "live");
-    els.chatCold.hidden = view !== "cold";
-    els.chatLive.hidden = false;
+    if (els.chatCold) {
+      els.chatCold.hidden = view !== "cold";
+    }
+    if (els.chatLive) {
+      els.chatLive.hidden = false;
+    }
     if (els.chatOnboard) {
       els.chatOnboard.hidden = view === "live";
     }
@@ -556,24 +556,17 @@
   }
 
   function wireChrome() {
-    els.viewCold.addEventListener("click", () => {
-      setView("cold");
-      loadNamedDump("attention.empty.json").then(() => renderChrome());
-    });
-    els.viewLive.addEventListener("click", () => {
-      setView("live");
-      Promise.all([loadNamedDump("attention.human.json"), loadInbox()]).then(() => {
-        bindFirstInbox();
-        renderChrome();
+    if (els.ctaGithub) {
+      els.ctaGithub.addEventListener("click", () => onConnector("github"));
+    }
+    if (els.ctaSeat) {
+      els.ctaSeat.addEventListener("click", () => {
+        const bot = state.seats.find((seat) => seat.kind === "bot" && !seat.cutover);
+        if (bot) {
+          chatHandlers.onConnectSeat(bot);
+        }
       });
-    });
-    els.ctaGithub.addEventListener("click", () => onConnector("github"));
-    els.ctaSeat.addEventListener("click", () => {
-      const bot = state.seats.find((seat) => seat.kind === "bot" && !seat.cutover);
-      if (bot) {
-        chatHandlers.onConnectSeat(bot);
-      }
-    });
+    }
     els.btnCode.addEventListener("click", () => {
       toggleCode(!state.codeOpen);
     });
