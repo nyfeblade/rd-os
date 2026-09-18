@@ -54,12 +54,7 @@ const auth = createAuth({
 });
 
 const started = auth.startOAuth();
-// started.data.url  → open in the system browser (shell does this)
-// started.data.state
-
 const session = await auth.handleCallback({ url: incoming });
-// session.data === { user, provider: "github", expires }
-
 auth.session();
 auth.signOut();
 ```
