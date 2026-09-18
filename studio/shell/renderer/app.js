@@ -5,10 +5,9 @@
   document.body.dataset.host = host;
 
   const SEATS = [
-    { id: "eng-lead", name: "Eng Lead", kind: "seat", presence: "online", cutover: true },
     { id: "you", name: "You", kind: "human", presence: "online", cutover: true },
-    { id: "designer", name: "Studio Designer", kind: "seat", presence: "online", cutover: true },
-    { id: "rd-os", name: "#rd-os", kind: "room", presence: "offline", cutover: false },
+    { id: "agent", name: "Agent", kind: "seat", presence: "offline", cutover: false },
+    { id: "project", name: "#project", kind: "room", presence: "offline", cutover: false },
   ];
 
   const FILES = [
@@ -25,13 +24,15 @@
   ];
 
   const THREADS = {
-    "eng-lead": [
-      { who: "Eng Lead", body: "Talk to agents here. Gates and Proof sit on the Board. Code stays closed until a diff matters.", me: false },
-      { who: "You", body: "Any provider. Chat + Board first — not a fleet wall.", me: true },
+    you: [
+      {
+        who: "Studio",
+        body: "Talk to agents here. The Board shows what’s blocked on you. Code stays closed until you ask.",
+        me: false,
+      },
     ],
-    you: [{ who: "You", body: "Notes stay here. Code stays closed until a file matters.", me: true }],
-    designer: [{ who: "Studio Designer", body: "Quiet chrome. Code stays away until a diff matters.", me: false }],
-    "rd-os": [{ who: "#rd-os", body: "Room is offline. Connect to cut over — work happens in Studio only.", me: false }],
+    agent: [{ who: "Agent", body: "Connect this seat to chat. Work stays in Studio only while connected.", me: false }],
+    project: [{ who: "#project", body: "A project room. Connect to cut over — any provider.", me: false }],
   };
 
   const els = {
@@ -66,12 +67,11 @@
   const state = {
     seats: SEATS.map((seat) => ({ ...seat })),
     connectors: [
-      { id: "github", label: "GitHub", status: "connected" },
-      { id: "cloudagent", label: "CloudAgent", status: "connected" },
+      { id: "github", label: "GitHub", status: "needs-auth" },
+      { id: "agent", label: "Agent provider", status: "needs-auth" },
       { id: "notion", label: "Notion", status: "needs-auth" },
-      { id: "add", label: "Connect provider", status: "add" },
     ],
-    selectedSeat: "eng-lead",
+    selectedSeat: "you",
     selectedFile: "shell",
     dump: null,
     flash: null,
@@ -157,7 +157,7 @@
         if (who === "agent") {
           return { label: "Agent map", state: "running", detail: "nyfeblade/rd-os · PR#11" };
         }
-        return { label: "Agent map", state: "idle", detail: "nyfeblade/rd-os · no run" };
+        return { label: "Agent map", state: "idle", detail: "no run — any provider" };
       case "proof":
         if (who === "proof") {
           return { label: "Proof", state: "checking", detail: "Eng Proof · dual-gate" };
@@ -233,6 +233,13 @@
 
   function renderConnectors() {
     els.connectors.replaceChildren();
+    const connected = state.connectors.some((item) => item.status === "connected");
+    if (!connected) {
+      const hint = document.createElement("span");
+      hint.className = "tray-empty";
+      hint.textContent = "Connect GitHub / an agent provider";
+      els.connectors.appendChild(hint);
+    }
     for (const connector of state.connectors) {
       const button = document.createElement("button");
       button.type = "button";
@@ -275,10 +282,16 @@
     head.className = "k";
     head.textContent = "Watches";
     els.watches.appendChild(head);
-    const items = [
-      "nightly proof packet",
-      "merge-gate age on studio-a-shell",
-    ];
+    const items = state.dump && state.dump.p0
+      ? ["nightly proof packet", "merge-gate age"]
+      : [];
+    if (!items.length) {
+      const empty = document.createElement("div");
+      empty.className = "watch";
+      empty.textContent = "No watches yet. Add a check after you connect a provider.";
+      els.watches.appendChild(empty);
+      return;
+    }
     for (const item of items) {
       const row = document.createElement("div");
       row.className = "watch";
@@ -411,6 +424,15 @@
       const empty = document.createElement("p");
       empty.className = "foot";
       empty.textContent = "Can't reach the board stub.";
+      els.boardBody.appendChild(empty);
+      return;
+    }
+
+    if (!dump.p0) {
+      const empty = document.createElement("p");
+      empty.className = "foot";
+      empty.id = "board-empty";
+      empty.textContent = "Nothing blocked on you. Connect a provider to see gates.";
       els.boardBody.appendChild(empty);
       return;
     }
@@ -639,13 +661,19 @@
     });
   }
 
+  function dumpName() {
+    const query = new URLSearchParams(window.location.search);
+    return query.get("fixture") === "human" ? "attention.human.json" : "attention.empty.json";
+  }
+
   async function loadDump() {
+    const name = dumpName();
     try {
       if (window.studioShell && typeof window.studioShell.loadDump === "function") {
-        state.dump = await window.studioShell.loadDump("attention.human.json");
+        state.dump = await window.studioShell.loadDump(name);
         return;
       }
-      const response = await fetch("./fixtures/attention.human.json");
+      const response = await fetch(`./fixtures/${name}`);
       if (!response.ok) {
         throw new Error(String(response.status));
       }

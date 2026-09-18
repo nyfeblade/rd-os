@@ -17,7 +17,7 @@ npm install
 npm start
 ```
 
-A 1440×900 window titled **AI Coding Studio** should open on Chat + Board. Code stays closed until you ask.
+A 1440×900 window titled **AI Coding Studio** should open on Chat + Board with a stranger empty state: talk to agents, nothing blocked, connect a provider. Code stays closed. Sample gate: `npm run preview` then [http://127.0.0.1:5173/?fixture=human](http://127.0.0.1:5173/?fixture=human).
 
 | Platform | Command | What you get |
 | --- | --- | --- |
