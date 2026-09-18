@@ -23,6 +23,8 @@ const {
   attachEntry,
   attachConfig,
   attachConfigJson,
+  preflight,
+  probe,
 } = require("..");
 const { BOARD_GATES_TODO } = require("../lib/board");
 const { providerFields } = require("../lib/providers");
@@ -760,6 +762,50 @@ async function cases() {
   rows.push(
     await runCaseAsync("host-generated attach config boots the stdio server (initialize online)", async () => {
       return hostBoot();
+    })
+  );
+
+  rows.push(
+    runCase("host preflight passes for a known provider and flags an unknown one", () => {
+      const good = preflight({ provider: "cursor", repo: ROOT });
+      if (!good.ok || good.provider !== "cursor" || good.reasons.length !== 0) {
+        return { ok: false, error: `good ${JSON.stringify(good)}` };
+      }
+      if (good.binPath !== serverBinPath()) {
+        return { ok: false, error: `binPath ${good.binPath}` };
+      }
+      const bad = preflight({ provider: "luke" });
+      if (bad.ok || bad.provider !== null || !bad.reasons.some((r) => r.indexOf("unknown provider") === 0)) {
+        return { ok: false, error: `bad ${JSON.stringify(bad)}` };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    await runCaseAsync("host probe self-tests the attach: online cursor seat then shuts down", async () => {
+      const home = tmpDir("studio-mcp-probe-");
+      const result = await probe({ provider: "cursor", home, repo: ROOT, timeoutMs: 8000 });
+      if (!result.ok) {
+        return { ok: false, error: `probe ${result.code} ${result.detail || ""}` };
+      }
+      if (result.provider !== "cursor" || result.online !== true) {
+        return { ok: false, error: `probe result ${JSON.stringify(result)}` };
+      }
+      if (!result.seat || result.seat.presence !== "online" || result.seat.in_studio_only !== true) {
+        return { ok: false, error: `probe seat ${JSON.stringify(result.seat)}` };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    await runCaseAsync("host probe rejects an unknown provider without spawning", async () => {
+      const result = await probe({ provider: "luke" });
+      if (result.ok || result.code !== "UNKNOWN_PROVIDER") {
+        return { ok: false, error: `expected UNKNOWN_PROVIDER, got ${JSON.stringify(result)}` };
+      }
+      return { ok: true };
     })
   );
 
