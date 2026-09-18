@@ -150,6 +150,12 @@ function cases() {
     if (active.data.mode.id !== "no-self-cert") {
       return { ok: false, error: JSON.stringify(active.data) };
     }
+    const listed = expectOk(session.listModes());
+    if (!listed.ok) return listed;
+    const on = listed.data.modes.filter((row) => row.enabled).map((row) => row.id);
+    if (on.join(" ") !== "no-self-cert") {
+      return { ok: false, error: `enabled=${on.join(",")}` };
+    }
     return { ok: true };
   });
 
@@ -194,8 +200,74 @@ function cases() {
     const session = createModeRegistry({
       extra: [overlapMode("nested-modes", ["studio/modes/catalog/"])],
     });
+    const first = expectOk(session.enableMode("eng-coding"));
+    if (!first.ok) return first;
+    const second = expectReject(session.enableMode("nested-modes"), "LANE_COLLISION");
+    if (!second.ok) return second;
+    const active = expectOk(session.activeMode());
+    if (!active.ok) return active;
+    if (active.data.mode.id !== "eng-coding") {
+      return { ok: false, error: `active=${active.data.mode && active.data.mode.id}` };
+    }
+    const listed = expectOk(session.listModes());
+    if (!listed.ok) return listed;
+    const nested = listed.data.modes.find((row) => row.id === "nested-modes");
+    if (!nested || nested.enabled) {
+      return { ok: false, error: "nested-modes was marked enabled after collision" };
+    }
+    return { ok: true };
+  });
+
+  runCase("wider fence after a nested fence also collides", () => {
+    const session = createModeRegistry({
+      extra: [overlapMode("nested-modes", ["studio/modes/catalog/"])],
+    });
+    const first = expectOk(session.enableMode("nested-modes"));
+    if (!first.ok) return first;
+    const second = expectReject(session.enableMode("eng-coding"), "LANE_COLLISION");
+    if (!second.ok) return second;
+    const active = expectOk(session.activeMode());
+    if (!active.ok) return active;
+    if (active.data.mode.id !== "nested-modes") {
+      return { ok: false, error: `active=${active.data.mode && active.data.mode.id}` };
+    }
+    const listed = expectOk(session.listModes());
+    if (!listed.ok) return listed;
+    const coding = listed.data.modes.find((row) => row.id === "eng-coding");
+    if (!coding || coding.enabled) {
+      return { ok: false, error: "eng-coding was marked enabled after reverse-nest collision" };
+    }
+    return { ok: true };
+  });
+
+  runCase("a multi-fence mode collides when only one fence overlaps", () => {
+    const session = createModeRegistry({
+      extra: [overlapMode("split-lane", ["studio/github/", "studio/modes/catalog/"])],
+    });
+    const first = expectOk(session.enableMode("eng-coding"));
+    if (!first.ok) return first;
+    return expectReject(session.enableMode("split-lane"), "LANE_COLLISION");
+  });
+
+  runCase("a sibling still enables after a collision", () => {
+    const session = createModeRegistry({
+      extra: [
+        overlapMode("overlap-coding", ["studio/modes/"]),
+        overlapMode("github-lane", ["studio/github/"]),
+      ],
+    });
     session.enableMode("eng-coding");
-    return expectReject(session.enableMode("nested-modes"), "LANE_COLLISION");
+    const blocked = expectReject(session.enableMode("overlap-coding"), "LANE_COLLISION");
+    if (!blocked.ok) return blocked;
+    const sibling = expectOk(session.enableMode("github-lane"));
+    if (!sibling.ok) return sibling;
+    const listed = expectOk(session.listModes());
+    if (!listed.ok) return listed;
+    const on = listed.data.modes.filter((row) => row.enabled).map((row) => row.id);
+    if (on.join(" ") !== "eng-coding github-lane") {
+      return { ok: false, error: `enabled=${on.join(",")}` };
+    }
+    return { ok: true };
   });
 
   runCase("sibling fences do not collide", () => {
