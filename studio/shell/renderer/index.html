@@ -14,46 +14,42 @@
     <div class="frame" role="application" aria-label="AI Coding Studio">
       <header class="bar">
         <div class="name">Studio</div>
-        <button type="button" class="bar-btn mode" id="mode-chip" data-chrome="modes-rail" aria-label="Eng mode">eng ▾</button>
-        <div class="tray" id="connectors-tray" data-chrome="connectors-tray" aria-label="Connectors"></div>
-        <button type="button" class="bar-btn" id="btn-code" aria-pressed="false">Code</button>
-        <div class="right">
-          <button type="button" class="whisper" id="presence-btn" data-chrome="presence-bar" aria-expanded="false" aria-controls="presence-list">
+        <button type="button" class="mode" id="mode-chip" data-chrome="modes-rail" aria-label="Eng mode">
+          mode <strong id="mode-name">eng</strong>
+        </button>
+        <div class="icons" id="connectors-tray" data-chrome="connectors-tray" aria-label="Connectors"></div>
+        <div class="top-right">
+          <button type="button" class="ghost" id="btn-code" aria-pressed="false">Code</button>
+          <button type="button" class="here" id="presence-btn" data-chrome="presence-bar" aria-expanded="false" aria-controls="presence-list">
             <span class="dot" aria-hidden="true"></span>
-            <span id="presence-count">0 here</span>
+            <span id="presence-count">0</span>
           </button>
           <div class="popover" id="presence-list" hidden role="list"></div>
         </div>
       </header>
 
       <main class="main" id="main">
-        <section class="pane" data-pane="chat" data-module="chat-pane" id="pane-chat" aria-label="Chat">
-          <div class="label">Chat</div>
+        <section class="pane chat" data-pane="chat" data-module="chat-pane" id="pane-chat" aria-label="Chat">
+          <div class="people" id="seat-list" aria-label="Seats and rooms"></div>
           <p class="onboard" id="chat-onboard">Connect a seat to start. What’s blocked on you sits on the Board.</p>
-          <div class="chat-body">
-            <aside class="seats" id="seat-list" aria-label="Seats and rooms"></aside>
-            <div class="thread">
-              <div class="msgs" id="messages" aria-live="polite"></div>
-              <p class="open-code-hint" id="open-code-hint">
-                Need the repo? <button type="button" id="hint-code">Open code</button>
-              </p>
-              <form class="composer" id="composer">
-                <div class="composer-box">
-                  <textarea id="composer-input" rows="2" placeholder="Message seat or #room… @ to address" aria-label="Message"></textarea>
-                  <button class="send" type="submit">Send</button>
-                </div>
-              </form>
-            </div>
+          <div class="thread">
+            <div class="msgs" id="messages" aria-live="polite"></div>
+            <p class="open-code-hint" id="open-code-hint">
+              Need the repo? <button type="button" id="hint-code">Open code</button>
+            </p>
+            <form class="composer" id="composer">
+              <textarea id="composer-input" rows="2" placeholder="Message seat or #room… @ to address" aria-label="Message"></textarea>
+              <button class="send" type="submit">Send</button>
+            </form>
           </div>
         </section>
 
         <section class="pane code-pane" data-pane="code" data-module="code-drawer" id="pane-code" aria-label="Code" hidden>
-          <div class="label">
-            Code
-            <button class="code-close" type="button" id="btn-close" aria-label="Close code">Close</button>
+          <div class="code-h">
+            <span><strong>your-repo</strong> · connect GitHub to bind</span>
+            <button type="button" id="btn-close" aria-label="Close code">Close</button>
           </div>
-          <div class="code-top"><strong>your-repo</strong> · connect GitHub to bind</div>
-          <div class="code-split">
+          <div class="code-body">
             <nav class="tree" id="file-tree" aria-label="Repository files"></nav>
             <div class="editor">
               <div class="filetab" id="editor-tab"><b>StudioShell.tsx</b></div>
@@ -62,12 +58,13 @@
           </div>
         </section>
 
-        <section class="pane" data-pane="board" data-module="board-pane" id="pane-board" aria-label="Board">
-          <div class="label">Board</div>
-          <p class="onboard">What’s blocked on you</p>
-          <div class="board" id="board-body"></div>
-          <div class="instruments" id="instruments" aria-label="CA map"></div>
-          <div class="watches" id="watches" aria-label="Routines and watches"></div>
+        <section class="pane board" data-pane="board" data-module="board-pane" id="pane-board" aria-label="Board">
+          <div class="board-h">Needs you</div>
+          <div class="cards">
+            <div id="board-body"></div>
+            <div class="instruments" id="instruments" aria-label="CA map"></div>
+            <div class="watches" id="watches" aria-label="Routines and watches"></div>
+          </div>
         </section>
       </main>
     </div>

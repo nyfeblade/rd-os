@@ -22,7 +22,7 @@
 
   function renderPresence(els, state) {
     const online = onlineMembers(state.seats);
-    els.presenceCount.textContent = `${online.length} here`;
+    els.presenceCount.textContent = String(online.length);
     els.presenceList.replaceChildren();
     for (const member of state.seats) {
       const row = document.createElement("div");

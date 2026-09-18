@@ -43,21 +43,15 @@
     for (const seat of state.seats) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = seat.id === state.selectedSeat ? "seat on" : "seat";
-      if (seat.kind === "room") {
-        button.classList.add("room-seat");
-      }
+      button.className = seat.id === state.selectedSeat ? "person on" : "person";
       button.dataset.seat = seat.id;
-      const row = document.createElement("div");
-      row.className = "row";
       const dot = document.createElement("i");
       if (presenceDotClass(seat.presence)) {
         dot.className = presenceDotClass(seat.presence);
       }
-      row.append(dot, document.createTextNode(seat.name));
-      button.appendChild(row);
-      const badge = document.createElement("div");
-      badge.className = "badge";
+      button.append(dot, document.createTextNode(` ${seat.name} `));
+      const badge = document.createElement("span");
+      badge.className = "tag";
       badge.textContent = seat.cutover ? "in-studio-only" : "connect";
       button.appendChild(badge);
       button.addEventListener("click", () => {
@@ -75,7 +69,7 @@
 
   function renderThread(els, state, handlers) {
     const seat = selectedSeat(state);
-    els.composerInput.placeholder = "Message seat or #room… @ to address";
+    els.composerInput.placeholder = `Message ${seat.name}…`;
     const messages = THREADS[seat.id] || [];
     els.messages.replaceChildren();
     for (const message of messages) {

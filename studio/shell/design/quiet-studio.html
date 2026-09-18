@@ -3,149 +3,478 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AI Coding Studio — coverage mock</title>
+<title>Studio</title>
 <style>
   :root {
-    --void:#0a0a0b; --bg:#111113; --elev:#18181b; --line:rgba(255,255,255,.07);
-    --ink:#ececef; --mute:#8b8b93; --faint:#5c5c66; --accent:#a5b4fc; --accent-ink:#12131a;
-    --online:#86efac; --warn:#fbbf24; --err:#f87171; --human:rgba(165,180,252,.08);
+    --bg: #0c0c0e;
+    --surface: #141416;
+    --elev: #1a1a1e;
+    --line: rgba(255,255,255,0.06);
+    --ink: #f2f2f4;
+    --mute: #9a9aa3;
+    --faint: #5e5e68;
+    --accent: #c4b5fd;
+    --accent-dim: rgba(196,181,253,0.12);
+    --good: #6ee7b7;
+    --warn: #fcd34d;
   }
-  *{box-sizing:border-box} html,body{height:100%;margin:0}
-  body{font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:var(--void);color:var(--ink);-webkit-font-smoothing:antialiased}
-  .frame{height:100%;max-width:1440px;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);border-left:1px solid var(--line);border-right:1px solid var(--line)}
-  .bar{height:44px;display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid var(--line);flex-wrap:nowrap}
-  .name{font-weight:600;font-size:13px;letter-spacing:-.02em}
-  .mode{font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;border:1px solid var(--line);color:var(--accent);background:rgba(165,180,252,.08)}
-  .tray{display:flex;gap:4px;align-items:center;margin-left:4px;overflow:auto}
-  .conn{font-size:10px;font-weight:600;padding:3px 7px;border-radius:999px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}
-  .conn.live{color:var(--online);border-color:rgba(134,239,172,.25)}
-  .conn.auth{color:var(--warn);border-color:rgba(251,191,36,.3)}
-  .conn.off{opacity:.55}
-  .conn.err{color:var(--err)}
-  .right{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mute)}
-  .dot{width:6px;height:6px;border-radius:50%;background:var(--online)}
-  .bar button.tool{font:inherit;font-size:12px;font-weight:560;padding:5px 10px;border-radius:8px;cursor:pointer;background:transparent;color:var(--mute);border:1px solid transparent}
-  .bar button.tool.on{color:var(--ink);border-color:var(--line);background:var(--elev)}
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: #050506;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
 
-  .main{flex:1;min-height:0;display:grid;grid-template-columns:1.3fr .95fr}
-  .main.code-open{grid-template-columns:1fr 1.1fr .85fr}
-  .pane{display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid var(--line)}
-  .pane:last-child{border-right:none}
-  .code-pane{display:none}.main.code-open .code-pane{display:flex}
-  .lbl{padding:12px 14px 6px;font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+  .app {
+    height: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    box-shadow: 0 0 0 1px var(--line);
+  }
 
-  .chat-body{flex:1;display:flex;min-height:0}
-  .seats{width:148px;border-right:1px solid var(--line);overflow:auto;padding:4px 6px}
-  .seat{padding:8px;border-radius:8px;color:var(--mute)}
-  .seat.on{background:var(--elev);color:var(--ink)}
-  .seat .n{display:flex;align-items:center;gap:6px;font-weight:560;font-size:12.5px}
-  .seat .n i{width:6px;height:6px;border-radius:50%;background:var(--online)}
-  .seat .n i.off{background:var(--faint)}
-  .pill{margin-top:4px;font-size:9px;font-weight:650;color:var(--accent)}
-  .room{margin-top:10px;padding:6px 8px;color:var(--faint);font-size:11px}
-  .thread{flex:1;display:flex;flex-direction:column;min-width:0}
-  .msgs{flex:1;overflow:auto;padding:8px 14px}
-  .msg{margin-bottom:14px}.msg .w{font-size:11px;color:var(--faint);margin-bottom:4px}.msg .t{font-size:14px;line-height:1.5}
-  .empty{padding:24px 14px;color:var(--mute);font-size:13px;line-height:1.5}
-  .empty button{margin-top:10px;font:inherit;font-size:12px;font-weight:600;padding:7px 11px;border-radius:8px;border:0;background:var(--accent);color:var(--accent-ink);cursor:pointer}
-  .comp{margin:8px 12px 12px;display:flex;gap:8px;background:var(--elev);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
-  .comp input{flex:1;border:0;outline:0;background:transparent;color:var(--ink);font:inherit}
-  .comp button{border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:650;font-size:12px;border-radius:8px;padding:6px 10px;cursor:pointer}
+  /* —— top: barely there —— */
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .wordmark {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+  .mode {
+    font-size: 12px;
+    color: var(--mute);
+    padding: 2px 0;
+  }
+  .mode strong { color: var(--ink); font-weight: 500; }
+  .icons {
+    display: flex;
+    gap: 2px;
+    margin-left: 8px;
+  }
+  .icons button {
+    width: 28px; height: 28px;
+    border: 0; border-radius: 8px;
+    background: transparent;
+    color: var(--faint);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    position: relative;
+  }
+  .icons button:hover { background: var(--elev); color: var(--mute); }
+  .icons button.live { color: var(--mute); }
+  .icons button.live::after {
+    content: "";
+    position: absolute; right: 5px; top: 5px;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--good);
+  }
+  .icons button.auth::after { background: var(--warn); }
+  .top-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ghost {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--mute);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 12px;
+    cursor: pointer;
+  }
+  .ghost.on {
+    color: var(--ink);
+    border-color: rgba(196,181,253,0.35);
+    background: var(--accent-dim);
+  }
+  .here {
+    font-size: 12px;
+    color: var(--faint);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .here i {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--good);
+  }
 
-  .code-pane .top{display:flex;align-items:center;padding-right:8px}
-  .code-pane .top button{margin-left:auto;font:inherit;font-size:11px;color:var(--mute);background:0;border:0;cursor:pointer}
-  .code-split{flex:1;display:flex;min-height:0;border-top:1px solid var(--line)}
-  .tree{width:130px;padding:10px;border-right:1px solid var(--line);color:var(--mute);font-size:12px}
-  .tree .on{background:var(--elev);color:var(--ink);border-radius:6px;padding:4px 6px}
-  pre{margin:0;flex:1;overflow:auto;padding:12px;background:var(--void);font:12px/1.5 ui-monospace,Menlo,monospace;color:#c4c4cc}
+  /* —— body: chat dominates, board breathes —— */
+  .body {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+  }
+  .body.drawer {
+    grid-template-columns: 1fr 420px 320px;
+  }
 
-  .board{flex:1;overflow:auto;padding:0 6px 10px}
-  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:12.5px}
-  th{text-align:left;color:var(--faint);font-size:10px;font-weight:500;padding:4px 8px 8px}
-  td{padding:10px 8px;border-top:1px solid var(--line);vertical-align:top}
-  tr.need td{background:var(--human)}
-  .acts{margin-top:8px;display:flex;gap:6px}
-  .acts button{font:inherit;font-size:11px;font-weight:650;border-radius:7px;padding:5px 8px;cursor:pointer}
-  .go{background:var(--accent);color:var(--accent-ink);border:0}.no{background:transparent;color:var(--mute);border:1px solid var(--line)}
-  .sec{margin:12px 8px 4px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
-  .ca{padding:8px;border:1px solid var(--line);border-radius:8px;margin:6px 8px;font-size:12px;color:var(--mute)}
-  .ca b{color:var(--ink);font-weight:560}
+  .chat {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-right: 1px solid var(--line);
+  }
+
+  /* seats as quiet pills under title, not a heavy sidebar */
+  .people {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 14px 20px 0;
+  }
+  .person {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    color: var(--mute);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: default;
+  }
+  .person.on {
+    border-color: var(--line);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .person i {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--good);
+  }
+  .person i.off { background: var(--faint); }
+  .tag {
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .thread {
+    flex: 1;
+    overflow: auto;
+    padding: 28px 20px 12px;
+    max-width: 40rem;
+  }
+  .bubble { margin-bottom: 22px; }
+  .bubble .who {
+    font-size: 12px;
+    color: var(--faint);
+    margin-bottom: 6px;
+  }
+  .bubble .txt {
+    font-size: 15px;
+    line-height: 1.55;
+    letter-spacing: -0.01em;
+  }
+  .bubble.me .txt { color: var(--mute); }
+
+  .composer-wrap {
+    padding: 8px 20px 20px;
+    max-width: 40rem;
+  }
+  .composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 12px 12px 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+  }
+  .composer textarea {
+    flex: 1;
+    border: 0;
+    outline: 0;
+    resize: none;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 15px;
+    line-height: 1.45;
+    min-height: 52px;
+  }
+  .composer textarea::placeholder { color: var(--faint); }
+  .send {
+    border: 0;
+    background: var(--accent);
+    color: #1a1428;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    border-radius: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+  }
+
+  /* —— board: card stack, not spreadsheet first —— */
+  .board {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--surface);
+  }
+  .board-h {
+    padding: 16px 16px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--faint);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .cards {
+    flex: 1;
+    overflow: auto;
+    padding: 4px 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card {
+    background: var(--elev);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .card.need {
+    border-color: rgba(196,181,253,0.28);
+    background: linear-gradient(180deg, var(--accent-dim), var(--elev) 48%);
+  }
+  .card .k {
+    font-size: 11px;
+    color: var(--faint);
+    margin-bottom: 6px;
+  }
+  .card .t {
+    font-size: 14px;
+    font-weight: 560;
+    letter-spacing: -0.02em;
+  }
+  .card .m {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--mute);
+  }
+  .card .row {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .card .age {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .btn {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 650;
+    border-radius: 10px;
+    padding: 7px 11px;
+    cursor: pointer;
+  }
+  .btn.p {
+    background: var(--accent);
+    color: #1a1428;
+    border: 0;
+  }
+  .btn.g {
+    background: transparent;
+    color: var(--mute);
+    border: 1px solid var(--line);
+  }
+  .mini {
+    font-size: 12px;
+    color: var(--mute);
+    padding: 2px 2px 0;
+  }
+  .mini b { color: var(--ink); font-weight: 560; }
+
+  /* —— code drawer —— */
+  .code {
+    display: none;
+    flex-direction: column;
+    min-width: 0;
+    border-right: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .body.drawer .code { display: flex; }
+  .code-h {
+    display: flex;
+    align-items: center;
+    padding: 14px 14px 10px;
+    gap: 8px;
+  }
+  .code-h span { font-size: 13px; font-weight: 560; }
+  .code-h button {
+    margin-left: auto;
+    font: inherit;
+    font-size: 12px;
+    color: var(--mute);
+    background: 0;
+    border: 0;
+    cursor: pointer;
+  }
+  .code-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    border-top: 1px solid var(--line);
+  }
+  .tree {
+    width: 120px;
+    padding: 10px;
+    border-right: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--mute);
+  }
+  .tree .on {
+    background: var(--elev);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 5px 8px;
+  }
+  pre {
+    margin: 0;
+    flex: 1;
+    overflow: auto;
+    padding: 14px;
+    font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #c8c8d0;
+    background: #09090b;
+  }
 </style>
 </head>
 <body>
-<div class="frame" role="application" aria-label="AI Coding Studio">
-  <header class="bar">
-    <div class="name">Studio</div>
-    <div class="mode" title="Modes rail">eng ▾</div>
-    <div class="tray" aria-label="Connectors">
-      <span class="conn live">GitHub</span>
-      <span class="conn live">Cursor</span>
-      <span class="conn auth">Claude</span>
-      <span class="conn live">Grok</span>
-      <span class="conn live">Linear</span>
-      <span class="conn off">Sentry</span>
-      <span class="conn off">Vercel</span>
-      <span class="conn">+</span>
-    </div>
-    <button type="button" class="tool" id="btn-code" aria-pressed="false">Code</button>
-    <div class="right"><span class="dot"></span> 3 here</div>
-  </header>
-  <main class="main" id="main">
-    <section class="pane" aria-label="Chat">
-      <div class="lbl">Chat</div>
-      <div class="chat-body">
-        <aside class="seats">
-          <div class="seat on"><div class="n"><i></i> Cursor</div><div class="pill">in-studio-only</div></div>
-          <div class="seat"><div class="n"><i></i> Claude</div><div class="pill">in-studio-only</div></div>
-          <div class="seat"><div class="n"><i></i> Grok</div></div>
-          <div class="seat"><div class="n"><i></i> Proof</div></div>
-          <div class="room">#pr-14-modes</div>
-        </aside>
-        <div class="thread">
-          <div class="msgs" id="msgs">
-            <div class="msg"><div class="w">Cursor · seat</div><div class="t">Shell PR ready for Proof. Diff in Code when you want it.</div></div>
-            <div class="msg"><div class="w">You</div><div class="t" style="color:var(--mute)">Board stays open. Code on demand.</div></div>
-          </div>
-          <div class="comp"><input placeholder="Message seat or #room… @ to address" aria-label="Composer" /><button type="button">Send</button></div>
-        </div>
+  <div class="app" role="application" aria-label="Studio">
+    <header class="top">
+      <div class="wordmark">Studio</div>
+      <div class="mode">mode <strong>eng</strong></div>
+      <div class="icons" aria-label="Connectors">
+        <button type="button" class="live" title="GitHub live">GH</button>
+        <button type="button" class="live" title="Cursor live">Cu</button>
+        <button type="button" class="auth" title="Claude needs auth">Cl</button>
+        <button type="button" class="live" title="Grok live">Gr</button>
+        <button type="button" title="Sentry">Se</button>
+        <button type="button" title="Add connector">+</button>
       </div>
-    </section>
-    <section class="pane code-pane" aria-label="Code drawer">
-      <div class="lbl top">Code drawer <button type="button" id="btn-close">Close</button></div>
-      <div class="code-split">
-        <div class="tree"><div class="on">StudioShell.tsx</div><div style="padding:4px 6px">BoardPane.tsx</div></div>
-        <pre>// opened from Board / Chat — not automatic
+      <div class="top-right">
+        <button type="button" class="ghost" id="codeBtn" aria-pressed="false">Code</button>
+        <div class="here"><i></i> 3</div>
+      </div>
+    </header>
+
+    <div class="body" id="body">
+      <section class="chat" aria-label="Chat">
+        <div class="people" aria-label="Seats">
+          <div class="person on"><i></i> Cursor <span class="tag">in studio</span></div>
+          <div class="person"><i></i> Claude <span class="tag">in studio</span></div>
+          <div class="person"><i class="off"></i> #pr-14</div>
+          <div class="person"><i></i> Proof</div>
+        </div>
+
+        <div class="thread">
+          <div class="bubble">
+            <div class="who">Cursor</div>
+            <div class="txt">Shell is ready for Proof. Open Code if you want the diff — otherwise stay here.</div>
+          </div>
+          <div class="bubble me">
+            <div class="who">You</div>
+            <div class="txt">Default should feel like talking. Board on the side. Code only when I ask.</div>
+          </div>
+          <div class="bubble">
+            <div class="who">Cursor</div>
+            <div class="txt">Gate’s on the board when you’re ready.</div>
+          </div>
+        </div>
+
+        <div class="composer-wrap">
+          <div class="composer">
+            <textarea placeholder="Message Cursor…" aria-label="Message"></textarea>
+            <button class="send" type="button">Send</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="code" aria-label="Code" id="code">
+        <div class="code-h">
+          <span>nyfeblade/rd-os</span>
+          <button type="button" id="codeClose">Close</button>
+        </div>
+        <div class="code-body">
+          <nav class="tree"><div class="on">StudioShell.tsx</div><div style="padding:5px 8px">Board.tsx</div></nav>
+          <pre>// drawer — only when you open it
 export function StudioShell() {
   return &lt;ChatAndBoard /&gt;
 }</pre>
-      </div>
-    </section>
-    <section class="pane" aria-label="Board">
-      <div class="lbl">Board</div>
-      <div class="board">
-        <div class="sec">Gates</div>
-        <table>
-          <thead><tr><th>What</th><th>On</th><th>Age</th></tr></thead>
-          <tbody>
-            <tr class="need"><td>Proof accept · PR#14 modes<div class="acts"><button class="go" type="button">Approve</button><button class="no" type="button">Reject</button></div></td><td>You</td><td>12m</td></tr>
-            <tr><td style="color:var(--mute)">CI · shell</td><td style="color:var(--mute)">Proof</td><td style="color:var(--mute)">4m</td></tr>
-          </tbody>
-        </table>
-        <div class="sec">CA map</div>
-        <div class="ca"><b>bc-7c385702</b> · design · studio/design/** · running</div>
-        <div class="ca"><b>bc-d0f3d8a1</b> · shell · desktop/ · idle</div>
-        <div class="sec">Watches</div>
-        <div class="ca">Linear · eng board · live</div>
-        <div class="ca" style="opacity:.6">Sentry · needs connect</div>
-      </div>
-    </section>
-  </main>
-</div>
-<script>
-const main=document.getElementById('main'), btn=document.getElementById('btn-code'), close=document.getElementById('btn-close');
-function set(on){main.classList.toggle('code-open',on);btn.classList.toggle('on',on);btn.setAttribute('aria-pressed',on?'true':'false')}
-btn.onclick=()=>set(!main.classList.contains('code-open'));
-close.onclick=()=>set(false);
-</script>
+        </div>
+      </aside>
+
+      <aside class="board" aria-label="Board">
+        <div class="board-h">Needs you</div>
+        <div class="cards">
+          <div class="card need">
+            <div class="k">Proof gate</div>
+            <div class="t">Accept PR#14 modes</div>
+            <div class="m">research-before-claim · no self-cert</div>
+            <div class="row">
+              <button class="btn p" type="button">Approve</button>
+              <button class="btn g" type="button">Reject</button>
+              <span class="age">12m</span>
+            </div>
+          </div>
+
+          <div class="board-h" style="padding:8px 2px 0">Running</div>
+          <div class="card">
+            <div class="k">Cloud agent</div>
+            <div class="t">Design · studio/design</div>
+            <div class="m"><span class="mini"><b>bc-7c385702</b> · running</span></div>
+          </div>
+          <div class="card">
+            <div class="k">Watch</div>
+            <div class="t">Linear eng board</div>
+            <div class="m">live</div>
+          </div>
+          <div class="card" style="opacity:0.7">
+            <div class="k">Watch</div>
+            <div class="t">Sentry</div>
+            <div class="m">connect to enable</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+  <script>
+    const body = document.getElementById('body');
+    const btn = document.getElementById('codeBtn');
+    const close = document.getElementById('codeClose');
+    function set(on) {
+      body.classList.toggle('drawer', on);
+      btn.classList.toggle('on', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    btn.onclick = () => set(!body.classList.contains('drawer'));
+    close.onclick = () => set(false);
+  </script>
 </body>
 </html>

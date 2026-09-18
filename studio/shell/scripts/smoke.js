@@ -48,7 +48,8 @@ assert.match(html, /id="cutover-sheet"/);
 assert.match(html, /This seat works in Studio only while connected/);
 assert.match(html, /Connect a seat to start/);
 assert.match(html, /Message seat or #room/);
-assert.match(html, /eng ▾/);
+assert.match(html, /id="mode-name"/);
+assert.match(html, />eng</);
 assert.match(html, /your-repo/);
 assert.match(html, /code-pane/);
 assert.match(html, /hidden/);
@@ -62,9 +63,10 @@ assert.doesNotMatch(html, /nyfeblade\/rd-os/);
 
 assert.match(css, /\.code-pane\s*\{\s*display:\s*none/);
 assert.match(css, /\.main\.code-open \.code-pane/);
-assert.match(css, /grid-template-columns:\s*1\.35fr 0\.9fr/);
-assert.match(css, /\.chip\.conn\.auth/);
-assert.match(css, /\.chip\.conn\.live/);
+assert.match(css, /grid-template-columns:\s*1fr 340px/);
+assert.match(css, /\.icons button\.auth::after/);
+assert.match(css, /\.icons button\.live::after/);
+assert.match(css, /1fr 420px 320px/);
 assert.doesNotMatch(css, /minmax\(280px,\s*1\.05fr\).*minmax\(360px/);
 
 assert.match(js, /codeOpen:\s*false/);
@@ -88,6 +90,7 @@ assert.match(chat, /room:chat/);
 assert.match(chat, /Talk to agents/);
 assert.match(chat, /Connect a seat to start/);
 assert.match(chat, /in-studio-only/);
+assert.match(chat, /person on/);
 assert.doesNotMatch(chat, /Eng Lead/);
 
 assert.match(board, /Nothing blocked on you/);
@@ -101,14 +104,17 @@ assert.doesNotMatch(board, /PR#11/);
 
 assert.match(code, /setCodeOpen/);
 assert.match(tray, /Connect GitHub \/ an agent provider/);
+assert.match(tray, /iconGlyph/);
+assert.match(tray, /case "github"/);
 assert.match(modes, /nextMode/);
 assert.match(modes, /case "eng"/);
 assert.match(modes, /case "design"/);
 assert.doesNotMatch(modes, /review/);
 assert.match(presence, /in-studio-only/);
 
-assert.match(tokens, /--bg:\s*#111113/);
-assert.match(tokens, /--accent:\s*#a5b4fc/);
+assert.match(tokens, /--bg:\s*#0c0c0e/);
+assert.match(tokens, /--accent:\s*#c4b5fd/);
+assert.match(tokens, /--surface:\s*#141416/);
 
 assert.match(main, /DEFAULT_WIDTH = 1440/);
 assert.match(main, /DEFAULT_HEIGHT = 900/);

@@ -6,9 +6,9 @@
   function modeLabel(mode) {
     switch (mode) {
       case "eng":
-        return "eng ▾";
+        return "eng";
       case "design":
-        return "design ▾";
+        return "design";
       default:
         return assertNever(mode);
     }
@@ -26,7 +26,13 @@
   }
 
   function renderMode(els, state) {
-    els.modeChip.textContent = modeLabel(state.mode);
+    const name = document.getElementById("mode-name");
+    const label = modeLabel(state.mode);
+    if (name) {
+      name.textContent = label;
+    } else {
+      els.modeChip.textContent = `mode ${label}`;
+    }
     els.modeChip.dataset.mode = state.mode;
   }
 

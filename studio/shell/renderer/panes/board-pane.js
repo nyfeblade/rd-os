@@ -47,42 +47,39 @@
     return rest ? `${hours}h ${rest}m` : `${hours}h`;
   }
 
-  function sectionHead(title) {
-    const head = document.createElement("div");
-    head.className = "sec";
-    head.textContent = title;
-    return head;
+  function card(kind, title, meta, extraClass) {
+    const el = document.createElement("div");
+    el.className = extraClass ? `card ${extraClass}` : "card";
+    const k = document.createElement("div");
+    k.className = "k";
+    k.textContent = kind;
+    const t = document.createElement("div");
+    t.className = "t";
+    t.textContent = title;
+    const m = document.createElement("div");
+    m.className = "m";
+    m.textContent = meta;
+    el.append(k, t, m);
+    return el;
   }
 
   function renderInstruments(els, state) {
     els.instruments.replaceChildren();
-    els.instruments.appendChild(sectionHead("CA map"));
     const item = instrumentFor("ca", state.dump);
-    const card = document.createElement("div");
-    card.className = "ca-card";
-    card.dataset.instrument = "ca";
-    const title = document.createElement("b");
-    title.textContent = item.label;
-    card.append(title, document.createTextNode(` · ${item.state} · ${item.detail}`));
-    els.instruments.appendChild(card);
+    const el = card("CA map", item.label, `${item.state} · ${item.detail}`);
+    el.dataset.instrument = "ca";
+    els.instruments.appendChild(el);
   }
 
   function renderWatches(els, state) {
     els.watches.replaceChildren();
-    els.watches.appendChild(sectionHead("Watches"));
     const items = state.dump && state.dump.p0 ? ["nightly proof packet", "merge-gate age"] : [];
     if (!items.length) {
-      const empty = document.createElement("div");
-      empty.className = "ca-card";
-      empty.textContent = "No watches yet. Add a check after you connect a provider.";
-      els.watches.appendChild(empty);
+      els.watches.appendChild(card("Watch", "No watches yet", "Connect a provider to enable"));
       return;
     }
     for (const item of items) {
-      const row = document.createElement("div");
-      row.className = "ca-card";
-      row.textContent = item;
-      els.watches.appendChild(row);
+      els.watches.appendChild(card("Watch", item, "live"));
     }
   }
 
@@ -90,66 +87,43 @@
     const dump = state.dump;
     const humanGate = dump && dump.p0 && dump.p0.waiting_on === "human";
     if (!humanGate) {
-      const empty = document.createElement("p");
-      empty.className = "foot";
+      const empty = card("Gates", "Nothing blocked on you", "Connect a provider to see gates");
       empty.id = "board-empty";
-      empty.textContent = "Nothing blocked on you. Connect a provider to see gates.";
       els.boardBody.appendChild(empty);
       return;
     }
 
-    const table = document.createElement("table");
-    const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>What</th><th>On</th><th>Age</th></tr>";
-    table.appendChild(thead);
-    const tbody = document.createElement("tbody");
-    const tr = document.createElement("tr");
-    tr.className = "need";
-    const what = document.createElement("td");
-    const title = document.createElement("div");
-    title.className = "what";
-    title.textContent = "Merge gate";
-    const sub = document.createElement("div");
-    sub.className = "sub";
-    sub.textContent = "Needs a human";
-    const acts = document.createElement("div");
-    acts.className = "acts";
+    const need = card("Proof gate", "Merge gate", "Needs a human", "need");
+    const row = document.createElement("div");
+    row.className = "row";
     const approve = document.createElement("button");
     approve.type = "button";
-    approve.className = "go";
+    approve.className = "btn p";
     approve.textContent = "Approve";
     approve.addEventListener("click", () => handlers.resolveGate("approve"));
     const reject = document.createElement("button");
     reject.type = "button";
-    reject.className = "no";
+    reject.className = "btn g";
     reject.textContent = "Reject";
     reject.addEventListener("click", () => handlers.resolveGate("reject"));
     const openDiff = document.createElement("button");
     openDiff.type = "button";
-    openDiff.className = "no";
+    openDiff.className = "btn g";
     openDiff.textContent = "Open diff";
     openDiff.addEventListener("click", () => handlers.openDiff());
-    acts.append(approve, reject, openDiff);
-    what.append(title, sub, acts);
-    const on = document.createElement("td");
-    on.textContent = waitingLabel("human");
-    const age = document.createElement("td");
+    const age = document.createElement("span");
+    age.className = "age";
     age.textContent = formatAge(dump.p0.age_s);
-    tr.append(what, on, age);
-    tbody.appendChild(tr);
-    table.appendChild(tbody);
-    els.boardBody.appendChild(table);
+    row.append(approve, reject, openDiff, age);
+    need.appendChild(row);
+    els.boardBody.appendChild(need);
   }
 
   function renderBoard(els, state, handlers) {
     els.boardBody.replaceChildren();
-    els.boardBody.appendChild(sectionHead("Gates"));
 
     if (!state.dump) {
-      const empty = document.createElement("p");
-      empty.className = "foot";
-      empty.textContent = "Can't reach the board stub.";
-      els.boardBody.appendChild(empty);
+      els.boardBody.appendChild(card("Gates", "Can't reach the board stub", "Retry later"));
     } else {
       renderGateTable(els, state, handlers);
     }
