@@ -96,6 +96,14 @@ process.stdout.write(attachConfigJson({ provider: "cursor", home: "./var/studio"
 
 `await probe({ provider, home, repo, timeoutMs })` self-tests the config end-to-end: it spawns the server, `initialize`s, confirms the seat comes **online + in-studio-only**, then shuts down → `{ ok, provider, online, seat }` or `{ ok:false, code, detail }` (never rejects). This is what a one-click Connect calls to prove the wiring before handing the config to the agent; it is not a persistent host.
 
+From a shell, `host-cli.js` (bin `studio-mcp-host`) wraps these:
+
+```bash
+node studio/mcp/host-cli.js config    --provider cursor --home ./var/studio --repo .
+node studio/mcp/host-cli.js preflight --provider cursor   # exit 0 ok / 1 not ready
+node studio/mcp/host-cli.js probe     --provider cursor --repo .   # exit 0 online / 1 failed
+```
+
 ## Stranger
 
 Cold clone. No install. No fleet credentials. Node >= 18.

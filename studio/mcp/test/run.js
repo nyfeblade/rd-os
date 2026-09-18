@@ -809,6 +809,65 @@ async function cases() {
     })
   );
 
+  const HOST_CLI = path.join(MCP_ROOT, "host-cli.js");
+
+  rows.push(
+    runCase("host-cli config prints valid mcpServers JSON with the absolute bin", () => {
+      const out = spawnSync(process.execPath, [HOST_CLI, "config", "--provider", "cursor", "--repo", ROOT], {
+        encoding: "utf8",
+      });
+      if (out.status !== 0) {
+        return { ok: false, error: `status ${out.status} stderr=${out.stderr}` };
+      }
+      let parsed;
+      try {
+        parsed = JSON.parse(out.stdout);
+      } catch (err) {
+        return { ok: false, error: `unparseable stdout: ${out.stdout}` };
+      }
+      const entry = parsed.mcpServers && parsed.mcpServers["ai-coding-studio"];
+      if (!entry || entry.command !== "node" || !eq(entry.args, [BIN])) {
+        return { ok: false, error: JSON.stringify(entry) };
+      }
+      if (entry.env.STUDIO_PROVIDER !== "cursor" || entry.env.STUDIO_REPO !== ROOT) {
+        return { ok: false, error: JSON.stringify(entry.env) };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("host-cli config exits 2 on an unknown provider", () => {
+      const out = spawnSync(process.execPath, [HOST_CLI, "config", "--provider", "luke"], { encoding: "utf8" });
+      if (out.status !== 2) {
+        return { ok: false, error: `status ${out.status}` };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("host-cli probe self-tests to exit 0 with an online seat", () => {
+      const home = tmpDir("studio-mcp-cli-");
+      const out = spawnSync(process.execPath, [HOST_CLI, "probe", "--provider", "cursor", "--home", home, "--repo", ROOT], {
+        encoding: "utf8",
+      });
+      if (out.status !== 0) {
+        return { ok: false, error: `status ${out.status} stderr=${out.stderr} stdout=${out.stdout}` };
+      }
+      let parsed;
+      try {
+        parsed = JSON.parse(out.stdout);
+      } catch (err) {
+        return { ok: false, error: `unparseable stdout: ${out.stdout}` };
+      }
+      if (!parsed.ok || parsed.provider !== "cursor" || parsed.online !== true) {
+        return { ok: false, error: JSON.stringify(parsed) };
+      }
+      return { ok: true };
+    })
+  );
+
   rows.push(
     await runCaseAsync("stdio spawn: initialize + tools/list + seats.list roundtrip", async () => {
       return stdioRoundtrip();

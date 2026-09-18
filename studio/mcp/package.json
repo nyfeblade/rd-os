@@ -6,7 +6,8 @@
   "main": "./index.js",
   "types": "./schema.ts",
   "bin": {
-    "studio-mcp": "./server/bin.js"
+    "studio-mcp": "./server/bin.js",
+    "studio-mcp-host": "./host-cli.js"
   },
   "scripts": {
     "test": "node test/run.js",
