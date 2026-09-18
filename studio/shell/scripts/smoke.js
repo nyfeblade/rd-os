@@ -300,6 +300,13 @@ if (catalogPresent()) {
   const wire = tryReadTwoWayWire();
   assert.ok(wire.some((row) => row.id === "github"), "two-way wire includes GitHub");
   assert.ok(wire.some((row) => row.id === "slack"), "two-way wire includes Slack");
+  assert.equal(wire.find((row) => row.id === "github").label, "GitHub");
+  assert.equal(wire.find((row) => row.id === "slack").label, "Slack");
+  assert.ok(
+    fs.readFileSync(catalogPath(), "utf8").includes("## Two-way"),
+    "catalog two-way section is consumed read-only",
+  );
+  assert.doesNotMatch(read("lib/read-catalog.js"), /studio\/connectors\/egress/);
   const inbox = twoWay.demoInbox();
   assert.ok(inbox.length >= 1, "demo inbox should ingest at least one need-you item");
   assert.ok(inbox.every((item) => item.need_you === true));

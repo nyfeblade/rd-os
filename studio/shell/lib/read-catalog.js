@@ -51,10 +51,19 @@ function slugFromName(name) {
 }
 
 function trayLabel(name) {
-  return String(name)
+  const raw = String(name)
     .replace(/ MCP$/i, "")
+    .replace(/\s*\(eng\)\s*$/i, "")
     .split(" / ")[0]
     .trim();
+  const key = raw.toLowerCase();
+  if (key.includes("github")) {
+    return "GitHub";
+  }
+  if (key.includes("slack")) {
+    return "Slack";
+  }
+  return raw;
 }
 
 function parsePrioritySection(markdown, priority) {
