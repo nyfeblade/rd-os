@@ -4,7 +4,8 @@ const SEAT_IDS = Object.freeze(["grok", "claude", "cursor", "human"]);
 const BOT_SEAT_IDS = Object.freeze(["grok", "claude", "cursor"]);
 const ROOM_KINDS = Object.freeze(["bot_bot", "human_bot", "studio_all"]);
 const PRESENCE_STATES = Object.freeze(["online", "away", "offline"]);
-const STUDIO_PANES = Object.freeze(["Chat", "Code", "Board"]);
+const DEFAULT_CHROME = Object.freeze(["Chat", "Board"]);
+const CODE_MODE = "on-demand";
 const IN_STUDIO_ONLY_LABEL = "in-studio-only";
 const CONNECT_ACK = "This seat works in Studio only while connected.";
 const CUTOVER_STATES = Object.freeze(["attached", "unattached"]);
@@ -146,7 +147,8 @@ module.exports = {
   BOT_SEAT_IDS,
   ROOM_KINDS,
   PRESENCE_STATES,
-  STUDIO_PANES,
+  DEFAULT_CHROME,
+  CODE_MODE,
   IN_STUDIO_ONLY_LABEL,
   CONNECT_ACK,
   CUTOVER_STATES,

@@ -9,7 +9,8 @@ const {
   PRODUCT_LOCK,
   DUMP_SCHEMA,
   LEGAL_CHANNEL,
-  STUDIO_PANES,
+  DEFAULT_CHROME,
+  CODE_MODE,
   IN_STUDIO_ONLY_LABEL,
   CONNECT_ACK,
   reject,
@@ -171,11 +172,22 @@ function onlineCount(state) {
   return SEAT_IDS.filter((id) => state.seats[id].presence === "online").length;
 }
 
+function layoutLock() {
+  return {
+    default_chrome: DEFAULT_CHROME.slice(),
+    code: CODE_MODE,
+    three_pane_always: false,
+  };
+}
+
 function chatHints() {
   return {
     pane: "Chat",
     pane_role: "seats / rooms",
-    trio: STUDIO_PANES.slice(),
+    sibling_default: "Board",
+    default_chrome: DEFAULT_CHROME.slice(),
+    code: CODE_MODE,
+    three_pane_always: false,
     in_studio_only_label: IN_STUDIO_ONLY_LABEL,
     connect_ack: CONNECT_ACK,
     composer_placeholder: "Message {seat}…",
@@ -216,6 +228,7 @@ function buildDump(state) {
       connect_ack: CONNECT_ACK,
       in_studio_only_label: IN_STUDIO_ONLY_LABEL,
     },
+    layout: layoutLock(),
     chat: chatHints(),
     online_count: onlineCount(state),
   };

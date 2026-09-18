@@ -304,10 +304,22 @@ function cases() {
       if (
         !dumped.data.chat ||
         dumped.data.chat.pane !== "Chat" ||
+        dumped.data.chat.sibling_default !== "Board" ||
         dumped.data.chat.chrome !== "not-owned" ||
-        !eq(dumped.data.chat.trio, ["Chat", "Code", "Board"])
+        dumped.data.chat.three_pane_always !== false ||
+        dumped.data.chat.code !== "on-demand" ||
+        !eq(dumped.data.chat.default_chrome, ["Chat", "Board"]) ||
+        dumped.data.chat.trio
       ) {
         return { ok: false, error: "dump chat hints" };
+      }
+      if (
+        !dumped.data.layout ||
+        dumped.data.layout.three_pane_always !== false ||
+        dumped.data.layout.code !== "on-demand" ||
+        !eq(dumped.data.layout.default_chrome, ["Chat", "Board"])
+      ) {
+        return { ok: false, error: "dump layout lock" };
       }
       const demo = buildDemoDump();
       if (demo.messages.length !== 2 || demo.online_count !== 3) {

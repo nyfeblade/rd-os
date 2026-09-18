@@ -2,7 +2,7 @@
   "name": "@rd-os/studio-seats",
   "version": "0.1.0",
   "private": true,
-  "description": "Chat-pane seat registry, presence, and rooms. Connected bots speak only in-studio. Does not own shell chrome.",
+  "description": "Chat-pane seat registry for Chat|Board default chrome. Code on-demand. Connected bots speak only in-studio.",
   "main": "./index.js",
   "types": "./schema.ts",
   "bin": {

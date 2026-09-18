@@ -2,9 +2,9 @@
 
 Seat registry, presence, and in-studio rooms for **AI Coding Studio**.
 
-Designer SoT (`studio/design`, PR #12): always **Chat · Code · Board**. Waiting-table-as-home is dead.
+**Layout lock:** default chrome is **Chat | Board**. Code is on-demand only. Three-pane-always is wrong. Waiting-table-as-home is dead.
 
-This module feeds **Chat** (seats / rooms + presence). It does **not** own shell chrome — no titlebar, connectors tray, or pane splitters.
+This module feeds **Chat** (seats / rooms + presence) beside Board. It does **not** own shell chrome — no titlebar, connectors tray, or pane splitters. `studio/design/**` is read-only (bc-a7c450cd).
 
 **Fence:** `studio/seats/` only. Not CA1 experiment seats (`author|proof|human` on a packet).
 
@@ -47,7 +47,7 @@ studio.seats.connect("claude");
 studio.emit({ from: "grok", dest: "room:bots", body: "bot↔bot stays in Chat" });
 ```
 
-Shell renders `demo.dump.json` or `studio.dump().data`: seat list + `in_studio_only` pill, rooms as Chat threads, `online_count`. Code and Board panes are out of scope here.
+Shell renders `demo.dump.json` or `studio.dump().data`: seat list + `in_studio_only` pill, rooms as Chat threads, `online_count`. Board is the default sibling (gates). Code is on-demand — not an always-on presence surface.
 
 ## Roster
 

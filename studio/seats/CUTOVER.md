@@ -2,11 +2,11 @@
 
 **Product lock:** connected bots speak **only** in-studio.
 
-Designer SoT UX (Chat pane — we do not own chrome):
+Layout lock: default chrome is **Chat | Board**. Code is on-demand. Presence and cutover live on Chat, next to Board — not a three-pane-always Code column. We do not own chrome.
 
 - Seats that join show **in-studio-only** (field + chip label).
 - Connecting a seat acknowledges: *This seat works in Studio only while connected.*
-- Presence list = who’s **online** in studio now (`online` | `away` | `offline`).
+- Presence list = who’s **online** in Chat now (`online` | `away` | `offline`).
 
 This module is the enforcement point. Studio connectors (GitHub pane, shell tray, future adapters) do not open their own speech pipes. They call `connectors.speak` / `emit` here.
 

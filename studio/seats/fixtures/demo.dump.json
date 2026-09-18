@@ -122,14 +122,24 @@
     "connect_ack": "This seat works in Studio only while connected.",
     "in_studio_only_label": "in-studio-only"
   },
+  "layout": {
+    "default_chrome": [
+      "Chat",
+      "Board"
+    ],
+    "code": "on-demand",
+    "three_pane_always": false
+  },
   "chat": {
     "pane": "Chat",
     "pane_role": "seats / rooms",
-    "trio": [
+    "sibling_default": "Board",
+    "default_chrome": [
       "Chat",
-      "Code",
       "Board"
     ],
+    "code": "on-demand",
+    "three_pane_always": false,
     "in_studio_only_label": "in-studio-only",
     "connect_ack": "This seat works in Studio only while connected.",
     "composer_placeholder": "Message {seat}…",

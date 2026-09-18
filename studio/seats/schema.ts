@@ -3,7 +3,8 @@
  *
  * Distinct from CA1 control-plane seats (author|proof|human on an experiment).
  * Distinct from shell chrome (titlebar, connectors tray, pane splitters) —
- * this module feeds Chat (seats / rooms) only. Designer SoT: Chat · Code · Board.
+ * this module feeds Chat (seats / rooms) only.
+ * Layout lock: default chrome = Chat | Board. Code is on-demand. Three-pane-always is wrong.
  */
 
 export type StudioSeatId = "grok" | "claude" | "cursor" | "human";
@@ -17,7 +18,14 @@ export type CutoverState = "attached" | "unattached";
 
 export type RoomKind = "bot_bot" | "human_bot" | "studio_all";
 
-export type StudioPane = "Chat" | "Code" | "Board";
+export type DefaultPane = "Chat" | "Board";
+
+export type OnDemandPane = "Code";
+
+export type StudioPane = DefaultPane | OnDemandPane;
+
+/** Default chrome. Code is not in this pair. */
+export type DefaultChrome = ["Chat", "Board"];
 
 /**
  * Speech channels a studio connector might attempt.
@@ -82,14 +90,23 @@ export interface CutoverLock {
   in_studio_only_label: "in-studio-only";
 }
 
+export interface LayoutLock {
+  default_chrome: DefaultChrome;
+  code: "on-demand";
+  three_pane_always: false;
+}
+
 /**
  * Language the Chat pane renders. Not shell chrome.
- * Waiting-table-as-home is dead.
+ * Waiting-table-as-home is dead. Default chrome is Chat | Board.
  */
 export interface ChatPaneHints {
   pane: "Chat";
   pane_role: "seats / rooms";
-  trio: StudioPane[];
+  sibling_default: "Board";
+  default_chrome: DefaultChrome;
+  code: "on-demand";
+  three_pane_always: false;
   in_studio_only_label: "in-studio-only";
   connect_ack: string;
   composer_placeholder: string;
@@ -103,6 +120,7 @@ export interface StudioDump {
   rooms: StudioRoom[];
   messages: StudioMessage[];
   cutover: CutoverLock;
+  layout: LayoutLock;
   chat: ChatPaneHints;
   online_count: number;
 }
