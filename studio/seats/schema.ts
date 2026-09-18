@@ -6,8 +6,19 @@
 
 export type BuiltinSeatId = "grok" | "claude" | "cursor" | "human";
 
+/** Coding-agent providers `connect()` may register on demand. */
+export type KnownProviderId = "claude" | "grok" | "cursor" | "codex" | "gemini" | "chatgpt";
+
 /** Builtin ids plus any registered provider slug. */
-export type StudioSeatId = BuiltinSeatId | string;
+export type StudioSeatId = BuiltinSeatId | KnownProviderId | string;
+
+export type DefaultToolId = "chat.emit" | "board.read" | "repo.read";
+
+export type HighRiskToolId = "merge" | "deploy" | "public";
+
+export type SeatToolId = DefaultToolId | HighRiskToolId;
+
+export type ToolScope = "room-only" | "board" | "repo" | "hitl";
 
 export type StudioSeatKind = "bot" | "human";
 
@@ -52,7 +63,9 @@ export type CutoverRejectCode =
   | "SEAT_NOT_MEMBER"
   | "UNKNOWN_SEAT"
   | "UNKNOWN_ROOM_KIND"
-  | "BAD_DESTINATION";
+  | "BAD_DESTINATION"
+  | "TOOL_REQUIRES_HITL"
+  | "TOOL_NOT_ALLOWED";
 
 export interface StudioSeat {
   id: StudioSeatId;
@@ -67,6 +80,30 @@ export interface StudioSeat {
   in_studio_only: boolean;
   connected_at: string | null;
   last_seen_at: string | null;
+  /** Default matrix. High-risk tools are never listed without HITL. */
+  tools_allowed: DefaultToolId[];
+}
+
+/** Returned by connect(provider). cutover is always true — connect attaches. */
+export interface ConnectionRecord {
+  provider: StudioSeatId;
+  connected_at: string;
+  tools_allowed: DefaultToolId[];
+  cutover: true;
+}
+
+export interface ToolPermission {
+  tool: SeatToolId;
+  scope?: ToolScope;
+  hitl: boolean;
+}
+
+export interface PermissionLock {
+  providers: KnownProviderId[];
+  default_tools_allowed: DefaultToolId[];
+  chat_emit_scope: "room-only";
+  high_risk: HighRiskToolId[];
+  high_risk_requires_hitl: true;
 }
 
 export interface StudioRoom {
@@ -147,6 +184,7 @@ export interface StudioDump {
   eng: EngSurfaceLock;
   north_star: NorthStar;
   chat: ChatPaneHints;
+  permissions: PermissionLock;
   online_count: number;
 }
 
@@ -193,4 +231,12 @@ export function assertNeverReject(code: never): never {
 
 export function assertNeverPane(pane: never): never {
   throw new Error(`unhandled StudioPane: ${pane}`);
+}
+
+export function assertNeverProvider(id: never): never {
+  throw new Error(`unhandled KnownProviderId: ${id}`);
+}
+
+export function assertNeverTool(id: never): never {
+  throw new Error(`unhandled SeatToolId: ${id}`);
 }

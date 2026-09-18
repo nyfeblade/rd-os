@@ -30,8 +30,9 @@ Register more providers with `seats.register({ id, kind: "bot"|"human", label })
 const { createStudioSeats } = require("@rd-os/studio-seats");
 const studio = createStudioSeats();
 
-studio.seats.register({ id: "gemini", kind: "bot" });
-studio.seats.connect("gemini");
+studio.connect("gemini");
+// { provider: "gemini", connected_at, tools_allowed, cutover: true }
+
 studio.emit({ from: "gemini", dest: "room:bots", body: "in-studio-only" });
 // { ok: true }
 
@@ -39,12 +40,28 @@ studio.emit({ from: "gemini", dest: "operator", body: "status ping" });
 // { ok: false, code: "OPERATOR_1TO1_FORBIDDEN" }
 ```
 
+## Connection behavior
+
+What `connect(provider)` **does** (and does not):
+
+| Step | Effect |
+| --- | --- |
+| Register if needed | Known providers (`claude`, `grok`, `cursor`, `codex`, `gemini`, `chatgpt`) land on the roster. Unknown slugs stay `UNKNOWN_SEAT`. Default roster is still `grok` / `claude` / `cursor` / `human`. |
+| `cutover.attach` | Online implies attached. No online-but-still-external state. |
+| Presence | `online` + `in_studio_only`. Pill copy stays `CONNECT_ACK`. |
+| Record | `{ provider, connected_at, tools_allowed, cutover: true }` |
+| Speech | `chat.emit` is room-only. External channel → `EXTERNAL_CHANNEL_FORBIDDEN`. Operator 1:1 → `OPERATOR_1TO1_FORBIDDEN`. |
+| Tools | Default `tools_allowed`: `chat.emit`, `board.read`, `repo.read`. `merge` / `deploy` / `public` always need HITL. |
+| Disconnect | `offline`. Detach while online → `CUTOVER_LOCKED`. Reconnect stays attached. |
+
 ## Stubs other panes must use
 
 | Export | Purpose |
 | --- | --- |
 | `createStudioSeats` | Multi-provider registry + rooms + gate |
+| `studio.connect` / `studio.seats.connect` | Register if needed → attach → `{ provider, connected_at, tools_allowed, cutover: true }` |
 | `studio.seats.register` | Add a provider seat |
+| `studio.permissions` | Default tools + HITL gate for merge/deploy/public |
 | `studio.presence` | Roster, `in_studio_only`, `online_count` |
 | `studio.rooms` | Bot↔bot / Agents / Studio |
 | `studio.cutover` | Attach / locked detach |
