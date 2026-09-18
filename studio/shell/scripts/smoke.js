@@ -21,33 +21,24 @@ for (const pane of ["chat", "code", "board"]) {
   assert.match(html, new RegExp(`data-pane="${pane}"`), `missing ${pane} pane`);
 }
 
-assert.match(html, /id="btn-code"/);
-assert.match(html, /id="hint-code"/);
-assert.match(html, /id="btn-close"/);
+assert.doesNotMatch(html, /code-pane/);
+assert.doesNotMatch(html, /id="btn-code"/);
+assert.doesNotMatch(html, /data-pane="code"[^>]*hidden/);
 assert.match(html, /id="connectors-tray"/);
 assert.match(html, /id="presence-btn"/);
 assert.match(html, /id="cutover-sheet"/);
 assert.match(html, /This seat works in Studio only while connected/);
-assert.match(html, /code-pane/);
-assert.match(html, /hidden/);
 assert.doesNotMatch(html, /data-nav="waiting"/);
 assert.doesNotMatch(html, /Waiting · Experiments · History/);
-assert.doesNotMatch(html, /class="main code-open"/);
 
-assert.match(css, /\.code-pane\s*\{\s*display:\s*none/);
-assert.match(css, /\.main\.code-open \.code-pane/);
-assert.match(css, /grid-template-columns:\s*1\.35fr 0\.9fr/);
-assert.doesNotMatch(css, /minmax\(280px,\s*1\.05fr\).*minmax\(360px/);
-
-assert.match(js, /setCodeOpen/);
-assert.match(js, /codeOpen:\s*false/);
-assert.match(js, /setCodeOpen\(false\)/);
-assert.match(js, /in studio/);
+assert.match(js, /in-studio-only/);
 assert.match(js, /This seat works in Studio only while connected/);
-assert.match(js, /attention\.(human|dump)/);
+assert.doesNotMatch(js, /setCodeOpen/);
 
-assert.match(tokens, /--bg:\s*#111113/);
-assert.match(tokens, /--accent:\s*#a5b4fc/);
+assert.match(tokens, /--bg:\s*#0e0e10/);
+assert.match(tokens, /--accent:\s*#6b8afd/);
+assert.match(css, /minmax\(280px,\s*1\.05fr\)/);
+assert.match(css, /min-width:\s*1200px/);
 
 assert.match(main, /DEFAULT_WIDTH = 1440/);
 assert.match(main, /DEFAULT_HEIGHT = 900/);
@@ -55,14 +46,13 @@ assert.match(main, /MIN_WIDTH = 1200/);
 assert.match(main, /MIN_HEIGHT = 720/);
 
 assert.match(readme, /npm start/);
-assert.match(readme, /Chat \+ Board/);
-assert.match(readme, /on demand/);
+assert.match(readme, /always visible/);
 assert.match(readme, /macOS/);
 assert.match(readme, /Windows/);
 
-const shellFiles = fs.readdirSync(root);
-assert.ok(shellFiles.includes("electron"));
-assert.ok(shellFiles.includes("renderer"));
-assert.ok(!shellFiles.includes("src-tauri"), "this lane is Electron, not the old Tauri spike");
+for (const name of ["STUDIO-SHELL-SPEC.md", "three-pane.html", "tokens.css", "README.md"]) {
+  const file = path.join(root, "design", name);
+  assert.ok(fs.existsSync(file) && fs.statSync(file).size > 0, `missing SoT copy ${name}`);
+}
 
 process.stdout.write("studio/shell smoke ok\n");

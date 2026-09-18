@@ -6,59 +6,58 @@
 
   const SEATS = [
     { id: "eng-lead", name: "Eng Lead", kind: "seat", presence: "online", cutover: true },
-    { id: "you", name: "You", kind: "human", presence: "online", cutover: true },
     { id: "designer", name: "Studio Designer", kind: "seat", presence: "online", cutover: true },
     { id: "rd-os", name: "#rd-os", kind: "room", presence: "offline", cutover: false },
   ];
 
+  const HUMAN = { id: "you", name: "you", kind: "human", presence: "online", cutover: true };
+
   const FILES = [
     {
       id: "shell",
+      tree: "└ StudioShell.tsx",
       tab: "StudioShell.tsx",
-      body: "// only here when you asked\nexport function StudioShell() {\n  return <ChatAndBoard />\n}\n",
+      body: "export function StudioShell() {\n  return (\n    <div className=\"panes\">\n      <ChatPane />\n      <CodePane />\n      <BoardPane />  {/* gates live here */}\n    </div>\n  )\n}\n",
     },
     {
       id: "board",
+      tree: "└ panes/",
       tab: "BoardPane.tsx",
-      body: "// gates live on the board — not a Waiting home\nexport function BoardPane() {\n  return <Gates />\n}\n",
+      body: "export function BoardPane() {\n  return <Gates />  // not a Waiting home\n}\n",
     },
   ];
 
   const THREADS = {
     "eng-lead": [
-      { who: "Eng Lead", body: "Coding stays optional — open it when a diff matters.", me: false },
-      { who: "You", body: "Default is talk + gates. Not an IDE that never shuts up.", me: true },
+      { who: "Eng Lead · 8:01", body: "CA4 PR#10 up — Proof draining. Three-pane SoT supersedes Waiting-home." },
+      { who: "you", body: "Board pane owns gates. Chat stays seats. Code stays repos." },
     ],
-    you: [{ who: "You", body: "Notes stay here. Code stays closed until a file matters.", me: true }],
-    designer: [{ who: "Studio Designer", body: "Quiet chrome. Code stays away until a diff matters.", me: false }],
-    "rd-os": [{ who: "#rd-os", body: "Room is offline. Connect to cut over — work happens in Studio only.", me: false }],
+    designer: [{ who: "Studio Designer", body: "Dark immersive chrome. Chat · Code · Board always on." }],
+    "rd-os": [{ who: "#rd-os", body: "Room is offline. Connect to cut over — work happens in Studio only." }],
   };
 
   const els = {
-    main: document.getElementById("main"),
-    btnCode: document.getElementById("btn-code"),
-    hintCode: document.getElementById("hint-code"),
-    btnClose: document.getElementById("btn-close"),
-    codePane: document.getElementById("pane-code"),
-    codeHint: document.getElementById("open-code-hint"),
+    connectors: document.getElementById("connectors-tray"),
     presenceBtn: document.getElementById("presence-btn"),
     presenceCount: document.getElementById("presence-count"),
     presenceList: document.getElementById("presence-list"),
-    connectorsBtn: document.getElementById("connectors-btn"),
-    connectors: document.getElementById("connectors-tray"),
     seatList: document.getElementById("seat-list"),
     messages: document.getElementById("messages"),
     composer: document.getElementById("composer"),
     composerInput: document.getElementById("composer-input"),
     fileTree: document.getElementById("file-tree"),
-    editorTab: document.getElementById("editor-tab"),
+    editorTabs: document.getElementById("editor-tabs"),
     editorBody: document.getElementById("editor-body"),
     boardBody: document.getElementById("board-body"),
+    boardFoot: document.getElementById("board-foot"),
     cutoverSheet: document.getElementById("cutover-sheet"),
     cutoverTitle: document.getElementById("cutover-title"),
     cutoverCopy: document.getElementById("cutover-copy"),
     cutoverCancel: document.getElementById("cutover-cancel"),
     cutoverConfirm: document.getElementById("cutover-confirm"),
+    panes: document.getElementById("panes"),
+    splitLeft: document.getElementById("split-left"),
+    splitRight: document.getElementById("split-right"),
   };
 
   const state = {
@@ -75,8 +74,6 @@
     flash: null,
     pendingCutover: null,
     presenceOpen: false,
-    connectorsOpen: false,
-    codeOpen: false,
   };
 
   function assertNever(value) {
@@ -96,14 +93,14 @@
     }
   }
 
-  function connectorMeta(status) {
+  function connectorClass(status) {
     switch (status) {
       case "connected":
-        return "on";
+        return "chip on";
       case "needs-auth":
-        return "needs auth";
+        return "chip";
       case "add":
-        return "";
+        return "chip";
       default:
         return assertNever(status);
     }
@@ -112,7 +109,7 @@
   function waitingLabel(who) {
     switch (who) {
       case "human":
-        return "You";
+        return "Human";
       case "agent":
         return "Agent";
       case "proof":
@@ -133,7 +130,7 @@
   }
 
   function onlineMembers() {
-    return state.seats.filter((member) => member.presence === "online");
+    return [HUMAN, ...state.seats].filter((member) => member.presence === "online");
   }
 
   function selectedSeat() {
@@ -144,53 +141,28 @@
     return FILES.find((file) => file.id === state.selectedFile) || FILES[0];
   }
 
-  function whisperConnectorLabel() {
-    const connected = state.connectors.filter((item) => item.status === "connected");
-    return connected[0] ? connected[0].label : "Connectors";
-  }
-
-  function setCodeOpen(open) {
-    state.codeOpen = open;
-    els.main.classList.toggle("code-open", open);
-    els.codePane.hidden = !open;
-    els.btnCode.classList.toggle("on", open);
-    els.btnCode.setAttribute("aria-pressed", open ? "true" : "false");
-    els.codeHint.hidden = open;
-    if (open) {
-      renderCode();
+  function renderConnectors() {
+    els.connectors.replaceChildren();
+    for (const connector of state.connectors) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = connectorClass(connector.status);
+      button.dataset.connector = connector.id;
+      button.textContent = connector.label;
+      button.addEventListener("click", () => onConnector(connector.id));
+      els.connectors.appendChild(button);
     }
-  }
-
-  function setMenu(which, open) {
-    switch (which) {
-      case "presence":
-        state.presenceOpen = open;
-        if (open) {
-          state.connectorsOpen = false;
-        }
-        break;
-      case "connectors":
-        state.connectorsOpen = open;
-        if (open) {
-          state.presenceOpen = false;
-        }
-        break;
-      default:
-        assertNever(which);
-    }
-    els.presenceBtn.setAttribute("aria-expanded", String(state.presenceOpen));
-    els.connectorsBtn.setAttribute("aria-expanded", String(state.connectorsOpen));
-    els.presenceList.hidden = !state.presenceOpen;
-    els.connectors.hidden = !state.connectorsOpen;
   }
 
   function renderPresence() {
     const online = onlineMembers();
-    els.presenceCount.textContent = `${online.length} here`;
+    els.presenceCount.textContent = `${online.length} online`;
+    els.presenceBtn.setAttribute("aria-expanded", String(state.presenceOpen));
+    els.presenceList.hidden = !state.presenceOpen;
     els.presenceList.replaceChildren();
-    for (const member of state.seats) {
+    for (const member of [HUMAN, ...state.seats]) {
       const row = document.createElement("div");
-      row.className = "popover-row";
+      row.className = "presence-row";
       row.setAttribute("role", "listitem");
       const dot = document.createElement("i");
       dot.className = `dot ${presenceDotClass(member.presence)}`;
@@ -198,28 +170,9 @@
       name.textContent = member.name;
       const meta = document.createElement("span");
       meta.className = "meta";
-      meta.textContent = member.cutover && member.presence === "online" ? "in studio" : member.presence;
+      meta.textContent = member.cutover && member.presence === "online" ? "in-studio-only" : member.presence;
       row.append(dot, name, meta);
       els.presenceList.appendChild(row);
-    }
-  }
-
-  function renderConnectors() {
-    els.connectorsBtn.textContent = whisperConnectorLabel();
-    els.connectors.replaceChildren();
-    for (const connector of state.connectors) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "connector-row";
-      button.dataset.connector = connector.id;
-      const label = document.createElement("span");
-      label.textContent = connector.label;
-      const meta = document.createElement("span");
-      meta.className = "meta";
-      meta.textContent = connectorMeta(connector.status);
-      button.append(label, meta);
-      button.addEventListener("click", () => onConnector(connector.id));
-      els.connectors.appendChild(button);
     }
   }
 
@@ -228,26 +181,20 @@
     for (const seat of state.seats) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = seat.id === state.selectedSeat ? "seat on" : "seat";
-      button.dataset.seat = seat.id;
-      const row = document.createElement("div");
-      row.className = "row";
+      button.className = seat.id === state.selectedSeat ? "seat active" : "seat";
+      const name = document.createElement("div");
+      name.className = "n";
       const dot = document.createElement("i");
       if (presenceDotClass(seat.presence)) {
         dot.className = presenceDotClass(seat.presence);
       }
-      row.append(dot, document.createTextNode(seat.name));
-      button.appendChild(row);
+      name.append(dot, document.createTextNode(` ${seat.name}`));
+      button.appendChild(name);
       if (seat.cutover) {
-        const badge = document.createElement("div");
-        badge.className = "badge";
-        badge.textContent = "in studio";
-        button.appendChild(badge);
-      } else {
-        const badge = document.createElement("div");
-        badge.className = "badge";
-        badge.textContent = "connect";
-        button.appendChild(badge);
+        const pill = document.createElement("span");
+        pill.className = "pill";
+        pill.textContent = "in-studio-only";
+        button.appendChild(pill);
       }
       button.addEventListener("click", () => {
         if (!seat.cutover) {
@@ -270,16 +217,15 @@
   function renderThread() {
     const seat = selectedSeat();
     els.composerInput.placeholder = `Message ${seat.name}…`;
-    const messages = THREADS[seat.id] || [];
     els.messages.replaceChildren();
-    for (const message of messages) {
+    for (const message of THREADS[seat.id] || []) {
       const wrap = document.createElement("div");
-      wrap.className = message.me ? "bubble me" : "bubble";
+      wrap.className = "msg";
       const who = document.createElement("div");
-      who.className = "meta";
+      who.className = "who";
       who.textContent = message.who;
       const body = document.createElement("div");
-      body.className = "text";
+      body.className = "b";
       body.textContent = message.body;
       wrap.append(who, body);
       els.messages.appendChild(wrap);
@@ -290,21 +236,36 @@
   function renderCode() {
     const current = selectedFile();
     els.fileTree.replaceChildren();
-    for (const file of FILES) {
+    const repo = document.createElement("div");
+    repo.className = "repo";
+    repo.textContent = "nyfeblade/rd-os";
+    els.fileTree.appendChild(repo);
+    const roots = ["desktop/", current.tree, "src/", "board/"];
+    for (const label of roots) {
       const item = document.createElement("button");
       item.type = "button";
-      item.className = file.id === current.id ? "tree-item on" : "tree-item";
-      item.textContent = file.tab;
-      item.addEventListener("click", () => {
+      item.className = label === current.tree ? "tree-item on" : "tree-item";
+      item.textContent = label;
+      if (label === current.tree || label === "└ panes/") {
+        item.addEventListener("click", () => {
+          state.selectedFile = label === "└ panes/" ? "board" : "shell";
+          renderCode();
+        });
+      }
+      els.fileTree.appendChild(item);
+    }
+    els.editorTabs.replaceChildren();
+    for (const file of FILES) {
+      const tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = file.id === current.id ? "tab on" : "tab";
+      tab.textContent = file.tab;
+      tab.addEventListener("click", () => {
         state.selectedFile = file.id;
         renderCode();
       });
-      els.fileTree.appendChild(item);
+      els.editorTabs.appendChild(tab);
     }
-    els.editorTab.replaceChildren();
-    const name = document.createElement("b");
-    name.textContent = current.tab;
-    els.editorTab.appendChild(name);
     els.editorBody.textContent = current.body;
   }
 
@@ -312,16 +273,14 @@
     if (!dump || !dump.p0) {
       return [];
     }
-    const primary = {
-      id: dump.p0.id,
-      what: dump.p0.waiting_on === "human" ? "Merge gate" : dump.p0.why,
-      sub: dump.p0.waiting_on === "human" ? "Studio shell" : dump.p0.why,
-      waitingOn: dump.p0.waiting_on,
-      ageS: dump.p0.age_s,
-    };
-    const rows = [primary];
+    const rows = [
+      { id: dump.p0.id, what: dump.p0.why, waitingOn: dump.p0.waiting_on, ageS: dump.p0.age_s },
+    ];
     if (dump.p0.waiting_on === "human") {
-      rows.push({ id: "proof-checks", what: "PR checks", sub: "", waitingOn: "proof", ageS: 240 });
+      rows.push(
+        { id: "proof", what: "PR#10 checks", waitingOn: "proof", ageS: 240 },
+        { id: "agent", what: "CA4 implement", waitingOn: "agent", ageS: 3600 },
+      );
     }
     return rows;
   }
@@ -329,87 +288,60 @@
   function renderBoard() {
     const dump = state.dump;
     els.boardBody.replaceChildren();
-
-    if (!dump) {
-      const empty = document.createElement("p");
-      empty.className = "foot";
-      empty.textContent = "Can't reach the board stub.";
+    if (!dump || !dump.p0) {
+      const empty = document.createElement("div");
+      empty.className = "quiet";
+      empty.style.padding = "16px";
+      empty.textContent = dump ? "Nothing on the board. Chat and Code stay open." : "Can't reach the board stub.";
       els.boardBody.appendChild(empty);
-      return;
-    }
-
-    if (!dump.p0) {
-      const empty = document.createElement("p");
-      empty.className = "foot";
-      empty.textContent = state.flash || "Nothing on the board. Chat stays open.";
-      els.boardBody.appendChild(empty);
-      const note = document.createElement("p");
-      note.className = "foot";
-      note.textContent = "Code closed by default";
-      els.boardBody.appendChild(note);
+      els.boardFoot.textContent = "Open gates: none · stub · attention.dump / MCP later";
       return;
     }
 
     const table = document.createElement("table");
-    const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>What</th><th>On</th><th>Age</th></tr>";
-    table.appendChild(thead);
+    table.innerHTML = "<thead><tr><th>What</th><th>On</th><th>Age</th></tr></thead>";
     const tbody = document.createElement("tbody");
     for (const row of boardRows(dump)) {
       const tr = document.createElement("tr");
       if (row.waitingOn === "human") {
-        tr.className = "need";
+        tr.className = "human";
       }
       const what = document.createElement("td");
       if (row.waitingOn !== "human") {
-        what.className = "mute";
+        what.className = "quiet";
       }
-      const title = document.createElement("div");
-      title.className = "what";
-      title.textContent = row.what;
-      what.appendChild(title);
-      if (row.sub) {
-        const sub = document.createElement("div");
-        sub.className = "sub";
-        sub.textContent = row.sub;
-        what.appendChild(sub);
-      }
+      what.append(document.createTextNode(row.what));
       if (row.waitingOn === "human") {
-        const acts = document.createElement("div");
-        acts.className = "acts";
+        const actions = document.createElement("div");
+        actions.className = "actions";
         const approve = document.createElement("button");
         approve.type = "button";
-        approve.className = "go";
+        approve.className = "p";
         approve.textContent = "Approve";
         approve.addEventListener("click", () => resolveGate("approve"));
         const reject = document.createElement("button");
         reject.type = "button";
-        reject.className = "no";
+        reject.className = "s";
         reject.textContent = "Reject";
         reject.addEventListener("click", () => resolveGate("reject"));
-        acts.append(approve, reject);
-        what.appendChild(acts);
+        actions.append(approve, reject);
+        what.appendChild(actions);
       }
       const on = document.createElement("td");
-      on.className = row.waitingOn === "human" ? "" : "mute";
+      on.className = row.waitingOn === "human" ? "" : "quiet";
       on.textContent = waitingLabel(row.waitingOn);
       const age = document.createElement("td");
-      age.className = row.waitingOn === "human" ? "" : "mute";
+      age.className = row.waitingOn === "human" ? "" : "quiet";
       age.textContent = formatAge(row.ageS);
       tr.append(what, on, age);
       tbody.appendChild(tr);
     }
     table.appendChild(tbody);
     els.boardBody.appendChild(table);
-
     const gates = dump.open_gates && dump.open_gates.length ? dump.open_gates.join(" · ") : "none";
     const cutoverCount = state.seats.filter((seat) => seat.cutover).length;
-    const foot = document.createElement("p");
-    foot.className = "foot";
-    const codeNote = state.codeOpen ? "Code open on demand" : "Code closed by default";
     const flash = state.flash ? ` · ${state.flash}` : "";
-    foot.textContent = `Open gates: ${gates} · in-studio cutover on ${cutoverCount} seats · ${codeNote}${flash}`;
-    els.boardBody.appendChild(foot);
+    els.boardFoot.textContent = `Open gates: ${gates} · in-studio-only cutover on ${cutoverCount} seats${flash}`;
   }
 
   function resolveGate(action) {
@@ -423,12 +355,8 @@
       default:
         assertNever(action);
     }
-    if (state.dump && state.dump.p0) {
-      state.dump = {
-        ...state.dump,
-        p0: null,
-        open_gates: [],
-      };
+    if (state.dump) {
+      state.dump = { ...state.dump, p0: null, open_gates: [] };
     }
     renderBoard();
   }
@@ -440,21 +368,13 @@
     }
     switch (connector.status) {
       case "connected":
-        setMenu("connectors", false);
         return;
       case "needs-auth":
-        openCutover({
-          kind: "connector",
-          id: connector.id,
-          title: `Connect ${connector.label}`,
-          copy: "This seat works in Studio only while connected.",
-        });
-        return;
       case "add":
         openCutover({
           kind: "connector",
-          id: "add",
-          title: "Add connector",
+          id: connector.id,
+          title: connector.status === "add" ? "Add connector" : `Connect ${connector.label}`,
           copy: "This seat works in Studio only while connected.",
         });
         return;
@@ -468,8 +388,6 @@
     els.cutoverTitle.textContent = pending.title;
     els.cutoverCopy.textContent = pending.copy;
     els.cutoverSheet.hidden = false;
-    setMenu("connectors", false);
-    setMenu("presence", false);
     els.cutoverConfirm.focus();
   }
 
@@ -514,71 +432,37 @@
     renderBoard();
   }
 
-  function wireChrome() {
-    els.btnCode.addEventListener("click", () => {
-      setCodeOpen(!state.codeOpen);
-      renderBoard();
-    });
-    els.hintCode.addEventListener("click", () => {
-      setCodeOpen(true);
-      renderBoard();
-    });
-    els.btnClose.addEventListener("click", () => {
-      setCodeOpen(false);
-      renderBoard();
-    });
-    els.presenceBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      setMenu("presence", !state.presenceOpen);
-    });
-    els.connectorsBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      setMenu("connectors", !state.connectorsOpen);
-    });
-    document.addEventListener("click", (event) => {
-      if (!els.presenceBtn.contains(event.target) && !els.presenceList.contains(event.target)) {
-        if (state.presenceOpen) {
-          setMenu("presence", false);
-        }
-      }
-      if (!els.connectorsBtn.contains(event.target) && !els.connectors.contains(event.target)) {
-        if (state.connectorsOpen) {
-          setMenu("connectors", false);
-        }
-      }
-    });
-    els.composer.addEventListener("submit", (event) => {
+  function wireSplitters() {
+    function applyWidths(chat, code, board) {
+      els.panes.style.gridTemplateColumns = `${Math.max(280, chat)}px 5px ${Math.max(360, code)}px 5px ${Math.max(280, board)}px`;
+    }
+
+    function startDrag(which, event) {
       event.preventDefault();
-      const text = els.composerInput.value.trim();
-      if (!text) {
-        return;
+      const startX = event.clientX;
+      const start = {
+        chat: document.getElementById("pane-chat").getBoundingClientRect().width,
+        code: document.getElementById("pane-code").getBoundingClientRect().width,
+        board: document.getElementById("pane-board").getBoundingClientRect().width,
+      };
+      function move(moveEvent) {
+        const dx = moveEvent.clientX - startX;
+        if (which === "left") {
+          applyWidths(start.chat + dx, start.code - dx, start.board);
+          return;
+        }
+        applyWidths(start.chat, start.code + dx, start.board - dx);
       }
-      const seat = selectedSeat();
-      if (!THREADS[seat.id]) {
-        THREADS[seat.id] = [];
+      function up() {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
       }
-      THREADS[seat.id].push({ who: "You", body: text, me: true });
-      THREADS[seat.id].push({
-        who: seat.name,
-        body: "Placeholder seat. Model attach is later. Still in Studio only.",
-        me: false,
-      });
-      els.composerInput.value = "";
-      renderThread();
-    });
-    els.composerInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        els.composer.requestSubmit();
-      }
-    });
-    els.cutoverCancel.addEventListener("click", closeCutover);
-    els.cutoverConfirm.addEventListener("click", confirmCutover);
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !els.cutoverSheet.hidden) {
-        closeCutover();
-      }
-    });
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+    }
+
+    els.splitLeft.addEventListener("pointerdown", (event) => startDrag("left", event));
+    els.splitRight.addEventListener("pointerdown", (event) => startDrag("right", event));
   }
 
   async function loadDump() {
@@ -599,18 +483,49 @@
 
   async function boot() {
     if (window.studioShell && typeof window.studioShell.platform === "function") {
-      const platform = await window.studioShell.platform();
-      document.body.dataset.platform = platform;
+      document.body.dataset.platform = await window.studioShell.platform();
     }
-
     await loadDump();
-    setCodeOpen(false);
     renderConnectors();
     renderPresence();
     renderSeats();
     renderThread();
+    renderCode();
     renderBoard();
-    wireChrome();
+    els.composer.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const text = els.composerInput.value.trim();
+      if (!text) {
+        return;
+      }
+      const seat = selectedSeat();
+      if (!THREADS[seat.id]) {
+        THREADS[seat.id] = [];
+      }
+      THREADS[seat.id].push({ who: "you", body: text });
+      THREADS[seat.id].push({ who: `${seat.name} · stub`, body: "Placeholder seat. Still in Studio only." });
+      els.composerInput.value = "";
+      renderThread();
+    });
+    els.presenceBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      state.presenceOpen = !state.presenceOpen;
+      renderPresence();
+    });
+    document.addEventListener("click", (event) => {
+      if (!els.presenceBtn.contains(event.target) && !els.presenceList.contains(event.target) && state.presenceOpen) {
+        state.presenceOpen = false;
+        renderPresence();
+      }
+    });
+    els.cutoverCancel.addEventListener("click", closeCutover);
+    els.cutoverConfirm.addEventListener("click", confirmCutover);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !els.cutoverSheet.hidden) {
+        closeCutover();
+      }
+    });
+    wireSplitters();
   }
 
   boot();

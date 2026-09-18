@@ -1,12 +1,12 @@
 # Studio A — desktop shell
 
-AI Coding Studio absorbs rd-os. Waiting-table-as-home is dead.
+AI Coding Studio absorbs rd-os. Home is one immersive window: **Chat · Code · Board**, always visible. Waiting-table-as-home is dead.
 
-Default chrome is **Chat + Board**. **Code is on demand** (toolbar Code, “Open code” in chat, or Close). It is not always-on.
-
-This package is Electron so the same stranger path runs on **macOS and Windows**. Linux can use the same commands.
+This package is Electron so the same stranger path runs on **macOS and Windows**.
 
 The board pane is a **stub**. It can read a local `attention.dump` fixture now and hook MCP later. It does not own the kernel.
+
+Designer SoT copies (reference only) live in [`design/`](./design/).
 
 ## Stranger path
 
@@ -17,7 +17,7 @@ npm install
 npm start
 ```
 
-A 1440×900 window titled **AI Coding Studio** should open on Chat + Board. Code stays closed until you ask.
+A 1440×900 window titled **AI Coding Studio** should open with three panes on screen (no tab to reveal Code or Board).
 
 | Platform | Command | What you get |
 | --- | --- | --- |
@@ -29,22 +29,10 @@ A 1440×900 window titled **AI Coding Studio** should open on Chat + Board. Code
 
 ## What should be on screen
 
-1. **Chat** — seats, **in studio** chips on cutover seats, thread, composer
-2. **Board** — gates / P0 with Approve and Reject (not a Waiting home)
-3. Toolbar **Code** (off) · whisper **presence** (“N here”) · whisper **connectors** (GitHub)
-4. Connecting a seat or Notion asks once: *This seat works in Studio only while connected.*
+1. **Chat** — seats/rooms, **in-studio-only** chips, thread, composer
+2. **Code** — repo tree + file preview (always on)
+3. **Board** — gates / P0 with Approve and Reject (not a Waiting home)
+4. **Connectors tray** — GitHub, CloudAgent, Notion, + connector
+5. **Presence** — online count
 
-Code opens from the Code button, the chat hint, or Close to put it away.
-
-## Layout
-
-```
-studio/shell/
-  electron/          main + preload
-  renderer/          quiet Chat + Board chrome
-  renderer/fixtures/ attention.dump stubs (no kernel)
-  scripts/preview.js browser path
-  scripts/smoke.js
-```
-
-Product layout lock: Chat + Board default. `studio/design/` is a separate lane — this shell consumes it read-only when present.
+Connecting a seat or Notion asks once: *This seat works in Studio only while connected.*

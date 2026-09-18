@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Coding Studio — three pane</title>
+<style>
+  :root {
+    --bg: #0e0e10;
+    --pane: #161618;
+    --pane-2: #1c1c1f;
+    --line: #2a2a2e;
+    --ink: #e8e8ea;
+    --ink-2: #9a9aa2;
+    --accent: #6b8afd;
+    --online: #3dd68c;
+    --danger: #e85d5d;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 12.5px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #050506;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .stage { height: 100%; display: grid; place-items: center; padding: 20px; }
+  .app {
+    width: min(1440px, 100%);
+    height: min(900px, 100%);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.55);
+  }
+  .titlebar {
+    height: 38px; display: flex; align-items: center; gap: 12px;
+    padding: 0 12px; border-bottom: 1px solid var(--line);
+    background: var(--pane);
+    font-size: 12px;
+  }
+  .traffic { display: flex; gap: 6px; }
+  .traffic i { width: 10px; height: 10px; border-radius: 50%; background: #3a3a3e; }
+  .title { font-weight: 600; letter-spacing: -0.01em; }
+  .tray { margin-left: 16px; display: flex; gap: 6px; align-items: center; }
+  .chip {
+    border: 1px solid var(--line); background: var(--pane-2);
+    border-radius: 999px; padding: 2px 8px; color: var(--ink-2); font-size: 11px;
+  }
+  .chip.on { color: var(--ink); border-color: #3a3a48; }
+  .presence { margin-left: auto; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+  .presence b { width: 6px; height: 6px; border-radius: 50%; background: var(--online); display: inline-block; }
+  .panes {
+    flex: 1; display: grid;
+    grid-template-columns: 1.05fr 1.35fr 1.05fr;
+    min-height: 0;
+  }
+  .pane {
+    background: var(--pane);
+    border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; min-width: 0; min-height: 0;
+  }
+  .pane:last-child { border-right: none; }
+  .ph {
+    padding: 8px 10px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .ph span { color: var(--ink); letter-spacing: 0; text-transform: none; font-weight: 600; font-size: 12px; }
+  .split { flex: 1; display: flex; min-height: 0; }
+  .seats {
+    width: 148px; border-right: 1px solid var(--line); overflow: auto; background: var(--bg);
+  }
+  .seat {
+    padding: 8px 10px; border-bottom: 1px solid var(--line); cursor: default;
+  }
+  .seat.active { background: var(--pane-2); }
+  .seat .n { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .seat .n i { width: 6px; height: 6px; border-radius: 50%; background: var(--online); }
+  .seat .n i.off { background: #555; }
+  .pill {
+    display: inline-block; margin-top: 4px; font-size: 10px; font-weight: 600;
+    color: var(--accent); border: 1px solid #3a4570; border-radius: 999px; padding: 1px 6px;
+  }
+  .thread { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .msgs { flex: 1; overflow: auto; padding: 10px; }
+  .msg { margin-bottom: 10px; }
+  .msg .who { color: var(--ink-2); font-size: 11px; margin-bottom: 2px; }
+  .msg .b { background: var(--pane-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  .composer {
+    border-top: 1px solid var(--line); padding: 8px; display: flex; gap: 6px;
+  }
+  .composer input {
+    flex: 1; background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+    color: var(--ink); padding: 8px 10px; font: inherit;
+  }
+  .composer button {
+    background: var(--accent); color: #0b1020; border: none; border-radius: 6px;
+    font: inherit; font-weight: 700; padding: 0 12px; cursor: pointer;
+  }
+  .code-body { flex: 1; display: flex; min-height: 0; }
+  .tree {
+    width: 180px; border-right: 1px solid var(--line); overflow: auto;
+    padding: 8px; color: var(--ink-2); background: var(--bg);
+  }
+  .tree .repo { color: var(--ink); font-weight: 600; margin-bottom: 8px; }
+  .tree div { padding: 3px 6px; border-radius: 4px; }
+  .tree div.on { background: var(--pane-2); color: var(--ink); }
+  .editor { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .tabs { display: flex; border-bottom: 1px solid var(--line); background: var(--bg); }
+  .tabs u {
+    text-decoration: none; padding: 7px 12px; border-right: 1px solid var(--line);
+    color: var(--ink-2); font-size: 12px;
+  }
+  .tabs u.on { color: var(--ink); background: var(--pane); }
+  pre {
+    margin: 0; flex: 1; overflow: auto; padding: 12px 14px;
+    font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: #c8c8d0; white-space: pre;
+  }
+  .board { flex: 1; overflow: auto; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--ink-2); font-size: 11px; font-weight: 500; }
+  tr.human { background: #1a1e2a; }
+  tr.human td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+  .actions { margin-top: 6px; display: flex; gap: 6px; }
+  .actions button {
+    font: inherit; font-size: 11px; font-weight: 700; border-radius: 5px; padding: 4px 8px; cursor: pointer;
+  }
+  .actions .p { background: var(--accent); color: #0b1020; border: none; }
+  .actions .s { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .foot { padding: 8px 10px; color: var(--ink-2); font-size: 11px; border-top: 1px solid var(--line); }
+  .note {
+    position: absolute; left: 20px; bottom: 12px; color: #666; font-size: 11px; max-width: 40em;
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="app" role="application" aria-label="AI Coding Studio">
+      <div class="titlebar">
+        <div class="traffic" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="title">AI Coding Studio</div>
+        <div class="tray" aria-label="Connectors">
+          <span class="chip on">GitHub</span>
+          <span class="chip on">CloudAgent</span>
+          <span class="chip">Notion</span>
+          <span class="chip">+ connector</span>
+        </div>
+        <div class="presence"><b></b> 3 online</div>
+      </div>
+      <div class="panes">
+        <!-- CHAT -->
+        <section class="pane" aria-label="Chat">
+          <div class="ph"><span>Chat</span> · seats / rooms</div>
+          <div class="split">
+            <div class="seats">
+              <div class="seat active">
+                <div class="n"><i></i> Eng Lead</div>
+                <span class="pill">in-studio-only</span>
+              </div>
+              <div class="seat">
+                <div class="n"><i></i> Studio Designer</div>
+                <span class="pill">in-studio-only</span>
+              </div>
+              <div class="seat">
+                <div class="n"><i class="off"></i> #rd-os</div>
+              </div>
+            </div>
+            <div class="thread">
+              <div class="msgs">
+                <div class="msg">
+                  <div class="who">Eng Lead · 8:01</div>
+                  <div class="b">CA4 PR#10 up — Proof draining. Three-pane SoT supersedes Waiting-home.</div>
+                </div>
+                <div class="msg">
+                  <div class="who">you</div>
+                  <div class="b">Board pane owns gates. Chat stays seats. Code stays repos.</div>
+                </div>
+              </div>
+              <div class="composer">
+                <input aria-label="Message" placeholder="Message Eng Lead…" />
+                <button type="button">Send</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- CODE -->
+        <section class="pane" aria-label="Code">
+          <div class="ph"><span>Code</span> · nyfeblade/rd-os</div>
+          <div class="code-body">
+            <div class="tree">
+              <div class="repo">nyfeblade/rd-os</div>
+              <div>desktop/</div>
+              <div class="on">└ StudioShell.tsx</div>
+              <div>└ panes/</div>
+              <div>src/</div>
+              <div>board/</div>
+            </div>
+            <div class="editor">
+              <div class="tabs"><u class="on">StudioShell.tsx</u><u>BoardPane.tsx</u></div>
+              <pre>export function StudioShell() {
+  return (
+    &lt;div className="panes"&gt;
+      &lt;ChatPane /&gt;
+      &lt;CodePane /&gt;
+      &lt;BoardPane /&gt;  {/* gates live here */}
+    &lt;/div&gt;
+  )
+}</pre>
+            </div>
+          </div>
+        </section>
+        <!-- BOARD -->
+        <section class="pane" aria-label="Board">
+          <div class="ph"><span>Board</span> · gates</div>
+          <div class="board">
+            <table>
+              <thead>
+                <tr><th>What</th><th>On</th><th>Age</th></tr>
+              </thead>
+              <tbody>
+                <tr class="human">
+                  <td>
+                    Merge gate · Exp-2 / Studio shell
+                    <div class="actions">
+                      <button class="p" type="button">Approve</button>
+                      <button class="s" type="button">Reject</button>
+                    </div>
+                  </td>
+                  <td>Human</td>
+                  <td>12m</td>
+                </tr>
+                <tr>
+                  <td style="color:var(--ink-2)">PR#10 checks</td>
+                  <td style="color:var(--ink-2)">Proof</td>
+                  <td style="color:var(--ink-2)">4m</td>
+                </tr>
+                <tr>
+                  <td style="color:var(--ink-2)">CA4 implement</td>
+                  <td style="color:var(--ink-2)">Agent</td>
+                  <td style="color:var(--ink-2)">1h</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="foot">Open gates: merge · in-studio-only cutover on 2 seats</div>
+        </section>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
