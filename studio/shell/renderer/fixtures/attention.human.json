@@ -1,0 +1,20 @@
+{
+  "p0": {
+    "id": "studio-a-shell",
+    "why": "human gate on the merge — board pane only, not a Waiting home",
+    "waiting_on": "human",
+    "age_s": 420
+  },
+  "hard_law": [
+    "machine-time",
+    "multi-lane",
+    "research-before-claim",
+    "envelope",
+    "attention-beside-law"
+  ],
+  "open_gates": ["merge"],
+  "envelope_hint": {
+    "nearest_experiment_id": "exp-1-planted-false",
+    "baseline_ca_hours": 2
+  }
+}

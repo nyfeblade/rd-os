@@ -1,0 +1,19 @@
+{
+  "name": "studio-shell",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Studio A desktop shell — Electron chrome with chat, code, and board panes always visible. Mac + Windows.",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "preview": "node ./scripts/preview.js",
+    "smoke": "node ./scripts/smoke.js",
+    "test": "node ./scripts/smoke.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "electron": "^37.3.1"
+  }
+}

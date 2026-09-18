@@ -1,0 +1,15 @@
+{
+  "p0": null,
+  "hard_law": [
+    "machine-time",
+    "multi-lane",
+    "research-before-claim",
+    "envelope",
+    "attention-beside-law"
+  ],
+  "open_gates": [],
+  "envelope_hint": {
+    "nearest_experiment_id": null,
+    "baseline_ca_hours": null
+  }
+}
