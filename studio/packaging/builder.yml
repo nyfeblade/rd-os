@@ -1,0 +1,20 @@
+appId: dev.rdos.studio
+productName: "AI Coding Studio"
+electronVersion: "37.10.3"
+npmRebuild: false
+extraMetadata:
+  dependencies: null
+directories:
+  app: ../shell
+  output: dist
+files:
+  - package.json
+  - electron/**/*
+  - lib/**/*
+  - renderer/**/*
+mac:
+  identity: null
+  category: public.app-category.developer-tools
+  target:
+    - dmg
+    - zip
