@@ -23,7 +23,9 @@ function createLabServer(options = {}) {
   const kernel = createKernel(options.home);
   const listeners = new Set();
 
-  if (options.seed !== false) {
+  if (options.fixture) {
+    loadFixture(kernel, root, options.fixture);
+  } else if (options.seed !== false) {
     seedIfEmpty(kernel, root);
   }
 
@@ -83,6 +85,14 @@ function createLabServer(options = {}) {
         sendJson(res, result.ok ? 200 : 409, result);
       });
     }
+    if (req.method === "POST" && url.pathname === "/api/human") {
+      return readJson(req, res, (body) => {
+        const result = humanDecision(kernel, body);
+        kernel.store.appendEvent({ kind: "human", action: body.action || null, ok: result.ok, code: result.code || null });
+        broadcast();
+        sendJson(res, result.ok ? 200 : 409, result);
+      });
+    }
     if (req.method === "POST" && url.pathname === "/api/steer") {
       return readJson(req, res, (body) => {
         const result = kernel.dispatch("steer.gate", body, { actor: "human" });
@@ -127,7 +137,7 @@ function createLabServer(options = {}) {
         sendJson(res, 200, report);
       });
     }
-    if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
+    if (req.method === "GET" && isAppRoute(url.pathname)) {
       return sendFile(res, path.join(uiDir, "index.html"));
     }
     if (req.method === "GET" && url.pathname.startsWith("/ui/")) {
@@ -142,6 +152,82 @@ function createLabServer(options = {}) {
   });
 
   return { server, kernel, snapshot, broadcast };
+}
+
+function isAppRoute(pathname) {
+  return (
+    pathname === "/" ||
+    pathname === "/index.html" ||
+    pathname === "/experiments" ||
+    pathname === "/history" ||
+    pathname === "/settings" ||
+    /^\/experiments\/[^/]+$/.test(pathname)
+  );
+}
+
+function loadFixture(kernel, root, name) {
+  const abs = path.join(root, "fixtures", "ui", `${name}.json`);
+  if (!fs.existsSync(abs)) {
+    throw new Error(`unknown UI fixture: ${name}`);
+  }
+  const data = JSON.parse(fs.readFileSync(abs, "utf8"));
+  for (const experiment of data.experiments || []) {
+    kernel.store.saveExperiment(experiment);
+  }
+  for (const packet of data.packets || []) {
+    kernel.store.savePacket(packet.experiment_id || packet.id || `packet-${Date.now()}`, packet);
+  }
+  for (const baseline of data.baselines || []) {
+    kernel.store.saveBaseline(baseline);
+  }
+  kernel.persistAttention();
+}
+
+function humanDecision(kernel, body) {
+  const id = body.experiment_id;
+  if (!id) {
+    return { ok: false, code: "MISSING_MACHINE_TIME", detail: "experiment_id is required" };
+  }
+  const exp = kernel.store.loadExperiment(id);
+  if (!exp) {
+    return { ok: false, code: "MISSING_MACHINE_TIME", detail: `experiment not on local board: ${id}` };
+  }
+  const openGate = (exp.human_gates || []).find((gate) => !gate.resolved) || { kind: "merge" };
+  if (body.action === "reject") {
+    if (body.constraint) {
+      const added = kernel.dispatch(
+        "steer.gate",
+        { experiment_id: id, kind: "scope_change", reason: body.constraint },
+        { actor: "human" }
+      );
+      if (!added.ok) {
+        return added;
+      }
+    }
+    return kernel.dispatch(
+      "steer.gate",
+      {
+        experiment_id: id,
+        kind: openGate.kind,
+        resolve: openGate.kind,
+        reason: `human reject: ${body.code || "UNDER_SCOPE"}`,
+      },
+      { actor: "human" }
+    );
+  }
+  if (body.action === "approve") {
+    return kernel.dispatch(
+      "steer.gate",
+      {
+        experiment_id: id,
+        kind: openGate.kind,
+        resolve: openGate.kind,
+        reason: "human approve",
+      },
+      { actor: "human" }
+    );
+  }
+  return { ok: false, code: "UNKNOWN_TOOL", detail: `unknown human action: ${body.action}` };
 }
 
 function seedIfEmpty(kernel, root) {

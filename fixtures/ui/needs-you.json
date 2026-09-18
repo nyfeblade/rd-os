@@ -1,0 +1,32 @@
+{
+  "experiments": [
+    {
+      "experiment_id": "exp-wait-merge",
+      "title": "Approve the probe plan",
+      "stage": "accepted",
+      "estimate_ca_hours": 2,
+      "estimate_proof_min": 20,
+      "human_gates": [
+        { "kind": "merge", "reason": "playbook: human-owned merges", "resolved": false }
+      ],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null },
+      "opened_n": 3,
+      "kill": "day-0 armable; do not claim 14d PASS",
+      "instrument": "apl prove",
+      "opened_at": "2026-09-18T03:00:00.000Z",
+      "fanout": {
+        "n": 3,
+        "recombine": "evidence_only",
+        "anti_single_lane": "pass",
+        "constraint": null,
+        "probes": [
+          { "id": "p0", "kind": "run", "command_or_url": "npm run demo:reject", "status": "ran", "evidence_uri": "evidence/proof-layer" },
+          { "id": "p1", "kind": "fetch", "command_or_url": "https://github.com/nyfeblade/agent-proof-layer", "status": "fetched", "evidence_uri": "https://github.com/nyfeblade/agent-proof-layer" },
+          { "id": "p2", "kind": "run", "command_or_url": "./scripts/stranger-check.sh", "status": "ran", "evidence_uri": "scripts/stranger-check.sh" }
+        ]
+      }
+    }
+  ],
+  "packets": [],
+  "baselines": []
+}

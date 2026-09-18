@@ -119,7 +119,7 @@ Cold checkout, Node 18+, no npm install. Expect exit 0.
 ```bash
 git clone https://github.com/nyfeblade/rd-os.git
 cd rd-os
-npm start                          # dump SoT + lab API http://127.0.0.1:7420
+npm start                          # Waiting UI + lab API http://127.0.0.1:7420
 # other terminal / Eng Proof:
 chmod +x scripts/*.sh
 ./scripts/stranger-check.sh        # board + MCP + dump/API smoke + day0 fields

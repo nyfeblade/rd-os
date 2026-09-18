@@ -183,7 +183,7 @@ Reject if any required key is missing. Reject if any string/number field looks l
 | Set `verdict` | (Eng Proof process, not a tool in v0) | no (`SELF_CERT`) |
 | Merge | git / GitHub — playbook human only | no |
 
-Cockpit = `attention.dump` (source of truth) + reject codes. Product UI waits on a Designer greyscale Waiting mock.
+Cockpit = `attention.dump` (source of truth) + reject codes. The Waiting UI is a view of that dump.
 
 ---
 

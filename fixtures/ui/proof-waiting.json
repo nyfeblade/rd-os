@@ -1,0 +1,36 @@
+{
+  "experiments": [
+    {
+      "experiment_id": "exp-wait-proof",
+      "title": "Claims are with Proof",
+      "stage": "accepted",
+      "estimate_ca_hours": 1.5,
+      "estimate_proof_min": 15,
+      "human_gates": [],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null },
+      "opened_n": 3,
+      "instrument": "apl prove",
+      "opened_at": "2026-09-18T03:10:00.000Z",
+      "fanout": {
+        "n": 2,
+        "recombine": "evidence_only",
+        "anti_single_lane": "pass",
+        "constraint": null,
+        "probes": [
+          { "id": "p0", "kind": "run", "command_or_url": "npm run demo:reject", "status": "ran", "evidence_uri": "evidence/proof-layer" },
+          { "id": "p1", "kind": "fetch", "command_or_url": "https://github.com/nyfeblade/rd-os", "status": "fetched", "evidence_uri": "https://github.com/nyfeblade/rd-os" }
+        ]
+      }
+    }
+  ],
+  "packets": [
+    {
+      "experiment_id": "exp-wait-proof",
+      "runner_result": "REJECTED",
+      "measured_exit": 1,
+      "verdict": null,
+      "claim": { "experiment_id": "exp-wait-proof", "runner_result": "REJECTED", "verdict": null }
+    }
+  ],
+  "baselines": []
+}

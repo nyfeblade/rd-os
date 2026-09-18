@@ -32,7 +32,11 @@ need_file src/kernel.js
 need_file src/mcp-server.js
 need_file src/lab-server.js
 need_file ui/index.html
-need_file ui/dump.js
+need_file ui/app.js
+need_file ui/app.css
+need_file ui/copy.js
+need_file rd-os-design/steer-cockpit-v1.md
+need_file fixtures/ui/needs-you.json
 need_file fixtures/lab/seed.json
 need_file scripts/kill14d.sh
 need_file scripts/proof-layer.sh
@@ -126,4 +130,4 @@ grep -q '"m2_illegal_accepts": 5' "$home/day0-markdown.json" || fail "markdown a
 
 RDOS_HOME="$home/ui" ./scripts/ui-smoke.sh || fail "ui-smoke failed"
 
-echo "PASS stranger-check (board + MCP + dump/API + day0 fields; not a 14d verdict)"
+echo "PASS stranger-check (board + MCP + Waiting UI + day0 fields; not a 14d verdict)"

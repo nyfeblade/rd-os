@@ -1,0 +1,26 @@
+{
+  "experiments": [
+    {
+      "experiment_id": "exp-finished",
+      "title": "Finished planted-false",
+      "stage": "finished",
+      "estimate_ca_hours": 0.2,
+      "estimate_proof_min": 2,
+      "human_gates": [{ "kind": "proof_accept", "reason": "Eng Proof", "resolved": true }],
+      "actuals": { "ca_hours": 0.2, "proof_min": 1, "human_hours": null, "finished_at": "2026-09-18T02:48:37.000Z" },
+      "instrument": "apl prove"
+    }
+  ],
+  "packets": [],
+  "baselines": [
+    {
+      "experiment_id": "exp-1-planted-false",
+      "title": "Planted-false: tests passed",
+      "instrument": "apl prove",
+      "actuals_ca_hours": 0.2,
+      "actuals_proof_min": 1,
+      "runner_result": "REJECTED",
+      "finished_at": "2026-09-18T02:48:37Z"
+    }
+  ]
+}

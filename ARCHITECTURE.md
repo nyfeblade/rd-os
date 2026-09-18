@@ -1,6 +1,6 @@
 # R&D OS wedge — architecture (stack research)
 
-**Status:** usable local-first lab — board/packets + stdio MCP server + `attention.dump` SoT + Proof Layer `demo:reject` hook + day-0 kill harness. Product UI waits on Designer greyscale Waiting mock. No second CA. Harness ≠ 14-day PASS.  
+**Status:** usable local-first lab — board/packets + stdio MCP server + `attention.dump` SoT + Designer Waiting cockpit + Proof Layer `demo:reject` hook + day-0 kill harness. No second CA. Harness ≠ 14-day PASS.  
 **Board:** [Exp-2 R&D OS](https://app.notion.com/p/3dee07d17270817e9d01d8821b3ec2f5)  
 **Vehicle:** this repo (`nyfeblade/rd-os`).  
 **First instrument (merged Exp-1):** [`nyfeblade/agent-proof-layer`](https://github.com/nyfeblade/agent-proof-layer) ([PR #1](https://github.com/nyfeblade/agent-proof-layer/pull/1) merged `de40fcc`).  
@@ -45,8 +45,8 @@ The wedge is a **capability-native research lab OS**: portable contract any agen
                                   ├─ Proof Layer (npm run demo:reject) as first instrument
                                   └─ attention.dump (P0 + HARD LAW adjacent)  ← data SoT
                                          │
- human ── rdos steer.gate --actor human ─┘
-         (product UI waits on Designer greyscale Waiting mock)
+ human ── Waiting UI / rdos steer.gate --actor human ─┘
+         (UI is a view of attention.dump; never a second store)
 ```
 
 ### 1. Portable MCP (any agent)
@@ -57,7 +57,7 @@ A small tool contract, not a host that owns the agent's pipes. Agents remain Cur
 
 ### 2. Human steer cockpit
 
-The cockpit is the human control surface: ACCEPT/REJECT plans, list human gates, see P0, read HARD LAW. Source of truth is `attention.dump`. Humans steer with `rdos steer.gate --actor human` (or the lab JSON API). Product UI waits on a Designer greyscale Waiting mock. No costume chrome in this PR.
+The cockpit is the human control surface. Source of truth is `attention.dump`. The Designer spec (`rd-os-design/steer-cockpit-v1.md`) is the product view: Waiting home, Experiments, History, Settings. HARD LAW is behavior + Settings rules, not a home chip strip. Humans also steer with `rdos steer.gate --actor human`.
 
 ```json
 {

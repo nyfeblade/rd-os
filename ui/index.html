@@ -3,11 +3,25 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>rd-os — attention.dump</title>
+    <title>rd-os</title>
+    <link rel="stylesheet" href="/app.css" />
   </head>
   <body>
-    <p>attention.dump is the data SoT. Product UI waits on a Designer greyscale Waiting mock. Human steer: <code>rdos steer.gate --actor human</code>.</p>
-    <pre id="dump" data-testid="attention-dump">loading</pre>
-    <script src="/dump.js"></script>
+    <div class="void">
+      <div class="plate" id="plate">
+        <header class="chrome">
+          <nav class="tabs" aria-label="Primary">
+            <a href="/" data-nav="waiting" id="nav-waiting">Waiting</a>
+            <a href="/experiments" data-nav="experiments" id="nav-experiments">Experiments</a>
+            <a href="/history" data-nav="history" id="nav-history">History</a>
+            <a href="/settings" data-nav="settings" id="nav-settings">Settings</a>
+          </nav>
+        </header>
+        <main id="view" tabindex="-1">loading</main>
+      </div>
+    </div>
+    <div id="dialog-root"></div>
+    <script src="/copy.js"></script>
+    <script src="/app.js"></script>
   </body>
 </html>

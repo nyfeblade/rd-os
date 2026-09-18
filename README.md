@@ -1,25 +1,22 @@
 # rd-os
 
-Local-first R&D OS — portable MCP contract + `attention.dump` + Proof Layer as first instrument.
+Local-first R&D OS — portable MCP contract + Waiting cockpit + Proof Layer as first instrument.
 
 CNP skill v2 FAIL Δ=+0.20 — skill theater is not proven. This tree is a **usable lab**, not a 14-day PASS.
 
 | Path | What |
 | --- | --- |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Two surfaces: MCP + human steer via dump/CLI |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | MCP + human steer; `attention.dump` is SoT |
+| [rd-os-design/steer-cockpit-v1.md](rd-os-design/steer-cockpit-v1.md) | Designer product UI spec |
 | [MCP_CONTRACT.md](MCP_CONTRACT.md) | Tool names, reject codes, stdio MCP server |
 | [KILL_14D.md](KILL_14D.md) | 14-day kill vs markdown baseline — day 0 armable; clock not started |
 | [INSTRUMENTS.md](INSTRUMENTS.md) | Proof Layer `npm run demo:reject` hook |
-| [ui/](ui/) | Dump SoT page only. Product UI waits on Designer greyscale Waiting mock |
-| [bin/lab.js](bin/lab.js) | `npm start` — JSON API + dump page |
+| [ui/](ui/) | Waiting / Experiments / History / Settings — view over the dump |
+| [bin/lab.js](bin/lab.js) | `npm start` — UI + JSON API |
 | [bin/mcp.js](bin/mcp.js) | stdio MCP server agents attach |
 | [bin/rdos.js](bin/rdos.js) | CLI: `rdos <tool> --in payload.json --out result.json` |
 
-First instrument (merged Exp-1): [agent-proof-layer](https://github.com/nyfeblade/agent-proof-layer).
-
 ## One command (clone → lab)
-
-Cold clone, Node 18+, no npm install.
 
 ```bash
 git clone https://github.com/nyfeblade/rd-os.git
@@ -27,13 +24,9 @@ cd rd-os
 npm start
 ```
 
-Lab API + `attention.dump` at [http://127.0.0.1:7420](http://127.0.0.1:7420). MCP attach (stdio):
+Waiting home: [http://127.0.0.1:7420](http://127.0.0.1:7420). MCP: `RDOS_HOME=./var node bin/mcp.js`. Human steer: UI Approve/Reject or `rdos steer.gate --actor human`.
 
-```bash
-RDOS_HOME=./var node bin/mcp.js
-```
-
-Human steer: `rdos steer.gate --actor human`. Agents speaking MCP get `NOT_HUMAN` on `steer.gate`.
+Proof screenshot fixtures: `node bin/lab.js --no-seed --fixture needs-you` (also `proof-waiting`, `agent-waiting`, `history`).
 
 ## Eng Proof dual-gate
 
@@ -42,6 +35,4 @@ chmod +x scripts/*.sh
 npm run dual-gate
 ```
 
-That runs stranger-check (board + MCP smoke + dump/API smoke + day-0 fields), wedge-measure, `proof-layer` (`npm run demo:reject` → `REJECTED` + `measured_exit`), and `kill14d` day 0 both arms.
-
-`verdict` stays null. `clock_started` stays false. Harness executable ≠ day-14 PASS. Human merge only.
+`verdict` stays null. `clock_started` stays false. Harness executable ≠ day-14 PASS.
