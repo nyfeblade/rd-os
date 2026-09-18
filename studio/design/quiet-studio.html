@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Coding Studio — quiet</title>
+<style>
+  :root {
+    --void: #0a0a0b;
+    --bg: #111113;
+    --elev: #18181b;
+    --line: rgba(255,255,255,0.06);
+    --ink: #ececef;
+    --mute: #8b8b93;
+    --faint: #5c5c66;
+    --accent: #a5b4fc;
+    --accent-ink: #12131a;
+    --online: #86efac;
+    --human: rgba(165,180,252,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--void);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .frame {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    max-width: 1440px;
+    margin: 0 auto;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    background: var(--bg);
+  }
+  /* top: whisper chrome */
+  .bar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .bar .name {
+    font-size: 13px;
+    font-weight: 560;
+    letter-spacing: -0.02em;
+  }
+  .bar .sep { color: var(--faint); }
+  .connectors {
+    display: flex;
+    gap: 8px;
+    color: var(--mute);
+    font-size: 12px;
+  }
+  .connectors span {
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: transparent;
+  }
+  .connectors span.ok { color: var(--ink); }
+  .right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--mute);
+  }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--online);
+  }
+
+  /* three panes — always */
+  .panes {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(280px, 1.05fr) minmax(360px, 1.4fr) minmax(280px, 1.05fr);
+    min-height: 0;
+  }
+  .pane {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-right: 1px solid var(--line);
+  }
+  .pane:last-child { border-right: none; }
+
+  .label {
+    padding: 14px 16px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  /* CHAT — grok-like warmth */
+  .chat-body { flex: 1; display: flex; min-height: 0; }
+  .seats {
+    width: 132px;
+    padding: 4px 8px 12px;
+    border-right: 1px solid var(--line);
+    overflow: auto;
+  }
+  .seat {
+    padding: 10px 8px;
+    border-radius: 10px;
+    color: var(--mute);
+    cursor: default;
+  }
+  .seat.on {
+    background: var(--elev);
+    color: var(--ink);
+  }
+  .seat .row {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; font-weight: 500;
+  }
+  .seat .row i {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--online); flex-shrink: 0;
+  }
+  .seat .row i.off { background: var(--faint); }
+  .badge {
+    margin-top: 5px;
+    font-size: 10px;
+    color: var(--accent);
+    opacity: 0.9;
+  }
+  .thread {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .msgs {
+    flex: 1;
+    overflow: auto;
+    padding: 8px 16px 16px;
+  }
+  .bubble {
+    max-width: 36em;
+    margin-bottom: 18px;
+  }
+  .bubble .meta {
+    font-size: 12px;
+    color: var(--faint);
+    margin-bottom: 6px;
+  }
+  .bubble .text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .bubble.me .text {
+    color: var(--mute);
+  }
+  .composer {
+    padding: 12px 16px 16px;
+  }
+  .composer-box {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    background: var(--elev);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 10px 10px 10px 14px;
+  }
+  .composer-box textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    line-height: 1.45;
+    min-height: 44px;
+    max-height: 120px;
+  }
+  .composer-box textarea::placeholder { color: var(--faint); }
+  .send {
+    border: none;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+
+  /* CODE — quiet editor */
+  .code-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px 8px;
+    color: var(--mute);
+    font-size: 13px;
+  }
+  .code-top strong { color: var(--ink); font-weight: 560; }
+  .code-split { flex: 1; display: flex; min-height: 0; border-top: 1px solid var(--line); }
+  .tree {
+    width: 160px;
+    padding: 12px 10px;
+    overflow: auto;
+    font-size: 12.5px;
+    color: var(--mute);
+    border-right: 1px solid var(--line);
+  }
+  .tree .h { color: var(--ink); font-weight: 560; margin-bottom: 8px; }
+  .tree .f { padding: 4px 8px; border-radius: 6px; }
+  .tree .f.on { background: var(--elev); color: var(--ink); }
+  .editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--void);
+  }
+  .filetab {
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--mute);
+    border-bottom: 1px solid var(--line);
+  }
+  .filetab b { color: var(--ink); font-weight: 500; }
+  pre {
+    margin: 0;
+    flex: 1;
+    overflow: auto;
+    padding: 16px 18px;
+    font: 12.5px/1.55 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    color: #c4c4cc;
+  }
+
+  /* BOARD — calm table */
+  .board {
+    flex: 1;
+    overflow: auto;
+    padding: 0 8px 12px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+  }
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--faint);
+    padding: 6px 10px 10px;
+  }
+  td {
+    padding: 12px 10px;
+    border-top: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tr.need td { background: var(--human); }
+  .what { font-weight: 500; }
+  .sub {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--mute);
+    font-weight: 400;
+  }
+  .acts { margin-top: 10px; display: flex; gap: 8px; }
+  .acts button {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .acts .go {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: none;
+  }
+  .acts .no {
+    background: transparent;
+    color: var(--mute);
+    border: 1px solid var(--line);
+  }
+  .mute { color: var(--mute); font-weight: 400; }
+  .board-foot {
+    margin: 4px 10px 0;
+    font-size: 12px;
+    color: var(--faint);
+  }
+</style>
+</head>
+<body>
+  <div class="frame" role="application" aria-label="AI Coding Studio">
+    <header class="bar">
+      <div class="name">Studio</div>
+      <span class="sep">/</span>
+      <div class="connectors" aria-label="Connectors">
+        <span class="ok">GitHub</span>
+        <span class="ok">Agents</span>
+        <span>Notion</span>
+      </div>
+      <div class="right"><span class="dot" aria-hidden="true"></span> 3 here</div>
+    </header>
+
+    <main class="panes">
+      <!-- CHAT -->
+      <section class="pane" aria-label="Chat">
+        <div class="label">Chat</div>
+        <div class="chat-body">
+          <aside class="seats" aria-label="Seats">
+            <div class="seat on">
+              <div class="row"><i></i> Eng Lead</div>
+              <div class="badge">in studio</div>
+            </div>
+            <div class="seat">
+              <div class="row"><i></i> You</div>
+              <div class="badge">in studio</div>
+            </div>
+            <div class="seat">
+              <div class="row"><i class="off"></i> #rd-os</div>
+            </div>
+          </aside>
+          <div class="thread">
+            <div class="msgs">
+              <div class="bubble">
+                <div class="meta">Eng Lead</div>
+                <div class="text">Board owns gates. Chat stays seats. Code stays the repo.</div>
+              </div>
+              <div class="bubble me">
+                <div class="meta">You</div>
+                <div class="text">Keep it quiet — one accent, no dashboard noise.</div>
+              </div>
+              <div class="bubble">
+                <div class="meta">Eng Lead</div>
+                <div class="text">PR’s up when you want eyes on the shell.</div>
+              </div>
+            </div>
+            <div class="composer">
+              <div class="composer-box">
+                <textarea rows="2" placeholder="Message Eng Lead…" aria-label="Message"></textarea>
+                <button class="send" type="button">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CODE -->
+      <section class="pane" aria-label="Code">
+        <div class="label">Code</div>
+        <div class="code-top"><strong>nyfeblade/rd-os</strong> <span>· main</span></div>
+        <div class="code-split">
+          <nav class="tree" aria-label="Files">
+            <div class="h">desktop/</div>
+            <div class="f on">StudioShell.tsx</div>
+            <div class="f">ChatPane.tsx</div>
+            <div class="f">BoardPane.tsx</div>
+            <div class="f" style="margin-top:8px">src/</div>
+            <div class="f">board/</div>
+          </nav>
+          <div class="editor">
+            <div class="filetab"><b>StudioShell.tsx</b></div>
+            <pre>export function StudioShell() {
+  return (
+    &lt;div className="panes"&gt;
+      &lt;ChatPane /&gt;
+      &lt;CodePane /&gt;
+      &lt;BoardPane /&gt;
+    &lt;/div&gt;
+  )
+}</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOARD -->
+      <section class="pane" aria-label="Board">
+        <div class="label">Board</div>
+        <div class="board">
+          <table>
+            <thead>
+              <tr>
+                <th>What</th>
+                <th>On</th>
+                <th>Age</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="need">
+                <td>
+                  <div class="what">Merge gate</div>
+                  <div class="sub">Studio shell · Exp-2</div>
+                  <div class="acts">
+                    <button class="go" type="button">Approve</button>
+                    <button class="no" type="button">Reject</button>
+                  </div>
+                </td>
+                <td>You</td>
+                <td>12m</td>
+              </tr>
+              <tr>
+                <td class="mute">
+                  <div class="what" style="font-weight:400">PR checks</div>
+                </td>
+                <td class="mute">Proof</td>
+                <td class="mute">4m</td>
+              </tr>
+              <tr>
+                <td class="mute">
+                  <div class="what" style="font-weight:400">Implement shell</div>
+                </td>
+                <td class="mute">Agent</td>
+                <td class="mute">1h</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="board-foot">2 seats in studio · 1 open gate</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -5,7 +5,8 @@
 | File | Use |
 | --- | --- |
 | `STUDIO-SHELL-SPEC.md` | IA, three panes, cutover, acceptance |
-| `three-pane.html` | Immersive wire (Chat · Code · Board always on) |
+| `quiet-studio.html` | Designer visual SoT (Grok-clean) — **preferred** visual for shell lane |
+| `three-pane.html` | Denser immersive wire (Chat · Code · Board always on) |
 | `tokens.css` | Dark studio tokens |
 
 Feed CA lanes fencing `studio/shell|seats|github`. Desktop Mac+Win.
