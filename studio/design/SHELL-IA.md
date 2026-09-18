@@ -21,7 +21,8 @@ Not ingest-only. See [CONNECTORS-TWO-WAY.md](./CONNECTORS-TWO-WAY.md).
 3. **Bot outbound** — in-studio-only cutover **and** Board Approve/confirm — no silent spam  
 4. **Tray** — `live` | `needs_auth` by default; connect/error + inbox entry  
 
-**P0:** GitHub + Slack.
+**P0:** GitHub + Slack.  
+High-risk egress: [HITL.md](./HITL.md) pending-approval card (payload + diff) before send.
 
 ## Default body (2 panes)
 | Chat | Board |

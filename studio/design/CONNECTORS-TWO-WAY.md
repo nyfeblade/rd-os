@@ -1,37 +1,45 @@
-# Connectors — TWO-WAY (PRODUCT LOCK)
+# Connectors — TWO-WAY + HITL (PRODUCT LOCK)
 
 ## Law
 Connectors are **bidirectional**:
-- **Ingest → Studio:** notifications/events into **Chat** and/or **Board** (need-you)
-- **Out ← Studio:** human replies from Studio composer; **bots** may send only with **cutover + human gate** on send
+- **Ingest → Studio:** unified **notification inbox** → Chat thread and/or Board **need-you**
+- **Out ← Studio:** reply composer bound to that thread; **HITL** before high-risk sends
 
-Tray is **not read-only** — auth, live state, inbox entry, send path.
+Tray: auth + live/needs_auth/error + inbox entry — **not read-only**.
 
-## P0
-| Connector | In | Out |
-| --- | --- | --- |
-| **GitHub** | PR/issue comments, review requests, CI@you | Comment / review reply from Studio |
-| **Slack** | Eng channel/DM @mentions | Message reply from Studio |
+## Unified inbox
+- One inbox model; surfaces in **Chat** (thread) and **Board** (need-you card) as appropriate  
+- Reply **composer bound to active notification/thread**  
+- Visibility: need-you + auth failures only ([VISIBILITY.md](./VISIBILITY.md))
 
-## UI binding
-- **Notification inbox:** thread in Chat (preferred) and/or Board card if it needs a gate  
-- **Reply composer:** same Chat composer, **bound to the active notification/thread** (not a free-floating global outbox)  
-- **Tray states:** `live` | `needs_auth` | `error` | `disconnected`  
-- Visibility: show need-you notifications + auth failures; hide idle catalog ([VISIBILITY.md](./VISIBILITY.md))
+## HITL pending card (high-risk outbound)
+Before send, show a **pending card** with **payload + diff** (or full text) for human Approve/Deny when risk is:
 
-## Bot outbound
-Bot send via connector requires:
-1. Seat **in-studio-only** cutover active  
-2. **Human gate** on that send (Approve on Board or explicit confirm) — no silent bot spam out
+| High-risk | Examples |
+| --- | --- |
+| Merge | merge PR, land commit |
+| Deploy | Vercel/prod promote |
+| DB | migrate, destructive query |
+| Public post | public Slack/channel blast, public GitHub comment on sensitive release |
 
-## Layout locks (unchanged)
-Chat | Board default · Code on demand · Waiting-home dead
+Card must show: destination, actor (human/bot), payload preview, **diff** when code/config, Approve / Deny.  
+Bot outbound also requires in-studio-only cutover ([PRODUCT-NARRATIVE](./PRODUCT-NARRATIVE.md)).
+
+Low-risk replies (normal PR comment, 1:1 Slack) may send from composer without HITL card — still bound to thread.
+
+## Provider order
+- **P0:** GitHub, Slack (inbox + reply + HITL when high-risk)  
+- **Next:** Linear, Sentry, Vercel  
 
 ## Eng fences
 ```
+studio/design/**                 # this SoT
 studio/connectors/CATALOG.md
-studio/design/**                    # this SoT
-shell/chrome/ConnectorsTray.tsx     # live|needs_auth + inbox
-panes/ChatPane.tsx                  # inbox thread + bound reply composer
-panes/BoardPane.tsx                 # need-you + human gate for bot send
+shell/.../ConnectorsTray.tsx
+panes/ChatPane.tsx               # inbox + bound composer
+panes/BoardPane.tsx              # need-you + HITL pending card (payload+diff)
 ```
+
+## See also
+[HITL.md](./HITL.md) — ingress vs egress split, pending-approval card.
+
