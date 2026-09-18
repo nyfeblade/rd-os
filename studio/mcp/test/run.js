@@ -19,6 +19,12 @@ const {
   permissionFor,
   assertMatrixComplete,
   listProviders,
+  serverBinPath,
+  attachEntry,
+  attachConfig,
+  attachConfigJson,
+  preflight,
+  probe,
 } = require("..");
 const { BOARD_GATES_TODO } = require("../lib/board");
 const { providerFields } = require("../lib/providers");
@@ -229,6 +235,82 @@ function stdioRoundtrip() {
         const cursor = body.data.seats.find((seat) => seat.id === "cursor");
         if (!cursor || cursor.presence !== "online" || cursor.in_studio_only !== true || cursor.cutover !== "attached") {
           throw new Error(`stdio cursor seat ${JSON.stringify(cursor)}`);
+        }
+        child.stdin.end();
+        setTimeout(() => {
+          try {
+            child.kill("SIGTERM");
+          } catch (_kill) {
+            // already exited
+          }
+        }, 250);
+        resolve({ ok: true });
+      })
+      .catch((err) => {
+        try {
+          child.kill("SIGTERM");
+        } catch (_kill) {
+          // ignore
+        }
+        resolve({ ok: false, error: `${err && err.message ? err.message : String(err)}${stderr ? ` stderr=${stderr.trim()}` : ""}` });
+      });
+  });
+}
+
+function hostBoot() {
+  return new Promise((resolve) => {
+    const home = tmpDir("studio-mcp-host-");
+    const entry = attachEntry({ provider: "cursor", home, repo: ROOT });
+    const command = entry.command === "node" ? process.execPath : entry.command;
+    const child = spawn(command, entry.args, {
+      env: Object.assign({}, process.env, entry.env, { CHAT_ENGINE_HOME: path.join(home, "chat-engine") }),
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let nextId = 1;
+    const pending = new Map();
+    const parser = createFrameParser((message) => {
+      if (message && pending.has(message.id)) {
+        pending.get(message.id)(message);
+        pending.delete(message.id);
+      }
+    });
+    child.stdout.on("data", (chunk) => parser.push(chunk));
+    let stderr = "";
+    child.stderr.on("data", (chunk) => {
+      stderr += String(chunk);
+    });
+
+    function call(method, params) {
+      const id = nextId;
+      nextId += 1;
+      return new Promise((okCall, bad) => {
+        const timer = setTimeout(() => bad(new Error(`timeout ${method}`)), 8000);
+        pending.set(id, (message) => {
+          clearTimeout(timer);
+          okCall(message);
+        });
+        child.stdin.write(encodeFramed({ jsonrpc: "2.0", id, method, params }));
+      });
+    }
+
+    Promise.resolve()
+      .then(async () => {
+        const init = await call("initialize", {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "studio-mcp-host" },
+        });
+        if (!init.result || !init.result.serverInfo || init.result.serverInfo.name !== SERVER_INFO.name) {
+          throw new Error(`host initialize serverInfo ${JSON.stringify(init.result && init.result.serverInfo)}`);
+        }
+        if (!init.result.instructions || init.result.instructions.indexOf(CONNECT_ACK) < 0) {
+          throw new Error("host initialize missing connect ack");
+        }
+        const seats = await call("tools/call", { name: "studio.seats.list", arguments: {} });
+        const body = JSON.parse(seats.result.content[0].text);
+        const cursor = body.ok && body.data.seats.find((seat) => seat.id === "cursor");
+        if (!cursor || cursor.presence !== "online" || cursor.in_studio_only !== true) {
+          throw new Error(`host cursor seat ${JSON.stringify(cursor)}`);
         }
         child.stdin.end();
         setTimeout(() => {
@@ -589,6 +671,139 @@ async function cases() {
         if (!self || self.presence !== "online") {
           return { ok: false, error: `${id} not online in its own session` };
         }
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("host attach config resolves an absolute server/bin.js that exists", () => {
+      const bin = serverBinPath();
+      if (!path.isAbsolute(bin)) {
+        return { ok: false, error: `bin not absolute: ${bin}` };
+      }
+      if (bin !== BIN) {
+        return { ok: false, error: `bin ${bin} != ${BIN}` };
+      }
+      if (!fs.existsSync(bin)) {
+        return { ok: false, error: `bin missing: ${bin}` };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("host attach entry is node + [absolute bin] + STUDIO_PROVIDER, no key paste", () => {
+      const entry = attachEntry({ provider: "cursor" });
+      if (entry.command !== "node") {
+        return { ok: false, error: `command ${entry.command}` };
+      }
+      if (!eq(entry.args, [serverBinPath()])) {
+        return { ok: false, error: `args ${JSON.stringify(entry.args)}` };
+      }
+      if (!eq(entry.env, { STUDIO_PROVIDER: "cursor" })) {
+        return { ok: false, error: `env ${JSON.stringify(entry.env)}` };
+      }
+      const custom = attachEntry({ provider: "grok", command: "/opt/node/bin/node" });
+      if (custom.command !== "/opt/node/bin/node") {
+        return { ok: false, error: `command override ${custom.command}` };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("host attach env includes STUDIO_HOME/STUDIO_REPO only when provided", () => {
+      const bare = attachEntry({ provider: "claude" });
+      if ("STUDIO_HOME" in bare.env || "STUDIO_REPO" in bare.env) {
+        return { ok: false, error: `bare env leaked ${JSON.stringify(bare.env)}` };
+      }
+      const full = attachEntry({ provider: "claude", home: "/tmp/studio", repo: "/repo" });
+      if (full.env.STUDIO_HOME !== "/tmp/studio" || full.env.STUDIO_REPO !== "/repo") {
+        return { ok: false, error: `full env ${JSON.stringify(full.env)}` };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("host attach config key defaults to the server name and is overridable", () => {
+      const def = attachConfig({ provider: "codex" });
+      const keys = Object.keys(def.mcpServers);
+      if (!eq(keys, [SERVER_INFO.name])) {
+        return { ok: false, error: `keys ${keys.join(",")}` };
+      }
+      const named = attachConfig({ provider: "codex", key: "studio" });
+      if (!Object.prototype.hasOwnProperty.call(named.mcpServers, "studio")) {
+        return { ok: false, error: `override keys ${Object.keys(named.mcpServers).join(",")}` };
+      }
+      const parsed = JSON.parse(attachConfigJson({ provider: "gemini" }));
+      if (JSON.stringify(parsed) !== JSON.stringify(attachConfig({ provider: "gemini" }))) {
+        return { ok: false, error: "attachConfigJson drifted from attachConfig" };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("host attach config rejects an unknown provider with UNKNOWN_PROVIDER", () => {
+      try {
+        attachConfig({ provider: "luke" });
+        return { ok: false, error: "expected throw" };
+      } catch (err) {
+        if (!err || err.code !== "UNKNOWN_PROVIDER") {
+          return { ok: false, error: `code ${err && err.code}` };
+        }
+        return { ok: true };
+      }
+    })
+  );
+
+  rows.push(
+    await runCaseAsync("host-generated attach config boots the stdio server (initialize online)", async () => {
+      return hostBoot();
+    })
+  );
+
+  rows.push(
+    runCase("host preflight passes for a known provider and flags an unknown one", () => {
+      const good = preflight({ provider: "cursor", repo: ROOT });
+      if (!good.ok || good.provider !== "cursor" || good.reasons.length !== 0) {
+        return { ok: false, error: `good ${JSON.stringify(good)}` };
+      }
+      if (good.binPath !== serverBinPath()) {
+        return { ok: false, error: `binPath ${good.binPath}` };
+      }
+      const bad = preflight({ provider: "luke" });
+      if (bad.ok || bad.provider !== null || !bad.reasons.some((r) => r.indexOf("unknown provider") === 0)) {
+        return { ok: false, error: `bad ${JSON.stringify(bad)}` };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    await runCaseAsync("host probe self-tests the attach: online cursor seat then shuts down", async () => {
+      const home = tmpDir("studio-mcp-probe-");
+      const result = await probe({ provider: "cursor", home, repo: ROOT, timeoutMs: 8000 });
+      if (!result.ok) {
+        return { ok: false, error: `probe ${result.code} ${result.detail || ""}` };
+      }
+      if (result.provider !== "cursor" || result.online !== true) {
+        return { ok: false, error: `probe result ${JSON.stringify(result)}` };
+      }
+      if (!result.seat || result.seat.presence !== "online" || result.seat.in_studio_only !== true) {
+        return { ok: false, error: `probe seat ${JSON.stringify(result.seat)}` };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    await runCaseAsync("host probe rejects an unknown provider without spawning", async () => {
+      const result = await probe({ provider: "luke" });
+      if (result.ok || result.code !== "UNKNOWN_PROVIDER") {
+        return { ok: false, error: `expected UNKNOWN_PROVIDER, got ${JSON.stringify(result)}` };
       }
       return { ok: true };
     })

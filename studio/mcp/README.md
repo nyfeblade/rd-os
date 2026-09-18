@@ -71,6 +71,31 @@ Attach from an MCP client (Cursor example — same shape for Claude Code / Codex
 
 `STUDIO_HOME` persists seats (`state.json`) so a later Studio desktop can share the roster. Unset = in-memory seats + temp chat-engine home.
 
+### One-click attach (no path paste)
+
+Strangers should not hand-write the absolute path to `server/bin.js`. `host.js` resolves it and emits the client config, so Studio (or a script) can surface a copy-paste-ready block:
+
+```js
+const { attachConfigJson } = require("@rd-os/studio-mcp"); // or require("../mcp")
+
+process.stdout.write(attachConfigJson({ provider: "cursor", home: "./var/studio", repo: "." }));
+// {
+//   "mcpServers": {
+//     "ai-coding-studio": {
+//       "command": "node",
+//       "args": ["/abs/path/to/studio/mcp/server/bin.js"],
+//       "env": { "STUDIO_PROVIDER": "cursor", "STUDIO_HOME": "./var/studio", "STUDIO_REPO": "." }
+//     }
+//   }
+// }
+```
+
+`attachEntry` / `attachConfig` return the same shape as objects. `home`/`repo` are omitted from `env` when not given, and an unknown provider throws `UNKNOWN_PROVIDER`. This does not start a process or take a seat — `initialize` over stdio still connects.
+
+`preflight({ provider, home })` is a synchronous readiness check (provider known, bin present, home is a dir) → `{ ok, provider, binPath, reasons }`. Never spawns.
+
+`await probe({ provider, home, repo, timeoutMs })` self-tests the config end-to-end: it spawns the server, `initialize`s, confirms the seat comes **online + in-studio-only**, then shuts down → `{ ok, provider, online, seat }` or `{ ok:false, code, detail }` (never rejects). This is what a one-click Connect calls to prove the wiring before handing the config to the agent; it is not a persistent host.
+
 ## Stranger
 
 Cold clone. No install. No fleet credentials. Node >= 18.

@@ -19,6 +19,7 @@ const {
 } = require("./lib/providers");
 const { PERMISSION_MATRIX, HITL_OPS, permissionFor, assertMatrixComplete } = require("./lib/permissions");
 const { CONNECT_ACK, IN_STUDIO_ONLY_LABEL, PRODUCT_LOCK, REJECT_CODES, HITL_CLASSES } = require("./lib/codes");
+const { serverBinPath, attachEntry, attachConfig, attachConfigJson, preflight, probe } = require("./host");
 
 module.exports = {
   createStudioMcpServer,
@@ -43,4 +44,10 @@ module.exports = {
   IN_STUDIO_ONLY_LABEL,
   PRODUCT_LOCK,
   REJECT_CODES,
+  serverBinPath,
+  attachEntry,
+  attachConfig,
+  attachConfigJson,
+  preflight,
+  probe,
 };
