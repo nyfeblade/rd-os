@@ -6,13 +6,13 @@
   function connectorClass(status) {
     switch (status) {
       case "live":
-        return "ok";
+        return "live";
       case "needs_auth":
-        return "warn";
-      case "disconnected":
-        return "bad";
+        return "auth";
       case "error":
-        return "err";
+        return "auth";
+      case "disconnected":
+        return "auth";
       default:
         return assertNever(status);
     }
@@ -38,9 +38,8 @@
   function problemLabel(connector) {
     switch (connector.status) {
       case "needs_auth":
-        return `${connector.label} needs sign-in`;
       case "error":
-        return `${connector.label} error`;
+        return `${connector.label} needs sign-in`;
       case "live":
       case "disconnected":
         return connector.label;
@@ -57,10 +56,10 @@
     for (const connector of problemConnectors(state.connectors)) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "warn";
+      button.className = `warn ${connectorClass(connector.status)}`;
       button.dataset.connector = connector.id;
       button.dataset.status = connector.status;
-      button.title = "needs attention";
+      button.title = connector.status;
       button.setAttribute("aria-label", problemLabel(connector));
       button.textContent = problemLabel(connector);
       button.addEventListener("click", () => onConnector(connector.id));

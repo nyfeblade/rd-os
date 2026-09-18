@@ -15,13 +15,6 @@
     "room:chat": [{ who: "Agents", body: "A project room. Connect to cut over — any provider.", me: false }],
   };
 
-  const LIVE_THREADS = {
-    cursor: [
-      { who: "Cursor", body: "Diff is ready when you want it. One Proof gate is waiting on you.", me: false },
-      { who: "You", body: "Take the gate when CI is green.", me: true },
-    ],
-  };
-
   function coldOpenSeats() {
     return [
       { id: "human", name: "You", kind: "human", presence: "online", cutover: true },
@@ -36,11 +29,42 @@
     return state.seats.find((seat) => seat.id === state.selectedSeat) || state.seats[0];
   }
 
-  function threadFor(state, seat) {
-    if (state.view === "live" && LIVE_THREADS[seat.id]) {
-      return LIVE_THREADS[seat.id];
+  function chatDest(item) {
+    return item.dest === "chat" || item.dest === "chat+board";
+  }
+
+  function inboxForChat(state) {
+    return (state.inbox || []).filter((item) => item.need_you && chatDest(item));
+  }
+
+  function boundItem(state) {
+    if (!state.boundTo) {
+      return null;
     }
-    return THREADS[seat.id] || [];
+    return (state.inbox || []).find((item) => item.id === state.boundTo) || null;
+  }
+
+  function replyKindFor(item) {
+    switch (item.provider) {
+      case "github":
+        switch (item.kind) {
+          case "review_comment":
+            return "pull_request_review_comment";
+          case "review":
+          case "review_request":
+            return "pull_request_review";
+          case "comment":
+          case "ci_failure":
+          case "auth_failure":
+            return "issue_comment";
+          default:
+            return "issue_comment";
+        }
+      case "slack":
+        return "message";
+      default:
+        return Studio.assertNever(item.provider);
+    }
   }
 
   function renderSeats(els, _state, _handlers) {
@@ -50,23 +74,91 @@
     els.seatList.setAttribute("aria-hidden", "true");
   }
 
+  function renderInboxContext(els, state) {
+    const bound = boundItem(state);
+    if (!els.inboxCtx || !els.composeHint) {
+      return;
+    }
+    if (state.view === "cold" || !bound) {
+      els.inboxCtx.hidden = true;
+      els.composeHint.hidden = true;
+      return;
+    }
+    els.inboxCtx.hidden = false;
+    els.inboxCtx.replaceChildren();
+    els.inboxCtx.appendChild(document.createTextNode("Replying on "));
+    const who = document.createElement("b");
+    who.textContent = bound.provider === "github" ? "GitHub" : "Slack";
+    els.inboxCtx.append(who, document.createTextNode(` · ${bound.title}`));
+    els.composeHint.hidden = false;
+    els.composeHint.textContent = `Outbound bound to this notification · ${bound.id}`;
+  }
+
   function renderThread(els, state, _handlers) {
     const seat = selectedSeat(state);
-    els.composerInput.placeholder = `Message ${seat.name}…`;
-    const messages = threadFor(state, seat);
+    const bound = boundItem(state);
+    const inbox = inboxForChat(state);
     els.messages.replaceChildren();
-    for (const message of messages) {
-      const wrap = document.createElement("div");
-      wrap.className = "msg";
-      const who = document.createElement("div");
-      who.className = "who";
-      who.textContent = message.who;
-      const body = document.createElement("div");
-      body.className = "txt";
-      body.textContent = message.body;
-      wrap.append(who, body);
-      els.messages.appendChild(wrap);
+
+    if (state.view === "live" && inbox.length) {
+      for (const item of inbox) {
+        const wrap = document.createElement("div");
+        wrap.className = "msg inbound";
+        wrap.dataset.inbox = item.id;
+        const who = document.createElement("div");
+        who.className = "who";
+        who.textContent = `${item.provider === "github" ? "GitHub" : "Slack"} → inbox`;
+        const body = document.createElement("div");
+        body.className = "txt";
+        body.textContent = item.body || item.title;
+        wrap.append(who, body);
+        els.messages.appendChild(wrap);
+      }
+      if (state.outbox && state.outbox.length) {
+        for (const sent of state.outbox) {
+          const wrap = document.createElement("div");
+          wrap.className = "msg";
+          const who = document.createElement("div");
+          who.className = "who";
+          who.textContent = sent.actor === "bot" ? "Bot (gated)" : "You (from Studio)";
+          const body = document.createElement("div");
+          body.className = "txt";
+          body.textContent = sent.body;
+          wrap.append(who, body);
+          els.messages.appendChild(wrap);
+        }
+      }
+      els.composerInput.placeholder = bound
+        ? `Reply on ${bound.provider === "github" ? "GitHub" : "Slack"}…`
+        : "Select an inbox thread to reply…";
+      els.composerInput.disabled = !bound;
+      if (els.composeSend) {
+        els.composeSend.textContent = bound
+          ? `Send to ${bound.provider === "github" ? "GitHub" : "Slack"}`
+          : "Send";
+      }
+    } else {
+      const messages = THREADS[seat.id] || [];
+      for (const message of messages) {
+        const wrap = document.createElement("div");
+        wrap.className = "msg";
+        const who = document.createElement("div");
+        who.className = "who";
+        who.textContent = message.who;
+        const body = document.createElement("div");
+        body.className = "txt";
+        body.textContent = message.body;
+        wrap.append(who, body);
+        els.messages.appendChild(wrap);
+      }
+      els.composerInput.placeholder = `Message ${seat.name}…`;
+      els.composerInput.disabled = false;
+      if (els.composeSend) {
+        els.composeSend.textContent = "Send";
+      }
     }
+
+    renderInboxContext(els, state);
     els.messages.scrollTop = els.messages.scrollHeight;
   }
 
@@ -81,6 +173,9 @@
   Studio.panes.THREADS = THREADS;
   Studio.panes.coldOpenSeats = coldOpenSeats;
   Studio.panes.selectedSeat = selectedSeat;
+  Studio.panes.boundItem = boundItem;
+  Studio.panes.replyKindFor = replyKindFor;
+  Studio.panes.inboxForChat = inboxForChat;
   Studio.panes.renderSeats = renderSeats;
   Studio.panes.renderThread = renderThread;
   Studio.panes.pushLocal = pushLocal;

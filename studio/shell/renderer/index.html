@@ -21,7 +21,7 @@
         <b class="name">Studio</b>
         <span class="with" id="with"></span>
         <div class="modes" id="mode-chip" data-chrome="modes-rail" hidden aria-hidden="true"></div>
-        <div id="connectors-tray" data-chrome="connectors-tray" aria-label="Connector problems"></div>
+        <div class="tray" id="connectors-tray" data-chrome="connectors-tray" aria-label="Connectors"></div>
         <span class="grow"></span>
         <button type="button" id="btn-code" aria-pressed="false">Code</button>
         <button type="button" class="here" id="presence-btn" data-chrome="presence-bar" hidden aria-hidden="true" aria-expanded="false" aria-controls="presence-list">
@@ -35,13 +35,15 @@
           <aside class="seats" id="seat-list" hidden aria-hidden="true" aria-label="Seats and rooms"></aside>
           <div id="chat-live">
             <p class="onboard" id="chat-onboard" hidden>Talk to agents here. What’s blocked on you sits on the Board.</p>
+            <div class="ctx" id="inbox-ctx" hidden></div>
             <div class="msgs" id="messages" aria-live="polite"></div>
             <p class="open-code-hint" id="open-code-hint" hidden>
               Need the repo? <button type="button" id="hint-code">Open code</button>
             </p>
+            <p class="hint" id="compose-hint" hidden>Outbound bound to this notification</p>
             <form class="compose" id="composer">
-              <textarea id="composer-input" rows="2" placeholder="Message…" aria-label="Message"></textarea>
-              <button class="send" type="submit">Send</button>
+              <textarea id="composer-input" rows="2" placeholder="Message…" aria-label="Reply composer"></textarea>
+              <button class="send" type="submit" id="compose-send">Send</button>
             </form>
           </div>
           <div id="chat-cold" class="empty" hidden>

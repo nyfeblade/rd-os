@@ -13,6 +13,7 @@
     { id: "linear", label: "Linear", status: "needs_auth" },
     { id: "sentry", label: "Sentry", status: "needs_auth" },
     { id: "vercel", label: "Vercel", status: "needs_auth" },
+    { id: "slack", label: "Slack", status: "needs_auth" },
   ];
 
   const els = {
@@ -34,6 +35,9 @@
     messages: document.getElementById("messages"),
     composer: document.getElementById("composer"),
     composerInput: document.getElementById("composer-input"),
+    composeSend: document.getElementById("compose-send"),
+    inboxCtx: document.getElementById("inbox-ctx"),
+    composeHint: document.getElementById("compose-hint"),
     fileTree: document.getElementById("file-tree"),
     editorTab: document.getElementById("editor-tab"),
     editorBody: document.getElementById("editor-body"),
@@ -56,6 +60,10 @@
     seats: Studio.panes.coldOpenSeats(),
     connectors: FALLBACK_P0.map((item) => ({ ...item })),
     catalogRows: FALLBACK_P0.map((item) => ({ ...item })),
+    inbox: [],
+    outbox: [],
+    boundTo: null,
+    pendingBotSend: null,
     selectedSeat: "human",
     selectedFile: "shell",
     dump: null,
@@ -80,6 +88,11 @@
 
   const boardHandlers = {
     resolveGate,
+    resolveBotSend,
+    bindInbox(id) {
+      state.boundTo = id;
+      renderChrome();
+    },
     openDiff() {
       Studio.panes.setCodeOpen(els, state, true);
       Studio.panes.renderBoard(els, state, boardHandlers);
@@ -98,12 +111,17 @@
   }
 
   function renderWith() {
-    const seat = Studio.panes.selectedSeat(state);
-    if (state.view === "cold" || !seat) {
+    const bound = Studio.panes.boundItem(state);
+    if (state.view === "cold") {
       els.withEl.textContent = "";
       return;
     }
-    els.withEl.textContent = seat.name;
+    if (bound) {
+      els.withEl.textContent = bound.provider === "github" ? "GitHub" : "Slack";
+      return;
+    }
+    const seat = Studio.panes.selectedSeat(state);
+    els.withEl.textContent = seat ? seat.name : "";
   }
 
   function renderChrome() {
@@ -116,6 +134,27 @@
     Studio.panes.renderBoard(els, state, boardHandlers);
   }
 
+  function ensureWire(rows) {
+    const next = rows.map((row) => ({ ...row }));
+    if (!next.some((row) => row.id === "slack")) {
+      next.push({ id: "slack", label: "Slack", status: "needs_auth" });
+    }
+    if (!next.some((row) => row.id === "github")) {
+      next.push({ id: "github", label: "GitHub", status: "needs_auth" });
+    }
+    return next;
+  }
+
+  function connectorStatus(id) {
+    const row = state.connectors.find((item) => item.id === id);
+    return row ? row.status : "needs_auth";
+  }
+
+  function cutoverFromSeats() {
+    const attached = state.seats.some((seat) => seat.kind === "bot" && seat.cutover === true);
+    return { status: attached ? "attached" : "unattached", in_studio_only: attached };
+  }
+
   function applyLiveDemo() {
     state.seats = Studio.panes.coldOpenSeats().map((seat) => {
       if (seat.id === "human" || seat.id === "cursor" || seat.id === "claude") {
@@ -124,27 +163,44 @@
       return { ...seat };
     });
     state.selectedSeat = "cursor";
-    state.connectors = state.catalogRows.map((row) => {
+    state.connectors = ensureWire(state.catalogRows).map((row) => {
       const next = { ...row };
       switch (row.id) {
-        case "github":
-        case "cursor":
-        case "grok":
-        case "linear":
-          next.status = "live";
-          break;
-        case "claude":
+        case "slack":
           next.status = "needs_auth";
-          break;
-        case "sentry":
-        case "vercel":
-          next.status = "disconnected";
           break;
         default:
-          next.status = "needs_auth";
+          next.status = "live";
       }
       return next;
     });
+  }
+
+  function clearTwoWay() {
+    state.inbox = [];
+    state.outbox = [];
+    state.boundTo = null;
+    state.pendingBotSend = null;
+  }
+
+  function bindFirstInbox() {
+    const chatItems = Studio.panes.inboxForChat(state);
+    state.boundTo = chatItems.length ? chatItems[0].id : null;
+    const bound = Studio.panes.boundItem(state);
+    if (bound && connectorStatus(bound.provider) === "live") {
+      state.pendingBotSend = {
+        id: `bot:${bound.id}`,
+        provider: bound.provider,
+        bound_to: bound.id,
+        kind: Studio.panes.replyKindFor(bound),
+        title: `Bot ${bound.provider === "github" ? "GitHub" : "Slack"} reply (cutover)`,
+        body: "bot follow-up after human gate",
+        thread_ref: bound.thread_ref,
+        status: "pending",
+      };
+    } else {
+      state.pendingBotSend = null;
+    }
   }
 
   function setView(view) {
@@ -166,7 +222,8 @@
     if (view === "cold") {
       state.seats = Studio.panes.coldOpenSeats();
       state.selectedSeat = "human";
-      state.connectors = state.catalogRows.map((row) => ({ ...row, status: "needs_auth" }));
+      state.connectors = ensureWire(state.catalogRows).map((row) => ({ ...row, status: "needs_auth" }));
+      clearTwoWay();
       Studio.panes.setCodeOpen(els, state, false);
     } else {
       applyLiveDemo();
@@ -195,6 +252,45 @@
     Studio.panes.renderBoard(els, state, boardHandlers);
   }
 
+  async function resolveBotSend(status) {
+    switch (status) {
+      case "approved":
+      case "rejected":
+        break;
+      default:
+        Studio.assertNever(status);
+    }
+    const pending = state.pendingBotSend;
+    if (!pending) {
+      return;
+    }
+    if (status === "rejected") {
+      pending.status = "denied";
+      state.flash = "bot send denied — no free-fire";
+      renderChrome();
+      return;
+    }
+    const result = await postReply({
+      provider: pending.provider,
+      actor: "bot",
+      kind: pending.kind,
+      tray_state: connectorStatus(pending.provider),
+      bound_to: pending.bound_to,
+      body: pending.body,
+      thread_ref: pending.thread_ref,
+      cutover: cutoverFromSeats(),
+      human_gate: { status: "approved", by: "you" },
+    });
+    if (result && result.ok) {
+      pending.status = "sent";
+      state.outbox.push({ actor: "bot", body: pending.body, bound_to: pending.bound_to });
+      state.flash = "bot send after cutover + human gate";
+    } else {
+      state.flash = result && result.code ? result.code : "BOT_SEND_NO_GATE";
+    }
+    renderChrome();
+  }
+
   function onConnector(id) {
     if (id === "add") {
       openCutover({
@@ -210,8 +306,14 @@
       return;
     }
     switch (connector.status) {
-      case "live":
+      case "live": {
+        const match = (state.inbox || []).find((item) => item.provider === id && item.need_you);
+        if (match) {
+          state.boundTo = match.id;
+          renderChrome();
+        }
         return;
+      }
       case "needs_auth":
       case "disconnected":
       case "error":
@@ -273,6 +375,22 @@
     renderChrome();
   }
 
+  async function postReply(draft) {
+    try {
+      if (window.studioShell && typeof window.studioShell.reply === "function") {
+        return await window.studioShell.reply(draft);
+      }
+      const response = await fetch("/twoway/reply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draft),
+      });
+      return await response.json();
+    } catch (_err) {
+      return { ok: false, code: "INVALID_EVENT" };
+    }
+  }
+
   function wireChrome() {
     els.viewCold.addEventListener("click", () => {
       setView("cold");
@@ -280,7 +398,10 @@
     });
     els.viewLive.addEventListener("click", () => {
       setView("live");
-      loadNamedDump("attention.human.json").then(() => renderChrome());
+      Promise.all([loadNamedDump("attention.human.json"), loadInbox()]).then(() => {
+        bindFirstInbox();
+        renderChrome();
+      });
     });
     els.ctaGithub.addEventListener("click", () => onConnector("github"));
     els.ctaSeat.addEventListener("click", () => {
@@ -293,10 +414,12 @@
       Studio.panes.setCodeOpen(els, state, !state.codeOpen);
       Studio.panes.renderBoard(els, state, boardHandlers);
     });
-    els.hintCode.addEventListener("click", () => {
-      Studio.panes.setCodeOpen(els, state, true);
-      Studio.panes.renderBoard(els, state, boardHandlers);
-    });
+    if (els.hintCode) {
+      els.hintCode.addEventListener("click", () => {
+        Studio.panes.setCodeOpen(els, state, true);
+        Studio.panes.renderBoard(els, state, boardHandlers);
+      });
+    }
     els.btnClose.addEventListener("click", () => {
       Studio.panes.setCodeOpen(els, state, false);
       Studio.panes.renderBoard(els, state, boardHandlers);
@@ -318,13 +441,32 @@
       if (!text) {
         return;
       }
+      const bound = Studio.panes.boundItem(state);
+      if (bound) {
+        postReply({
+          provider: bound.provider,
+          actor: "human",
+          kind: Studio.panes.replyKindFor(bound),
+          tray_state: connectorStatus(bound.provider),
+          bound_to: bound.id,
+          body: text,
+          thread_ref: bound.thread_ref,
+        }).then((result) => {
+          if (result && result.ok) {
+            state.outbox.push({ actor: "human", body: text, bound_to: bound.id });
+            state.flash = "sent from Studio on this thread";
+          } else if (result && result.code === "UNBOUND_REPLY") {
+            state.flash = "UNBOUND_REPLY";
+          } else {
+            state.flash = result && result.code ? result.code : "reply failed";
+          }
+          els.composerInput.value = "";
+          renderChrome();
+        });
+        return;
+      }
       const seat = Studio.panes.selectedSeat(state);
       Studio.panes.pushLocal(seat.id, { who: "You", body: text, me: true });
-      Studio.panes.pushLocal(seat.id, {
-        who: seat.name,
-        body: "Placeholder seat. Model attach is later. Still in Studio only.",
-        me: false,
-      });
       els.composerInput.value = "";
       Studio.panes.renderThread(els, state, chatHandlers);
     });
@@ -383,16 +525,37 @@
     await loadNamedDump(dumpName());
   }
 
+  async function loadInbox() {
+    try {
+      if (window.studioShell && typeof window.studioShell.loadInbox === "function") {
+        const items = await window.studioShell.loadInbox();
+        state.inbox = Array.isArray(items) ? items : [];
+        return;
+      }
+      const response = await fetch("/twoway/inbox.json");
+      if (!response.ok) {
+        state.inbox = [];
+        return;
+      }
+      const items = await response.json();
+      state.inbox = Array.isArray(items) ? items : [];
+    } catch (_err) {
+      state.inbox = [];
+    }
+  }
+
   async function loadCatalog() {
     try {
       if (window.studioShell && typeof window.studioShell.loadCatalog === "function") {
         const rows = await window.studioShell.loadCatalog();
         if (Array.isArray(rows) && rows.length) {
-          state.catalogRows = rows.map((row) => ({
-            id: row.id,
-            label: row.label,
-            status: "needs_auth",
-          }));
+          state.catalogRows = ensureWire(
+            rows.map((row) => ({
+              id: row.id,
+              label: row.label,
+              status: "needs_auth",
+            })),
+          );
           state.connectors = state.catalogRows.map((row) => ({ ...row }));
         }
         return;
@@ -403,11 +566,13 @@
       }
       const rows = await response.json();
       if (Array.isArray(rows) && rows.length) {
-        state.catalogRows = rows.map((row) => ({
-          id: row.id,
-          label: row.label,
-          status: "needs_auth",
-        }));
+        state.catalogRows = ensureWire(
+          rows.map((row) => ({
+            id: row.id,
+            label: row.label,
+            status: "needs_auth",
+          })),
+        );
         state.connectors = state.catalogRows.map((row) => ({ ...row }));
       }
     } catch (_err) {
@@ -424,7 +589,14 @@
     await loadCatalog();
     await loadDump();
     Studio.panes.setCodeOpen(els, state, false);
+    if (initialView() === "live") {
+      await loadInbox();
+    }
     setView(initialView());
+    if (state.view === "live") {
+      bindFirstInbox();
+      renderChrome();
+    }
     wireChrome();
   }
 

@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const { tryReadCatalogP0 } = require("../lib/read-catalog");
+const { demoInbox, mergeWireConnectors, sendReply } = require("../lib/two-way");
 
 const ROOT = path.join(__dirname, "..", "renderer");
 const PORT = Number(process.env.PORT || 5173);
@@ -30,9 +31,31 @@ function safeJoin(root, requestPath) {
 const server = http.createServer((req, res) => {
   const urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
   if (urlPath === "/catalog.json") {
-    const rows = tryReadCatalogP0();
+    const rows = mergeWireConnectors(tryReadCatalogP0());
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
     res.end(JSON.stringify(rows));
+    return;
+  }
+  if (urlPath === "/twoway/inbox.json") {
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify(demoInbox()));
+    return;
+  }
+  if (urlPath === "/twoway/reply" && req.method === "POST") {
+    const chunks = [];
+    req.on("data", (chunk) => {
+      chunks.push(chunk);
+    });
+    req.on("end", () => {
+      let draft = {};
+      try {
+        draft = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+      } catch (_err) {
+        draft = {};
+      }
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(sendReply(draft)));
+    });
     return;
   }
   const file = safeJoin(ROOT, req.url || "/");

@@ -23,6 +23,9 @@ function slugFromName(name) {
   if (key.includes("github")) {
     return "github";
   }
+  if (key.includes("slack")) {
+    return "slack";
+  }
   if (key.includes("cursor") || key.includes("cloud agent")) {
     return "cursor";
   }
@@ -124,15 +127,63 @@ function tryReadCatalogP0() {
   return readCatalogP0();
 }
 
+/** Two-way P0 wire rows (`p0_wire` yes): GitHub + Slack after catalog. */
+function parseTwoWayWire(markdown) {
+  const start = markdown.search(/\n## Two-way\b/);
+  if (start < 0) {
+    return [];
+  }
+  const rest = markdown.slice(start + 1);
+  const next = rest.search(/\n## /);
+  const section = next < 0 ? rest : rest.slice(0, next);
+  const rows = [];
+  for (const line of section.split("\n")) {
+    if (!line.startsWith("|")) {
+      continue;
+    }
+    const cells = line
+      .split("|")
+      .slice(1, -1)
+      .map((cell) => cell.trim());
+    if (cells.length < 2) {
+      continue;
+    }
+    if (cells[0] === "Name" || /^[-:\s]+$/.test(cells[0])) {
+      continue;
+    }
+    const wireFlag = cells[cells.length - 1].toLowerCase();
+    if (wireFlag !== "yes") {
+      continue;
+    }
+    rows.push({
+      id: slugFromName(cells[0]),
+      label: trayLabel(cells[0]),
+      catalogName: cells[0],
+      p0_wire: true,
+      status: "needs_auth",
+    });
+  }
+  return rows;
+}
+
+function tryReadTwoWayWire() {
+  if (!catalogPresent()) {
+    return [];
+  }
+  return parseTwoWayWire(readCatalogMarkdown());
+}
+
 module.exports = {
   CATALOG_REL,
   catalogPath,
   catalogPresent,
   parseP0,
   parsePrioritySection,
+  parseTwoWayWire,
   readCatalogMarkdown,
   readCatalogP0,
   tryReadCatalogP0,
+  tryReadTwoWayWire,
   slugFromName,
   trayLabel,
 };

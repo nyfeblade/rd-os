@@ -4,6 +4,7 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const { tryReadCatalogP0 } = require("../lib/read-catalog");
+const { demoInbox, mergeWireConnectors, sendReply } = require("../lib/two-way");
 
 const MIN_WIDTH = 1200;
 const MIN_HEIGHT = 720;
@@ -70,7 +71,15 @@ ipcMain.handle("studio:platform", () => {
 });
 
 ipcMain.handle("studio:catalog", () => {
-  return tryReadCatalogP0();
+  return mergeWireConnectors(tryReadCatalogP0());
+});
+
+ipcMain.handle("studio:inbox", () => {
+  return demoInbox();
+});
+
+ipcMain.handle("studio:reply", (_event, draft) => {
+  return sendReply(draft);
 });
 
 ipcMain.handle("studio:loadDump", (_event, name) => {

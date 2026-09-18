@@ -5,7 +5,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.join(__dirname, "..");
-const { CATALOG_REL, catalogPath, catalogPresent, tryReadCatalogP0 } = require("../lib/read-catalog");
+const { CATALOG_REL, catalogPath, catalogPresent, tryReadCatalogP0, tryReadTwoWayWire } = require("../lib/read-catalog");
+const twoWay = require("../lib/two-way");
 const { coldOpenSeats, CONNECT_ACK, DEFAULT_SEAT_IDS, IN_STUDIO_ONLY_LABEL } = require("../lib/cold-open");
 const seats = require("../../seats");
 
@@ -58,6 +59,10 @@ assert.match(html, /id="instruments" hidden/);
 assert.match(html, /id="watches" hidden/);
 assert.match(html, /id="mode-chip"/);
 assert.match(html, /class="compose"/);
+assert.match(html, /id="inbox-ctx"/);
+assert.match(html, /id="compose-hint"/);
+assert.match(html, /Reply composer/);
+assert.match(html, /class="tray"/);
 assert.match(html, /data-chrome="modes-rail"/);
 assert.match(html, /your-repo/);
 assert.match(html, /code-pane/);
@@ -96,6 +101,11 @@ assert.match(js, /view: "cold"/);
 assert.match(js, /setView/);
 assert.match(js, /applyLiveDemo/);
 assert.match(js, /needs_auth/);
+assert.match(js, /loadInbox/);
+assert.match(js, /bound_to/);
+assert.match(js, /actor: "bot"/);
+assert.match(js, /actor: "human"/);
+assert.match(js, /id: "slack"/);
 assert.match(js, /Escape/);
 assert.doesNotMatch(js, /Eng Lead/);
 assert.doesNotMatch(js, /nyfeblade\/rd-os/);
@@ -109,11 +119,16 @@ assert.match(chat, /room:chat/);
 assert.match(chat, /Talk to agents/);
 assert.match(chat, /in-studio-only/);
 assert.match(chat, /seatList.hidden = true/);
+assert.match(chat, /bound_to|boundTo|boundItem/);
+assert.match(chat, /GitHub → inbox|inbox/);
+assert.match(chat, /replyKindFor/);
 assert.doesNotMatch(chat, /person on/);
 assert.doesNotMatch(chat, /Eng Lead/);
 
 assert.match(board, /Needs you/);
-assert.match(board, /Nothing else needs you/);
+assert.match(board, /also from inbox/);
+assert.match(board, /Allow send/);
+assert.match(board, /Human gate before bot sends out/);
 assert.match(board, /instrumentFor/);
 assert.match(board, /Agent map/);
 assert.match(board, /View diff/);
@@ -128,6 +143,7 @@ assert.match(tray, /problemConnectors/);
 assert.match(tray, /needs sign-in/);
 assert.match(tray, /state.view === "cold"/);
 assert.match(tray, /case "live"/);
+assert.match(tray, /case "needs_auth"/);
 assert.doesNotMatch(tray, /iconGlyph/);
 assert.doesNotMatch(tray, /for \(const connector of state.connectors\)/);
 assert.match(modes, /nextMode/);
@@ -148,6 +164,9 @@ assert.match(main, /DEFAULT_HEIGHT = 900/);
 assert.match(main, /MIN_WIDTH = 1200/);
 assert.match(main, /MIN_HEIGHT = 720/);
 assert.match(main, /tryReadCatalogP0/);
+assert.match(main, /studio:inbox/);
+assert.match(main, /studio:reply/);
+assert.match(main, /demoInbox/);
 assert.match(main, /backgroundColor: "#ffffff"/);
 assert.doesNotMatch(main, /#0c0c0e|#141416/);
 
@@ -159,9 +178,18 @@ assert.match(readme, /Windows/);
 assert.match(readme, /CATALOG/);
 assert.match(readme, /Visibility law/);
 assert.match(readme, /connector problems/);
+assert.match(readme, /two-way|TWO-WAY|bound/);
 assert.doesNotMatch(readme, /always visible/);
 
+assert.ok(fs.existsSync(path.join(root, "design", "CONNECTORS-TWO-WAY.md")));
 assert.ok(fs.existsSync(path.join(root, "design", "VISIBILITY.md")));
+assert.match(read("design/CONNECTORS-TWO-WAY.md"), /bidirectional/);
+assert.match(read("lib/two-way.js"), /P0_WIRE/);
+assert.deepEqual(twoWay.P0_WIRE.slice().sort(), ["github", "slack"]);
+assert.deepEqual(twoWay.TRAY_DEFAULT.slice().sort(), ["live", "needs_auth"]);
+assert.doesNotMatch(read("lib/two-way.js"), /writeFile|writeFileSync/);
+assert.match(read("scripts/preview.js"), /twoway\/inbox/);
+assert.match(read("scripts/preview.js"), /twoway\/reply/);
 assert.ok(fs.existsSync(path.join(root, "design", "quiet-studio.html")));
 assert.match(read("design/VISIBILITY.md"), /Only necessary information should be visible/);
 assert.ok(fs.existsSync(path.join(root, "design", "PRODUCT-NARRATIVE.md")));
@@ -220,6 +248,36 @@ if (catalogPresent()) {
     !p0.some((row) => row.id === "slack"),
     "Slack is P1 / p0_wire, not a catalog P0 tray row",
   );
+  const wire = tryReadTwoWayWire();
+  assert.ok(wire.some((row) => row.id === "github"), "two-way wire includes GitHub");
+  assert.ok(wire.some((row) => row.id === "slack"), "two-way wire includes Slack");
+  const inbox = twoWay.demoInbox();
+  assert.ok(inbox.length >= 1, "demo inbox should ingest at least one need-you item");
+  assert.ok(inbox.every((item) => item.need_you === true));
+  const unbound = twoWay.sendReply({
+    provider: "github",
+    actor: "human",
+    kind: "issue_comment",
+    tray_state: "live",
+    bound_to: "",
+    body: "hi",
+    thread_ref: { owner: "you", repo: "your-repo", issue_number: 14 },
+  });
+  assert.equal(unbound.ok, false);
+  assert.equal(unbound.code, "UNBOUND_REPLY");
+  const botNoGate = twoWay.sendReply({
+    provider: "github",
+    actor: "bot",
+    kind: "issue_comment",
+    tray_state: "live",
+    bound_to: inbox[0].id,
+    body: "bot free-fire",
+    thread_ref: inbox[0].thread_ref,
+    cutover: { status: "attached", in_studio_only: true },
+    human_gate: { status: "pending" },
+  });
+  assert.equal(botNoGate.ok, false);
+  assert.equal(botNoGate.code, "BOT_SEND_NO_GATE");
 } else {
   assert.deepEqual(p0, []);
 }
