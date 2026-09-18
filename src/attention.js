@@ -85,6 +85,25 @@ function buildAttentionDump(store, nowMs = Date.now()) {
       nearest_experiment_id: nearest ? nearest.experiment_id : null,
       baseline_ca_hours: nearest && typeof nearest.actuals_ca_hours === "number" ? nearest.actuals_ca_hours : null,
     },
+    thesis: p0Source
+      ? {
+          id: p0Source.experiment_id,
+          title: p0Source.title,
+          kill: p0Source.kill || null,
+          instrument: p0Source.instrument || null,
+          stage: p0Source.stage,
+        }
+      : null,
+    bottleneck: {
+      waiting_on: waitingOn,
+      why,
+      age_s: ageS,
+    },
+    redirect: {
+      open_gates: openGates,
+      steer: "steer.gate --actor human",
+      note: "Human adds/resolves gates. Agents calling steer.gate get NOT_HUMAN.",
+    },
   };
 
   return dump;

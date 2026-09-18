@@ -396,6 +396,7 @@ function createKernel(home) {
     };
     const id = claim.experiment_id || `claim-${Date.now()}`;
     const uri = store.savePacket(id, { ...packet, claim });
+    persistAttention();
     return ok({ claim, packet_uri: uri });
   }
 

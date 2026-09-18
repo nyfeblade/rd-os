@@ -1,7 +1,7 @@
 /**
  * HARD LAW 1 — machine-time fields on every experiment.
  * Ban human-week units unless a human gate is listed.
- * Types only; no runtime store in this PR.
+ * Runtime: kernel writes board/experiments/<id>.json.
  */
 
 export type HumanGateKind =

@@ -14,6 +14,13 @@ function resolveAplDir() {
   return DEFAULT_CACHE;
 }
 
+function repoRootFrom(options = {}) {
+  if (options.repoRoot) {
+    return path.resolve(options.repoRoot);
+  }
+  return path.resolve(__dirname, "..");
+}
+
 function runProofLayerReject(options = {}) {
   const aplDir = options.aplDir || resolveAplDir();
   const started = Date.now();
@@ -28,38 +35,43 @@ function runProofLayerReject(options = {}) {
       packet_path: null,
       stdout: clone.stdout || "",
       stderr: clone.stderr || "",
+      command: "npm run demo:reject",
+      apl_dir: aplDir,
     };
   }
 
-  const ran = spawnSync("node", ["./bin/apl.js", "prove", "claims/planted-false.json", "--require-result", "REJECTED"], {
+  const ran = spawnSync("npm", ["run", "demo:reject"], {
     cwd: aplDir,
     encoding: "utf8",
     env: process.env,
   });
   const stdout = ran.stdout || "";
   const stderr = ran.stderr || "";
-  const resultLine = (stdout.split("\n").map((line) => line.trim()).find((line) => {
-    return line === "REJECTED" || line === "VERIFIED" || line === "INCONCLUSIVE";
-  }) || "INCONCLUSIVE");
+  const resultLine =
+    stdout
+      .split("\n")
+      .map((line) => line.trim())
+      .find((line) => line === "REJECTED" || line === "VERIFIED" || line === "INCONCLUSIVE") || "INCONCLUSIVE";
   const commit = matchField(stdout, /^commit:\s+(\S+)/m);
   const packetPath = matchField(stdout, /^packet:\s+(\S+)/m);
   const wallField = matchField(stdout, /^wall_ms:\s+(\S+)/m);
   const measuredExit = matchField(stdout, /measured_exit:\s+(\S+)/);
-  const runnerResult = resultLine;
 
   return {
-    ok: runnerResult === "REJECTED" && ran.status === 0,
-    runner_result: runnerResult,
+    ok: resultLine === "REJECTED" && ran.status === 0,
+    runner_result: resultLine,
     commit,
     packet_path: packetPath,
     packet_abs: packetPath ? path.join(aplDir, packetPath) : null,
     wall_ms: wallField ? Number(wallField) : Date.now() - started,
-    measured_exit: measuredExit == null ? null : Number(measuredExit),
+    measured_exit: measuredExit == null || measuredExit === "null" ? null : Number(measuredExit),
     expect_exit: 0,
     stdout,
     stderr,
     exit: ran.status,
     apl_dir: aplDir,
+    command: "npm run demo:reject",
+    detail: resultLine === "REJECTED" ? null : `demo:reject produced ${resultLine} exit=${ran.status}`,
   };
 }
 
@@ -97,9 +109,48 @@ function loadPacketIfPresent(result) {
   return JSON.parse(fs.readFileSync(result.packet_abs, "utf8"));
 }
 
+function copyEvidence(result, options = {}) {
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const dirs = [];
+  const repoEvidence = path.join(repoRootFrom(options), "evidence", "proof-layer", stamp);
+  dirs.push(repoEvidence);
+  if (options.home) {
+    dirs.push(path.join(options.home, "evidence", "proof-layer", stamp));
+  }
+  const packet = loadPacketIfPresent(result);
+  const written = [];
+  for (const dir of dirs) {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "stdout.txt"), result.stdout || "");
+    fs.writeFileSync(
+      path.join(dir, "hook.json"),
+      `${JSON.stringify(
+        {
+          runner_result: result.runner_result,
+          measured_exit: result.measured_exit,
+          expect_exit: result.expect_exit,
+          wall_ms: result.wall_ms,
+          commit: result.commit,
+          command: result.command,
+          verdict: null,
+          ok: result.ok,
+        },
+        null,
+        2
+      )}\n`
+    );
+    if (packet) {
+      fs.writeFileSync(path.join(dir, "packet.json"), `${JSON.stringify(packet, null, 2)}\n`);
+    }
+    written.push(dir);
+  }
+  return { dirs: written, packet_copied: Boolean(packet) };
+}
+
 module.exports = {
   APL_REPO,
   runProofLayerReject,
   loadPacketIfPresent,
   resolveAplDir,
+  copyEvidence,
 };

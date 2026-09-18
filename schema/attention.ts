@@ -1,6 +1,6 @@
 /**
  * HARD LAW 5 — live attention pane is P0; HARD LAW sits beside it.
- * Cockpit v0 = this dump. No product UI.
+ * Cockpit = this dump. UI may only render it.
  */
 
 export type WaitingOn = "human" | "agent" | "proof";

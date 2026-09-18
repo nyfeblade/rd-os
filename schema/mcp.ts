@@ -1,6 +1,6 @@
 /**
  * HARD LAW 3 — research-before-claim + anti-shrink reject codes.
- * Portable MCP tool names. No server in this PR.
+ * Portable MCP tool names. Runtime: bin/mcp.js (stdio) + bin/rdos.js.
  */
 
 export type McpTool =

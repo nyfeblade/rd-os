@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const { createKernel } = require("./kernel");
-const { runProofLayerReject, loadPacketIfPresent } = require("./proof-layer");
+const { runProofLayerReject, loadPacketIfPresent, copyEvidence } = require("./proof-layer");
 
 const REQUIRED_KEYS = [
   "m1_rejected",
@@ -60,7 +60,6 @@ function emptyCounts() {
 function runMarkdownArm() {
   const plants = loadPlants();
   const counts = emptyCounts();
-  // Markdown arm has no must-reject. Plants "ship" as prose.
   counts.m1_rejected = 0;
   counts.m2_illegal_accepts = plants.m2.length;
   counts.m3_weight_only_rejected = 0;
@@ -73,6 +72,7 @@ function runMarkdownArm() {
   counts.m6_accepts_without_query = 1;
   counts.m7_p0_present = false;
   counts.m7_hard_law_n = 0;
+  counts.arm_note = "markdown baseline: no MCP reject; plants self-cert as prose";
   return counts;
 }
 
@@ -83,7 +83,7 @@ function runRdosArm(home, options = {}) {
 
   counts.m1_n = 3;
   if (options.skipM1) {
-    counts.m1_note = "M1 skipped (no Proof Layer hook this invocation)";
+    counts.m1_note = "M1 skipped this invocation; run scripts/proof-layer.sh for live demo:reject";
   } else {
     for (let i = 0; i < 3; i += 1) {
       const hooked = runProofLayerReject(options.proofLayer || {});
@@ -100,9 +100,11 @@ function runRdosArm(home, options = {}) {
           experiment_id: `m1-planted-false-${i}`,
           packet,
         });
+        copyEvidence(hooked, { home, repoRoot: repoRoot() });
       }
       counts.m1_last = {
         runner_result: hooked.runner_result,
+        measured_exit: hooked.measured_exit,
         wall_ms: hooked.wall_ms,
         commit: hooked.commit,
         detail: hooked.detail || null,
@@ -150,20 +152,31 @@ function runRdosArm(home, options = {}) {
     }
   }
 
+  const m6Open = kernel.dispatch("experiment.open", {
+    experiment_id: "m6-no-query",
+    title: "accept without envelope query",
+    estimate_ca_hours: 1,
+    estimate_proof_min: 5,
+    human_gates: [{ kind: "merge", reason: "playbook: human-owned merges" }],
+    actuals: { ca_hours: null, proof_min: null, human_hours: null, finished_at: null },
+  });
+  if (m6Open.ok) {
+    const noQuery = kernel.dispatch("plan.accept", {
+      experiment_id: "m6-no-query",
+      n: 2,
+      probes: [
+        { id: "p0", kind: "run", command_or_url: "true", status: "ran", evidence_uri: "board/packets/p0.json" },
+        { id: "p1", kind: "fetch", command_or_url: "https://example.com", status: "fetched", evidence_uri: "board/packets/p1.json" },
+      ],
+    });
+    if (noQuery.ok) {
+      counts.m6_accepts_without_query += 1;
+    } else {
+      counts.m6_no_query_code = noQuery.code;
+    }
+  }
   const query = kernel.dispatch("envelope.query", { similar: "exp-2-wedge" });
   counts.m6_baselines = kernel.store.listBaselines().length;
-  const noQuery = kernel.dispatch("plan.accept", {
-    experiment_id: "m6-no-query",
-    n: 2,
-    probes: [
-      { id: "p0", kind: "run", command_or_url: "true", status: "ran", evidence_uri: "board/packets/p0.json" },
-      { id: "p1", kind: "fetch", command_or_url: "https://example.com", status: "fetched", evidence_uri: "board/packets/p1.json" },
-    ],
-  });
-  // experiment does not exist → not an ACCEPT without query
-  if (noQuery.ok) {
-    counts.m6_accepts_without_query += 1;
-  }
   if (query.ok) {
     counts.m6_query_id = query.data.query_id;
     counts.m6_code = query.data.code || null;
@@ -175,6 +188,7 @@ function runRdosArm(home, options = {}) {
     counts.m7_hard_law_n = dump.data.dump.hard_law.length;
   }
 
+  counts.arm_note = "rdos treatment: MCP/kernel must-reject; not a 14d PASS";
   return counts;
 }
 
@@ -192,7 +206,7 @@ function runKill14d({ arm, day, home, skipM1 }) {
     day: Number(day),
     clock_started: false,
     verdict: null,
-    note: "harness stub; 14d clock not started; Eng Proof owns verdict",
+    note: "day 0 armable now; 14d clock not started; Eng Proof owns verdict; harness ≠ day-14 PASS",
     ...counts,
   };
   for (const key of REQUIRED_KEYS) {

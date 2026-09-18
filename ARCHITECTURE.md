@@ -1,6 +1,6 @@
 # R&D OS wedge — architecture (stack research)
 
-**Status:** smallest runnable wedge — local board/packets + `rdos` CLI + `attention.dump` file + Proof Layer hook + 14d harness stubs. No product UI. No MCP server process. No second CA.  
+**Status:** usable local-first lab — board/packets + stdio MCP server + human steer UI + Proof Layer `demo:reject` hook + day-0 kill harness. No second CA. Harness ≠ 14-day PASS.  
 **Board:** [Exp-2 R&D OS](https://app.notion.com/p/3dee07d17270817e9d01d8821b3ec2f5)  
 **Vehicle:** this repo (`nyfeblade/rd-os`).  
 **First instrument (merged Exp-1):** [`nyfeblade/agent-proof-layer`](https://github.com/nyfeblade/agent-proof-layer) ([PR #1](https://github.com/nyfeblade/agent-proof-layer/pull/1) merged `de40fcc`).  
@@ -38,15 +38,15 @@ The wedge is a **capability-native research lab OS**: portable contract any agen
 ## Two surfaces (and only two)
 
 ```
- any agent ──MCP_CONTRACT──► R&D OS kernel (no UI)
+ any agent ──stdio MCP (bin/mcp.js)──► R&D OS kernel
                                   │
                                   ├─ machine-time + envelope store
                                   ├─ multi-lane fan-out + evidence recombine
-                                  ├─ Proof Layer (apl prove) as first instrument
+                                  ├─ Proof Layer (npm run demo:reject) as first instrument
                                   └─ attention.dump (P0 + HARD LAW adjacent)
                                          │
- human ──────── steer cockpit ───────────┘
-         (JSON/text now; UI later only if 14d kill PASSes)
+ human ──────── steer UI (npm start) ────┘
+         renders dump: thesis, attention, evidence, bottleneck, redirect
 ```
 
 ### 1. Portable MCP (any agent)
@@ -55,9 +55,9 @@ A small tool contract, not a host that owns the agent's pipes. Agents remain Cur
 
 **Steal from Sightline, do not rebuild it.** [Sightline](https://github.com/nyfeblade/sightline) already hosts Claude Code, gates tool calls, and distinguishes Claimed / Checked / Verified (Verified requires a refutation that has *fired*). R&D OS steals the claim hygiene and the "waiting-on-you at the top" attention idea. It leaves behind: Claude-only hosting, desktop GUI, chief/worker fleet, in-process MCP that owns the binary. Exp-3 governor and parallel CAs are out of scope.
 
-### 2. Human steer cockpit (no product UI this PR)
+### 2. Human steer cockpit
 
-The cockpit is the human control surface: ACCEPT/REJECT plans, list human gates, see P0, read HARD LAW. **This PR ships no chrome.** The interface is `attention.dump` — a JSON document a stranger can `cat`. The live attention pane is P0; HARD LAW is the next sibling field, not a link to a wiki.
+The cockpit is the human control surface: ACCEPT/REJECT plans, list human gates, see P0, read HARD LAW. Source of truth is still `attention.dump`. `npm start` renders that dump (thesis, attention, evidence, bottleneck, redirect). The UI may not invent a second contract.
 
 ```json
 {
@@ -123,7 +123,7 @@ Planning **must** call `envelope.query` (or the CLI equivalent) and either cite 
 
 ### Law 5 — attention pane (detail)
 
-P0 is the only interrupt that may preempt the current experiment. The pane answers: what is waiting, on whom, for how long. HARD LAW is the adjacent field so a stranger opening the cockpit cannot miss the contract. Do not build a dashboard in this wedge; `attention.dump` is enough to kill or keep the idea (see `KILL_14D.md` M7).
+P0 is the only interrupt that may preempt the current experiment. The pane answers: what is waiting, on whom, for how long. HARD LAW is the adjacent field so a stranger opening the cockpit cannot miss the contract. The steer UI renders this dump (thesis / bottleneck / redirect). M7 still grades the dump, not chrome (see `KILL_14D.md`).
 
 ---
 
@@ -133,10 +133,10 @@ P0 is the only interrupt that may preempt the current experiment. The pane answe
 | --- | --- | --- |
 | `MachineTime`, `HumanGate`, `Actuals` | `schema/machine-time.ts` + `src/kernel.js` | `rdos experiment.open` writes `board/experiments/<id>.json` |
 | `Experiment`, `FanOut`, `Probe` | `schema/experiment.ts` + `src/kernel.js` | local board packets; rejects `SINGLE_LANE` / `UNDER_SCOPE` |
-| MCP tool names + reject codes | `schema/mcp.ts` + `bin/rdos.js` | CLI shim `rdos <tool> --in payload.json` — not an MCP server process |
-| Attention dump | `schema/attention.ts` + `src/attention.js` | `rdos attention.dump` → `board/attention.dump.json` |
+| MCP tool names + reject codes | `schema/mcp.ts` + `bin/mcp.js` + `bin/rdos.js` | stdio MCP + CLI shim |
+| Attention dump | `schema/attention.ts` + `src/attention.js` + `ui/` | `rdos attention.dump` and steer UI |
 
-No server, no UI, no second CA.
+No second CA. Do not claim 14d PASS because the harness exists.
 
 ---
 
@@ -148,7 +148,7 @@ Proof Layer (`apl prove`) is the only instrument this wedge may depend on on day
 
 ## Out of scope (park)
 
-Full app UI; parallel CloudAgents; CNP skill re-litigation without a new kill that beats a strong same-tools baseline; Exp-3 governor; group chat; Sightline rebuild; wrapping Claude/Cursor/Grok.
+Parallel CloudAgents; CNP skill re-litigation without a new kill that beats a strong same-tools baseline; Exp-3 governor; group chat; Sightline rebuild; wrapping Claude/Cursor/Grok; starting the 14d clock as PASS.
 
 ---
 

@@ -40,7 +40,7 @@ Hook in this wedge (script, not a glass UI):
 ./scripts/proof-layer.sh
 ```
 
-That clones `nyfeblade/agent-proof-layer` (or uses `$APL_DIR`) and runs `npm run demo:reject`. On REJECTED it may `claim.submit` the packet into the local board. `verdict` stays null.
+That clones `nyfeblade/agent-proof-layer` (or uses `$APL_DIR`) and runs `npm run demo:reject`. On REJECTED it copies the packet into `evidence/proof-layer/` and may `claim.submit` into the local board. `verdict` stays null. The steer UI "Run Proof Layer" button is the same hook.
 
 ---
 
