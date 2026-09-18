@@ -5,19 +5,23 @@
 [Studio] [mode: eng ▾] [GitHub● Cursor● Claude○ … +]     ● 3 here
 ```
 - **Modes** chip/select left of connectors  
-- **Connectors tray** — two-way. Default visible states: `live` | `needs_auth` (problems only per [VISIBILITY.md](./VISIBILITY.md)). Click → connect/auth/detail  
-- **Notification inbox** — inbound from live connectors (GitHub, Slack P0)  
+- **Connectors tray** — two-way ([CONNECTORS-TWOWAY.md](./CONNECTORS-TWOWAY.md)). Default: `live` | `needs_auth`. Click → connect/auth/error + **inbox filter**. Not display-only  
+- **Inbox** — inbound need-you items in Chat (threaded) and/or Board  
 - Presence right  
 
 ## Connectors TWO-WAY (product lock)
-Not ingest-only. A live connector:
+Not ingest-only. See [CONNECTORS-TWOWAY.md](./CONNECTORS-TWOWAY.md).
 
-1. **Ingest** — notifications / threads land in the inbox and can open a Chat thread  
-2. **Human reply FROM studio** — composer is **thread-bound** (reply stays on that GitHub/Slack thread; not a free-floating blast)  
-3. **Bot send** — seats may send outbound **only with gates** (Board approve / policy); no ungated bot spam  
+| In → Studio | Out → provider |
+| --- | --- |
+| Notifications / events (PR review, @mention, CI, Slack ping…) | Human or bot **replies** from Studio |
 
-**P0 two-way:** GitHub + Slack.  
-Tray chrome: `live` | `needs_auth` (plus `disconnected` / `error` in detail, not a full catalog on the bar).
+1. **Inbox** — Chat thread (seat/room when possible) and/or Board need-you card  
+2. **Reply composer** — same Chat composer (or inline Board); **thread-bound** outbound  
+3. **Bot send** — outbound **only with gates** (Board / policy)  
+4. **Tray** — `live` | `needs_auth` by default; connect/error + inbox entry in detail  
+
+**P0:** GitHub + Slack.
 
 ## Default body (2 panes)
 | Chat | Board |
@@ -40,6 +44,7 @@ desktop/ or studio/shell/
   panes/BoardPane.tsx
   panes/CodeDrawer.tsx
 studio/connectors/CATALOG.md    # catalog SoT (eng)
+studio/design/CONNECTORS-TWOWAY.md
 studio/modes/                   # PR#14
 studio/design/                  # this SoT copied in
 ```

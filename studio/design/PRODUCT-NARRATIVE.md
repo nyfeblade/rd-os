@@ -27,16 +27,14 @@ Eng-optimized **Grok Bot capability set** (every power → eng surface, not a th
 | Desktop/files | **Code drawer** on demand |
 
 ## Connectors TWO-WAY (product lock)
-Not a one-way ingest tray. Live connector = inbox + reply + gated bot send.
+See [CONNECTORS-TWOWAY.md](./CONNECTORS-TWOWAY.md). Not a one-way ingest tray.
 
-- **Tray chrome (default):** `live` | `needs_auth` — show problems, not the full catalog ([VISIBILITY.md](./VISIBILITY.md))  
-- **Notification inbox:** inbound events/threads from live connectors  
-- **Human reply FROM studio:** composer is **thread-bound** (that GitHub PR/issue or Slack thread)  
-- **Bot send:** seats may post outbound only **with gates** (Board / policy)  
-- **P0 two-way:** **GitHub + Slack**  
-- Other providers (Cursor/CA, Claude, Grok, Linear, Sentry, Vercel, …) stay in the catalog; detail states include `disconnected` | `error`  
-- Catalog SoT (eng): `studio/connectors/CATALOG.md`  
-- Designer drop `CONNECTORS-TWO-WAY` / mock updates land here when received  
+- **In → Studio:** notifications / events (PR review, @mention, CI, Slack ping…)  
+- **Out → provider:** human or bot **replies** from Studio (comment, Slack message, …); bot send **with gates**  
+- **Inbox:** lands in **Chat** (threaded with seat/room when possible) and/or **Board** as need-you items  
+- **Reply composer:** same Chat composer (or inline on Board card) — **thread-bound** outbound  
+- **Tray:** `live` | `needs_auth` by default ([VISIBILITY.md](./VISIBILITY.md)); also connect / error + inbox-filter entry — not display-only  
+- **P0:** **GitHub + Slack**. P1+ same two-way pattern when enabled (`studio/connectors/CATALOG.md`)  
 
 ## Modes / rails
 Visible mode chips (eng / design / …). Align with `studio/modes` (PR#14). Encode: research-before-claim, lane fences, no self-cert.
@@ -54,6 +52,7 @@ Life-OS, food, flights, Mac-only, Waiting-as-home, Code always-on, Design launch
 | File | Role |
 | --- | --- |
 | `PRODUCT-NARRATIVE.md` | This coverage brief |
+| `CONNECTORS-TWOWAY.md` | Two-way lock — inbox + outbound reply |
 | `LAYOUT-LOCK.md` | Code on demand |
 | `SHELL-IA.md` | Pane/tray/drawer IA + fences |
 | `quiet-studio.html` | Mock: Chat\|Board + tray + Code drawer |

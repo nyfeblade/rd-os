@@ -5,12 +5,13 @@
 **Layout:** Chat | Board default · Code on demand (drawer) · Waiting-home dead. See `LAYOUT-LOCK.md`.  
 **Visibility:** only necessary info by default. See `VISIBILITY.md`.  
 **Chrome fences:** `SHELL-IA.md` is authoritative (two-way tray + Code drawer).  
-**Connectors:** two-way — ingest + human reply FROM studio (thread-bound) + gated bot send. P0: GitHub + Slack.
+**Connectors:** two-way — inbox + outbound reply. Tray `live` \| `needs_auth`. P0: GitHub + Slack. See `CONNECTORS-TWOWAY.md`.
 
 | File | Use |
 | --- | --- |
 | `PRODUCT-NARRATIVE.md` | UI coverage + Grok Bot → Studio map |
-| `SHELL-IA.md` | Chrome IA — tray, modes, Code drawer fences |
+| `CONNECTORS-TWOWAY.md` | Two-way lock — inbox + outbound reply; P0 GitHub+Slack |
+| `SHELL-IA.md` | Chrome IA — tray, inbox, Code drawer fences |
 | `PRODUCT-LAW.md` | Grok-complete lock; no life-OS theater |
 | `VISIBILITY.md` | Only necessary info visible by default |
 | `LAYOUT-LOCK.md` | Code not automatic |
