@@ -150,6 +150,19 @@
     els.messages.appendChild(wrap);
   }
 
+
+  function isChromeInstruction(message) {
+    if (!message) return true;
+    if (message.kind === "system" || message.kind === "coding_mode" || message.kind === "context") {
+      return true;
+    }
+    const body = String(message.body || "");
+    if (/assume workspace context/i.test(body)) return true;
+    if (/do not ask user to paste/i.test(body)) return true;
+    if (/coding mode:/i.test(body)) return true;
+    return false;
+  }
+
   function engineMessages(state) {
     return state.engine && Array.isArray(state.engine.messages) ? state.engine.messages : [];
   }
@@ -182,7 +195,7 @@
         els.messages.appendChild(wrap);
       }
       for (const message of engineMessages(state)) {
-        if (message.kind === "system") {
+        if (isChromeInstruction(message)) {
           continue;
         }
         appendMessage(els, message);
@@ -209,6 +222,9 @@
       const live = engineMessages(state);
       if (live.length) {
         for (const message of live) {
+          if (isChromeInstruction(message)) {
+            continue;
+          }
           appendMessage(els, message);
         }
       } else {
