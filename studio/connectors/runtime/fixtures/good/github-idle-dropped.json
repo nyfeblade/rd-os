@@ -1,0 +1,10 @@
+{
+  "op": "ingest",
+  "expect": { "ok": true, "dropped": true },
+  "envelope": {
+    "provider": "github",
+    "event": "issue_comment",
+    "tray_state": "idle",
+    "payload": {}
+  }
+}

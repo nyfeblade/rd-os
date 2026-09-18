@@ -1,0 +1,12 @@
+{
+  "op": "reply",
+  "expect": { "ok": false, "code": "NEEDS_AUTH" },
+  "draft": {
+    "provider": "github",
+    "actor": "human",
+    "kind": "issue_comment",
+    "tray_state": "needs_auth",
+    "body": "cannot send while disconnected",
+    "thread_ref": { "owner": "nyfeblade", "repo": "rd-os", "issue_number": 18 }
+  }
+}

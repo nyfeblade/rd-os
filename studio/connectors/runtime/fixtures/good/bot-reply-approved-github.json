@@ -1,0 +1,21 @@
+{
+  "op": "reply",
+  "expect": {
+    "ok": true,
+    "outbound_op": "create_pull_request_review",
+    "actor": "bot"
+  },
+  "draft": {
+    "provider": "github",
+    "actor": "bot",
+    "kind": "pull_request_review",
+    "tray_state": "live",
+    "body": "bot summary after human gate",
+    "human_gate": { "status": "approved", "by": "luke" },
+    "thread_ref": {
+      "owner": "nyfeblade",
+      "repo": "rd-os",
+      "pull_number": 18
+    }
+  }
+}

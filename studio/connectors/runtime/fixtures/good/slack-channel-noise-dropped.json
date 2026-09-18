@@ -1,0 +1,17 @@
+{
+  "op": "ingest",
+  "expect": { "ok": true, "dropped": true },
+  "envelope": {
+    "provider": "slack",
+    "event": "message",
+    "tray_state": "live",
+    "payload": {
+      "type": "message",
+      "channel_type": "channel",
+      "user": "U999",
+      "text": "standup in 5",
+      "ts": "1726665700.000300",
+      "channel": "Ceng"
+    }
+  }
+}

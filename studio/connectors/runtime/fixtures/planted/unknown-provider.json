@@ -1,0 +1,10 @@
+{
+  "op": "ingest",
+  "expect": { "ok": false, "code": "UNKNOWN_PROVIDER" },
+  "envelope": {
+    "provider": "linear",
+    "event": "issue_comment",
+    "tray_state": "live",
+    "payload": {}
+  }
+}

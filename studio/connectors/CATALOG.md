@@ -6,6 +6,21 @@
 
 **Columns:** name · priority · type (`MCP` \| `API` \| `CLI` \| `connector`) · official MCP/docs URL · auth (public) · tray use.
 
+Two-way columns live in the section below (`ingest` \| `reply` \| `bot_send` \| `tray_state` \| `p0_wire`). Catalog tier is unchanged: Slack stays P1 in the table; P0 wire is the runtime, not a priority rewrite.
+
+---
+
+## Two-way (P0 wire)
+
+Connectors are **not read-only**. Runtime SoT: [`runtime/`](runtime/). Chat/Board consume inbox items; the reply composer sends `reply(draft)`. Shell does not invent providers or endpoints.
+
+| Name | ingest | reply | bot_send | tray_state | p0_wire |
+| --- | --- | --- | --- | --- | --- |
+| GitHub MCP | [Webhook events](https://docs.github.com/en/webhooks/webhook-events-and-payloads): `issue_comment`, `pull_request` (`review_requested`), `pull_request_review`, `pull_request_review_comment`, `check_suite` / `workflow_run` (failure only) → inbox (`need_you`) | closed ops `create_issue_comment` \| `create_pull_request_review_comment` \| `create_pull_request_review` — [REST issue comments](https://docs.github.com/en/rest/issues/comments) | same ops; `BOT_SEND_NO_GATE` unless `human_gate.status===approved` | `live` \| `needs_auth` \| `error` \| `idle` | yes |
+| Slack (eng) | [Events API](https://docs.slack.dev/apis/events-api/): `app_mention` + `message` (`channel_type=im`) → inbox | closed op `post_message` — [chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage) | same op; same human-gate hook | `live` \| `needs_auth` \| `error` \| `idle` | yes |
+
+P1+ rows keep the same two-way pattern when a later runtime PR enables them. `p0_wire` is not a catalog-tier change.
+
 ---
 
 ## P0

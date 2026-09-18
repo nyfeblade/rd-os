@@ -1,0 +1,17 @@
+{
+  "op": "ingest",
+  "expect": {
+    "ok": true,
+    "dropped": false,
+    "kind": "auth_failure",
+    "need_you": true,
+    "dest": "chat+board",
+    "provider": "github"
+  },
+  "envelope": {
+    "provider": "github",
+    "event": "issue_comment",
+    "tray_state": "needs_auth",
+    "payload": {}
+  }
+}

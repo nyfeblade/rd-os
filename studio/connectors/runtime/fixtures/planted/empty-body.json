@@ -1,0 +1,12 @@
+{
+  "op": "reply",
+  "expect": { "ok": false, "code": "EMPTY_BODY" },
+  "draft": {
+    "provider": "github",
+    "actor": "human",
+    "kind": "issue_comment",
+    "tray_state": "live",
+    "body": "   ",
+    "thread_ref": { "owner": "nyfeblade", "repo": "rd-os", "issue_number": 18 }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "op": "ingest",
+  "expect": { "ok": false, "code": "UNKNOWN_EVENT" },
+  "envelope": {
+    "provider": "github",
+    "event": "sponsorship",
+    "tray_state": "live",
+    "payload": {
+      "repository": {
+        "name": "rd-os",
+        "full_name": "nyfeblade/rd-os",
+        "owner": { "login": "nyfeblade" }
+      }
+    }
+  }
+}
