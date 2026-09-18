@@ -1,0 +1,27 @@
+{
+  "expect": { "ok": true },
+  "mode": "design",
+  "lane": "waiting-ui",
+  "fence": { "allow": ["ui/"] },
+  "touched_paths": ["ui/app.css", "ui/copy.js"],
+  "commands": [],
+  "claims": [
+    {
+      "id": "d1",
+      "text": "The greyscale cockpit spec fixes one accent per screen, so the Waiting list stays monochrome.",
+      "evidence": [{ "kind": "file", "ref": "rd-os-design/steer-cockpit-v1.md" }],
+      "kill": "A second accent in the spec, or a screenshot showing two, ends this."
+    },
+    {
+      "id": "d2",
+      "text": "Copy strings live in ui/copy.js rather than inline in markup.",
+      "evidence": [
+        { "kind": "file", "ref": "ui/copy.js" },
+        { "kind": "file", "ref": "ui/index.html" }
+      ],
+      "kill": "A literal user-facing string in ui/index.html falsifies it."
+    }
+  ],
+  "verdict": null,
+  "clock_started": false
+}

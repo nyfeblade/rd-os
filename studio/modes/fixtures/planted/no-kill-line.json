@@ -1,0 +1,39 @@
+{
+  "expect": {
+    "ok": false,
+    "violations": [
+      "NO_KILL_LINE"
+    ],
+    "why": "claim names evidence but nothing that would falsify it"
+  },
+  "mode": "eng",
+  "lane": "studio-d-modes",
+  "fence": {
+    "allow": [
+      "studio/modes/"
+    ]
+  },
+  "touched_paths": [
+    "studio/modes/index.js"
+  ],
+  "commands": [
+    {
+      "cmd": "node studio/modes/prove.js",
+      "exit_code": 0
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "text": "node studio/modes/prove.js exits 0 over the fixtures.",
+      "evidence": [
+        {
+          "kind": "command",
+          "ref": "node studio/modes/prove.js"
+        }
+      ]
+    }
+  ],
+  "verdict": null,
+  "clock_started": false
+}

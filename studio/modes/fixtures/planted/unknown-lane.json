@@ -1,0 +1,40 @@
+{
+  "expect": {
+    "ok": false,
+    "violations": [
+      "NO_FENCE"
+    ],
+    "why": "run record names a lane the registry cannot place"
+  },
+  "mode": "eng",
+  "lane": "studio-z-rogue",
+  "fence": {
+    "allow": [
+      "studio/modes/"
+    ]
+  },
+  "touched_paths": [
+    "studio/modes/index.js"
+  ],
+  "commands": [
+    {
+      "cmd": "node studio/modes/prove.js",
+      "exit_code": 0
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "text": "node studio/modes/prove.js exits 0 over the fixtures in studio/modes/fixtures.",
+      "evidence": [
+        {
+          "kind": "command",
+          "ref": "node studio/modes/prove.js"
+        }
+      ],
+      "kill": "Break a rail and the exit code changes."
+    }
+  ],
+  "verdict": null,
+  "clock_started": false
+}

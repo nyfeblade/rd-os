@@ -1,0 +1,25 @@
+{
+  "mode": "design",
+  "description": "Design lane rails: a design claim may cite a spec or artifact instead of a command, but it still names its evidence, carries a kill line, and leaves the verdict alone.",
+  "rails": ["research-before-claim", "multi-lane-awareness", "no-self-cert"],
+  "min_evidence": 1,
+  "evidence_kinds": ["file", "url", "command"],
+  "require_measured_evidence": false,
+  "require_kill_line": true,
+  "verdict_words": [
+    "pass",
+    "passes",
+    "passed",
+    "verified",
+    "proven",
+    "confirmed",
+    "works",
+    "working",
+    "done",
+    "complete",
+    "shipped",
+    "production-ready",
+    "fully",
+    "successfully"
+  ]
+}

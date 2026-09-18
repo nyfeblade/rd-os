@@ -1,0 +1,28 @@
+{
+  "expect": {
+    "ok": false,
+    "violations": [
+      "NO_CLAIMS"
+    ],
+    "why": "run record ships work while claiming nothing"
+  },
+  "mode": "eng",
+  "lane": "studio-d-modes",
+  "fence": {
+    "allow": [
+      "studio/modes/"
+    ]
+  },
+  "touched_paths": [
+    "studio/modes/index.js"
+  ],
+  "commands": [
+    {
+      "cmd": "node studio/modes/prove.js",
+      "exit_code": 0
+    }
+  ],
+  "claims": [],
+  "verdict": null,
+  "clock_started": false
+}
