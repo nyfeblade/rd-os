@@ -9,21 +9,19 @@
     --bg: #fff;
     --ink: #111;
     --mute: #666;
-    --line: #e6e6e6;
-    --hover: #f5f5f5;
-    --sel: #f0f0f0;
-    --focus: #111;
+    --line: #e8e8e8;
+    --wash: #fafafa;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
     font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    background: #f3f3f3;
+    background: #eee;
     color: var(--ink);
   }
   .app {
     height: 100%;
-    max-width: 1100px;
+    max-width: 960px;
     margin: 0 auto;
     background: var(--bg);
     border-left: 1px solid var(--line);
@@ -33,44 +31,36 @@
   }
   .bar {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
+    align-items: baseline;
+    gap: 10px;
+    padding: 10px 14px;
     border-bottom: 1px solid var(--line);
-    font-size: 12px;
   }
-  .bar b { font-weight: 600; }
-  .bar a {
-    color: var(--mute);
-    text-decoration: none;
-    margin-right: 8px;
-  }
-  .bar a.on { color: var(--ink); }
-  .bar .states span {
-    color: var(--mute);
-    margin-right: 6px;
-  }
-  .bar .states span.ok::before { content: "● "; color: #0a0; font-size: 9px; }
-  .bar .states span.bad::before { content: "○ "; color: #999; font-size: 9px; }
-  .bar .states span.warn::before { content: "● "; color: #c80; font-size: 9px; }
-  .grow { flex: 1; }
+  .bar b { font-size: 13px; font-weight: 600; }
+  .bar .with { color: var(--mute); font-size: 13px; }
+  .bar .grow { flex: 1; }
   .bar button {
     font: inherit;
     font-size: 12px;
-    padding: 4px 8px;
+    padding: 3px 8px;
     border: 1px solid var(--line);
     background: #fff;
     cursor: pointer;
   }
-  .bar button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .bar button.on { background: #111; color: #fff; border-color: #111; }
+  .bar .warn {
+    font-size: 12px;
+    color: #886600;
+    text-decoration: none;
+  }
 
   .body {
     flex: 1;
     min-height: 0;
     display: grid;
-    grid-template-columns: 1fr 300px;
+    grid-template-columns: 1fr 280px;
   }
-  .body.code-open { grid-template-columns: 1fr 360px 280px; }
+  .body.code-open { grid-template-columns: 1fr 340px 260px; }
   .col {
     min-width: 0;
     min-height: 0;
@@ -79,40 +69,18 @@
     border-right: 1px solid var(--line);
   }
   .col:last-child { border-right: 0; }
-  .code { display: none; background: #fafafa; }
+  .code { display: none; background: var(--wash); }
   .body.code-open .code { display: flex; }
 
-  .split { flex: 1; display: flex; min-height: 0; }
-  .seats {
-    width: 140px;
-    border-right: 1px solid var(--line);
+  .msgs {
+    flex: 1;
     overflow: auto;
-    font-size: 12px;
+    padding: 20px 16px;
   }
-  .seats div {
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--line);
-    color: var(--mute);
-    cursor: default;
-  }
-  .seats div.on { background: var(--sel); color: var(--ink); font-weight: 600; }
-  .seats .meta { display: block; font-weight: 400; color: #999; font-size: 11px; margin-top: 2px; }
-
-  .thread { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  .msgs { flex: 1; overflow: auto; padding: 16px; }
-  .msg { margin-bottom: 14px; max-width: 36em; }
+  .msg { margin-bottom: 16px; max-width: 34em; }
   .msg .who { font-size: 11px; color: #888; margin-bottom: 3px; }
-  .msg .bodytxt { font-size: 14px; line-height: 1.5; }
-  .empty {
-    flex: 1; padding: 40px 24px; color: var(--mute);
-  }
-  .empty h1 { margin: 0 0 8px; font-size: 18px; color: var(--ink); font-weight: 600; }
-  .empty button {
-    margin: 8px 8px 0 0;
-    font: inherit; font-size: 12px; padding: 6px 10px;
-    border: 1px solid var(--line); background: #fff; cursor: pointer;
-  }
-  .empty button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .msg .txt { font-size: 14px; line-height: 1.5; }
+
   .compose {
     border-top: 1px solid var(--line);
     padding: 10px;
@@ -126,201 +94,184 @@
     font: inherit;
     font-size: 13px;
     resize: none;
-    min-height: 56px;
+    min-height: 52px;
   }
   .compose button {
     font: inherit;
     font-size: 12px;
     padding: 0 12px;
-    border: 1px solid var(--ink);
-    background: var(--ink);
+    border: 1px solid #111;
+    background: #111;
     color: #fff;
     cursor: pointer;
   }
 
-  .board { background: #fafafa; }
-  .board h2 {
-    margin: 0;
-    padding: 10px 12px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #888;
-    border-bottom: 1px solid var(--line);
+  .board { background: var(--wash); }
+  .gate {
     background: #fff;
-  }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; }
-  th {
-    text-align: left; font-weight: 500; color: #888;
-    padding: 6px 10px; border-bottom: 1px solid var(--line);
-  }
-  td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  tr.need { background: #fffbe6; }
-  .actions { margin-top: 6px; }
-  .actions button {
-    font: inherit; font-size: 11px; margin-right: 4px;
-    padding: 3px 8px; border: 1px solid var(--line); background: #fff; cursor: pointer;
-  }
-  .actions button.ok { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .section {
-    padding: 8px 10px; font-size: 11px; color: #888; background: #fafafa;
     border-bottom: 1px solid var(--line);
+    padding: 14px;
   }
-  .rowline {
-    padding: 8px 10px; border-bottom: 1px solid var(--line);
-    font-size: 12px; background: #fff;
+  .gate .label { font-size: 11px; color: #888; margin-bottom: 4px; }
+  .gate .title { font-size: 14px; font-weight: 600; }
+  .gate .actions { margin-top: 10px; }
+  .gate button {
+    font: inherit;
+    font-size: 12px;
+    margin-right: 6px;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
   }
-  .rowline span { color: #888; }
+  .gate button.ok {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+  }
+  .quiet {
+    padding: 12px 14px;
+    font-size: 12px;
+    color: #888;
+  }
 
   .code-h {
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 10px; border-bottom: 1px solid var(--line); background: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    background: #fff;
     font-size: 12px;
   }
   .code-h button {
-    margin-left: auto; font: inherit; font-size: 12px;
-    border: 1px solid var(--line); background: #fff; padding: 2px 8px; cursor: pointer;
+    margin-left: auto;
+    font: inherit;
+    font-size: 12px;
+    border: 1px solid var(--line);
+    background: #fff;
+    padding: 2px 8px;
+    cursor: pointer;
   }
-  .code-body { flex: 1; display: flex; min-height: 0; }
-  .tree {
-    width: 120px; border-right: 1px solid var(--line); padding: 8px;
-    font-size: 12px; background: #fff; overflow: auto;
-  }
-  .tree .on { background: var(--sel); font-weight: 600; padding: 2px 4px; }
   pre {
-    margin: 0; flex: 1; overflow: auto; padding: 10px;
-    font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    background: #fff; color: #222;
+    margin: 0;
+    flex: 1;
+    overflow: auto;
+    padding: 12px;
+    font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace;
+    background: #fff;
+    color: #222;
+    border-top: 1px solid var(--line);
   }
-  .add { color: #080; } .del { color: #a00; }
+  .add { color: #080; }
+  .del { color: #a00; }
+
+  .empty {
+    flex: 1;
+    padding: 48px 24px;
+  }
+  .empty h1 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .empty p { margin: 0 0 14px; color: var(--mute); }
+  .empty button {
+    font: inherit;
+    font-size: 12px;
+    padding: 6px 10px;
+    margin-right: 6px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+  }
+  .empty button.ok { background: #111; color: #fff; border-color: #111; }
   .hidden { display: none !important; }
-  .toggle {
-    padding: 6px 12px; font-size: 11px; color: #888;
-    border-bottom: 1px solid var(--line); background: #fafafa;
+  .demo {
+    padding: 6px 12px;
+    font-size: 11px;
+    color: #999;
+    border-bottom: 1px solid var(--line);
+    background: #f7f7f7;
   }
-  .toggle button {
-    font: inherit; font-size: 11px; margin-left: 6px;
-    padding: 2px 6px; border: 1px solid var(--line); background: #fff; cursor: pointer;
+  .demo button {
+    font: inherit;
+    font-size: 11px;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
   }
-  .toggle button.on { background: #111; color: #fff; }
 </style>
 </head>
 <body>
   <div class="app">
-    <div class="toggle">
-      state
-      <button type="button" class="on" id="s-live">live</button>
-      <button type="button" id="s-cold">cold open</button>
+    <div class="demo">
+      demo
+      <button type="button" id="to-live">working</button>
+      <button type="button" id="to-cold">first open</button>
     </div>
 
     <header class="bar">
       <b>Studio</b>
-      <span style="color:#999">eng</span>
-      <span class="states" title="Connectors">
-        <span class="ok">GitHub</span>
-        <span class="ok">Cursor</span>
-        <span class="warn">Claude</span>
-        <span class="ok">Grok</span>
-        <span class="ok">Linear</span>
-        <span class="bad">Sentry</span>
-        <span class="bad">Vercel</span>
-      </span>
+      <span class="with" id="with">Cursor</span>
+      <a class="warn" href="#" id="authWarn" title="needs attention">Claude needs sign-in</a>
       <span class="grow"></span>
       <button type="button" id="codeBtn">Code</button>
-      <span style="color:#999">3 online</span>
     </header>
 
     <div class="body" id="body">
       <section class="col" aria-label="Chat">
         <div id="live">
-          <div class="split">
-            <aside class="seats">
-              <div class="on">Cursor<span class="meta">in studio</span></div>
-              <div>Claude<span class="meta">in studio</span></div>
-              <div>Grok</div>
-              <div>Proof</div>
-              <div>Lead</div>
-              <div>#pr-14<span class="meta">room</span></div>
-            </aside>
-            <div class="thread">
-              <div class="msgs">
-                <div class="msg">
-                  <div class="who">Cursor</div>
-                  <div class="bodytxt">Diff is ready. Use Code if you want it. Proof gate is on the board.</div>
-                </div>
-                <div class="msg">
-                  <div class="who">You</div>
-                  <div class="bodytxt">@Proof take the gate when CI is green.</div>
-                </div>
-              </div>
-              <div class="compose">
-                <textarea placeholder="Message…"></textarea>
-                <button type="button">Send</button>
-              </div>
+          <div class="msgs">
+            <div class="msg">
+              <div class="who">Cursor</div>
+              <div class="txt">Diff is ready when you want it. One Proof gate is waiting on you.</div>
             </div>
+            <div class="msg">
+              <div class="who">You</div>
+              <div class="txt">Take the gate when CI is green.</div>
+            </div>
+          </div>
+          <div class="compose">
+            <textarea placeholder="Message Cursor…"></textarea>
+            <button type="button">Send</button>
           </div>
         </div>
         <div id="cold" class="empty hidden">
-          <h1>Connect a seat to start</h1>
-          <p>Connect GitHub and one agent. Then the board fills in.</p>
-          <button class="primary" type="button">Connect GitHub</button>
+          <h1>Connect GitHub and an agent</h1>
+          <p>Then you’ll see chat and whatever needs you.</p>
+          <button class="ok" type="button">Connect GitHub</button>
           <button type="button">Add agent</button>
         </div>
       </section>
 
       <aside class="col code" aria-label="Code">
         <div class="code-h">
-          <b>nyfeblade/rd-os</b>
-          <span style="color:#888">main</span>
+          <b>rd-os</b>
+          <span style="color:#888">StudioShell.tsx</span>
           <button type="button" id="codeClose">Close</button>
         </div>
-        <div class="code-body">
-          <nav class="tree">
-            <div class="on">StudioShell.tsx</div>
-            <div>BoardPane.tsx</div>
-          </nav>
-          <pre><span class="del">- three panes always</span>
-<span class="add">+ chat | board default</span>
-<span class="add">+ code on demand</span>
+        <pre><span class="del">- always show code</span>
+<span class="add">+ open only when needed</span>
 
 export function StudioShell() {
   return &lt;ChatAndBoard /&gt;
 }</pre>
-        </div>
       </aside>
 
       <aside class="col board" aria-label="Board">
-        <h2>Board</h2>
-        <table>
-          <thead><tr><th>What</th><th>On</th><th>Age</th></tr></thead>
-          <tbody>
-            <tr class="need">
-              <td>
-                Accept PR#14 modes
-                <div class="actions">
-                  <button class="ok" type="button">Approve</button>
-                  <button type="button">Reject</button>
-                  <button type="button" id="openDiff">Diff</button>
-                </div>
-              </td>
-              <td>You</td>
-              <td>12m</td>
-            </tr>
-            <tr>
-              <td style="color:#666">CI · shell</td>
-              <td style="color:#666">Proof</td>
-              <td style="color:#666">4m</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="section">Agents</div>
-        <div class="rowline"><b>bc-7c385702</b> design · running</div>
-        <div class="rowline"><b>bc-d0f3</b> shell · idle</div>
-        <div class="section">Watches</div>
-        <div class="rowline">Linear eng board · <span>live</span></div>
-        <div class="rowline">Sentry · <span>off</span></div>
-        <div class="rowline">Vercel · <span>off</span></div>
+        <div class="gate" id="gate">
+          <div class="label">Needs you</div>
+          <div class="title">Accept PR#14 modes</div>
+          <div class="actions">
+            <button class="ok" type="button">Approve</button>
+            <button type="button">Reject</button>
+            <button type="button" id="openDiff">View diff</button>
+          </div>
+        </div>
+        <div class="quiet" id="boardQuiet">Nothing else needs you.</div>
       </aside>
     </div>
   </div>
@@ -329,8 +280,10 @@ export function StudioShell() {
     const codeBtn = document.getElementById('codeBtn');
     const live = document.getElementById('live');
     const cold = document.getElementById('cold');
-    const sLive = document.getElementById('s-live');
-    const sCold = document.getElementById('s-cold');
+    const authWarn = document.getElementById('authWarn');
+    const withEl = document.getElementById('with');
+    const gate = document.getElementById('gate');
+    const boardQuiet = document.getElementById('boardQuiet');
     function setCode(on) {
       body.classList.toggle('code-open', on);
       codeBtn.classList.toggle('on', on);
@@ -338,13 +291,21 @@ export function StudioShell() {
     codeBtn.onclick = () => setCode(!body.classList.contains('code-open'));
     document.getElementById('codeClose').onclick = () => setCode(false);
     document.getElementById('openDiff').onclick = () => setCode(true);
-    sLive.onclick = () => {
-      sLive.classList.add('on'); sCold.classList.remove('on');
-      live.classList.remove('hidden'); cold.classList.add('hidden');
+    document.getElementById('to-live').onclick = () => {
+      live.classList.remove('hidden');
+      cold.classList.add('hidden');
+      authWarn.classList.remove('hidden');
+      withEl.textContent = 'Cursor';
+      gate.classList.remove('hidden');
+      boardQuiet.textContent = 'Nothing else needs you.';
     };
-    sCold.onclick = () => {
-      sCold.classList.add('on'); sLive.classList.remove('on');
-      cold.classList.remove('hidden'); live.classList.add('hidden');
+    document.getElementById('to-cold').onclick = () => {
+      cold.classList.remove('hidden');
+      live.classList.add('hidden');
+      authWarn.classList.add('hidden');
+      withEl.textContent = '';
+      gate.classList.add('hidden');
+      boardQuiet.textContent = '';
       setCode(false);
     };
   </script>
