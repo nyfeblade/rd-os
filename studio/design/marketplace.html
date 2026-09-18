@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Studio · Marketplace</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --ink: #e6edf3; --mute: #8b949e;
+    --line: #30363d; --hover: #21262d; --accent: #2f81f7; --good: #3fb950; --warn: #d29922;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #010409; color: var(--ink);
+  }
+  .shell {
+    max-width: 920px; height: 100%; margin: 0 auto;
+    display: flex; flex-direction: column;
+    background: var(--bg); border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+  }
+  .top {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-bottom: 1px solid var(--line);
+  }
+  .top b { font-size: 14px; }
+  .top input {
+    flex: 1; max-width: 280px; background: var(--panel); border: 1px solid var(--line);
+    color: var(--ink); padding: 6px 10px; border-radius: 6px; font: inherit;
+  }
+  .top button {
+    font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--mute); cursor: pointer;
+  }
+  .top button.on { color: var(--ink); border-color: var(--accent); }
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); padding: 0 16px; }
+  .tabs button {
+    font: inherit; font-size: 13px; padding: 10px 12px; border: 0; border-bottom: 2px solid transparent;
+    background: 0; color: var(--mute); cursor: pointer;
+  }
+  .tabs button.on { color: var(--ink); border-bottom-color: var(--accent); }
+  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 320px; }
+  .list { overflow: auto; border-right: 1px solid var(--line); padding: 12px; }
+  .card {
+    border: 1px solid var(--line); border-radius: 6px; padding: 12px; margin-bottom: 8px;
+    background: var(--panel); cursor: pointer;
+  }
+  .card:hover, .card.on { border-color: var(--accent); }
+  .card .n { font-weight: 600; font-size: 13px; }
+  .card .d { color: var(--mute); font-size: 12px; margin-top: 4px; }
+  .badges { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .badge {
+    font-size: 11px; color: var(--mute); border: 1px solid var(--line);
+    padding: 1px 6px; border-radius: 999px;
+  }
+  .badge.live { color: var(--good); }
+  .badge.auth { color: var(--warn); }
+  .detail { overflow: auto; padding: 16px; background: var(--bg); }
+  .detail h1 { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
+  .detail .sub { color: var(--mute); margin-bottom: 14px; font-size: 13px; }
+  .detail dl { margin: 0 0 16px; font-size: 12px; }
+  .detail dt { color: var(--mute); margin-top: 10px; }
+  .detail dd { margin: 4px 0 0; }
+  .detail .cta { display: flex; gap: 8px; flex-wrap: wrap; }
+  .detail .cta button {
+    font: inherit; font-size: 13px; font-weight: 600; padding: 7px 12px;
+    border-radius: 6px; border: 1px solid var(--line); cursor: pointer;
+    background: var(--panel); color: var(--ink);
+  }
+  .detail .cta .p { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .filter { padding: 8px 16px; font-size: 12px; color: var(--mute); border-bottom: 1px solid var(--line); }
+  .filter button {
+    font: inherit; font-size: 12px; margin-right: 6px; padding: 2px 8px;
+    border: 1px solid var(--line); background: 0; color: var(--mute); cursor: pointer; border-radius: 4px;
+  }
+  .filter button.on { color: var(--ink); border-color: var(--mute); }
+  .hidden { display: none !important; }
+  .note { padding: 8px 16px; font-size: 11px; color: var(--mute); border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header class="top">
+      <b>Marketplace</b>
+      <input placeholder="Search eng capabilities…" aria-label="Search" />
+      <button type="button" id="b-browse" class="on">Browse</button>
+      <button type="button" id="b-installed">Installed</button>
+    </header>
+    <div class="tabs">
+      <button type="button" class="on" id="t-conn">Connectors</button>
+      <button type="button" id="t-modes">Modes</button>
+      <button type="button" id="t-seats">Seat packs</button>
+    </div>
+    <div class="filter">
+      <button type="button" class="on">Available</button>
+      <button type="button">Installed</button>
+      P0: GitHub + Slack · <button type="button" id="lowtok">low-token</button>
+    </div>
+
+    <div class="body" id="browse">
+      <div class="list" id="list-conn">
+        <div class="card on" data-id="gh">
+          <div class="n">GitHub</div>
+          <div class="d">PRs, reviews, CI — notify in + reply out</div>
+          <div class="badges">
+            <span class="badge live">live</span>
+            <span class="badge">two-way</span>
+            <span class="badge">HITL high-risk</span>
+            <span class="badge">lean</span>
+          </div>
+        </div>
+        <div class="card" data-id="slack">
+          <div class="n">Slack</div>
+          <div class="d">Eng mentions in — replies out</div>
+          <div class="badges">
+            <span class="badge auth">needs_auth</span>
+            <span class="badge">two-way</span>
+            <span class="badge">HITL public posts</span>
+          </div>
+        </div>
+        <div class="card" data-id="linear">
+          <div class="n">Linear</div>
+          <div class="d">Board watches — next after P0</div>
+          <div class="badges"><span class="badge">available</span><span class="badge">two-way</span></div>
+        </div>
+        <div class="card" data-id="sentry">
+          <div class="n">Sentry</div>
+          <div class="d">Error watches into Board</div>
+          <div class="badges"><span class="badge">available</span></div>
+        </div>
+        <div class="card" data-id="vercel">
+          <div class="n">Vercel</div>
+          <div class="d">Deploys — HITL on prod promote</div>
+          <div class="badges"><span class="badge">available</span><span class="badge">HITL high-risk</span></div>
+        </div>
+      </div>
+
+      <div class="list hidden" id="list-modes">
+        <div class="card on">
+          <div class="n">eng</div>
+          <div class="d">Forces research-before-claim · lane fences · no self-cert</div>
+          <div class="badges"><span class="badge">falsifier: Proof gate required</span></div>
+        </div>
+        <div class="card">
+          <div class="n">design</div>
+          <div class="d">SoT-first · no CA launch from Design seat</div>
+          <div class="badges"><span class="badge">falsifier: design pack path exists</span></div>
+        </div>
+      </div>
+
+      <div class="list hidden" id="list-seats">
+        <div class="card on">
+          <div class="n">Proof</div>
+          <div class="d">Adversarial verify · reject self-cert</div>
+          <div class="badges"><span class="badge">cutover: in-studio-only</span></div>
+        </div>
+        <div class="card">
+          <div class="n">Builder</div>
+          <div class="d">Implement behind Lead brief</div>
+          <div class="badges"><span class="badge">cutover: in-studio-only</span></div>
+        </div>
+      </div>
+
+      <aside class="detail" id="detail">
+        <h1>GitHub</h1>
+        <div class="sub">Connect so PR reviews and CI land in your inbox — reply from Studio.</div>
+        <dl>
+          <dt>State</dt><dd>live</dd>
+          <dt>Two-way</dt><dd>Notify in · comment/review out</dd>
+          <dt>HITL</dt><dd>High-risk: merge; low-risk: normal comments</dd><dt>Cost class</dt><dd>lean · board/seat meters show run tokens</dd>
+        </dl>
+        <div class="cta">
+          <button type="button" class="p">Manage</button>
+          <button type="button">Re-auth</button>
+          <button type="button">Revoke</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="body hidden" id="installed">
+      <div class="list" style="grid-column: 1 / -1">
+        <div class="card">
+          <div class="n">GitHub</div>
+          <div class="d">live · two-way</div>
+          <div class="badges"><span class="badge live">live</span></div>
+        </div>
+        <div class="card">
+          <div class="n">Slack</div>
+          <div class="d">needs_auth — finish sign-in</div>
+          <div class="badges"><span class="badge auth">needs_auth</span></div>
+        </div>
+        <div class="card">
+          <div class="n">Cursor</div>
+          <div class="d">Cloud agents map</div>
+          <div class="badges"><span class="badge live">live</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">Pattern from Grok Bot marketplace · visual/IA is Studio-native (tool catalog), not a copy. Home stays Chat|Board.</div>
+  </div>
+  <script>
+    const details = {
+      gh: { title: 'GitHub', sub: 'Connect so PR reviews and CI land in your inbox — reply from Studio.', state: 'live', tw: 'Notify in · comment/review out', hitl: 'High-risk: merge; low-risk: normal comments', cta: 'Manage' },
+      slack: { title: 'Slack', sub: 'Eng @mentions into inbox — reply out from the bound composer.', state: 'needs_auth', tw: 'Notify in · message out', hitl: 'High-risk: public channel blasts', cta: 'Fix auth' },
+      linear: { title: 'Linear', sub: 'Board watches from issues/projects.', state: 'available', tw: 'two-way when enabled', hitl: 'Low unless bulk public', cta: 'Connect' },
+      sentry: { title: 'Sentry', sub: 'Error events as Board watches.', state: 'available', tw: 'Ingress-first', hitl: 'n/a', cta: 'Connect' },
+      vercel: { title: 'Vercel', sub: 'Deploy status — prod promote needs HITL card.', state: 'available', tw: 'Status in · promote out', hitl: 'High-risk: production deploy', cta: 'Connect' },
+    };
+    const detail = document.getElementById('detail');
+    function showDetail(id) {
+      const d = details[id]; if (!d) return;
+      detail.innerHTML = '<h1>'+d.title+'</h1><div class="sub">'+d.sub+'</div><dl><dt>State</dt><dd>'+d.state+'</dd><dt>Two-way</dt><dd>'+d.tw+'</dd><dt>HITL</dt><dd>'+d.hitl+'</dd></dl><div class="cta"><button type="button" class="p">'+d.cta+'</button><button type="button">Revoke</button></div>';
+      document.querySelectorAll('#list-conn .card').forEach(c => c.classList.toggle('on', c.dataset.id === id));
+    }
+    document.querySelectorAll('#list-conn .card').forEach(c => c.onclick = () => showDetail(c.dataset.id));
+    document.getElementById('b-browse').onclick = () => {
+      document.getElementById('browse').classList.remove('hidden');
+      document.getElementById('installed').classList.add('hidden');
+      document.getElementById('b-browse').classList.add('on');
+      document.getElementById('b-installed').classList.remove('on');
+    };
+    document.getElementById('b-installed').onclick = () => {
+      document.getElementById('installed').classList.remove('hidden');
+      document.getElementById('browse').classList.add('hidden');
+      document.getElementById('b-installed').classList.add('on');
+      document.getElementById('b-browse').classList.remove('on');
+    };
+    function tab(which) {
+      document.getElementById('t-conn').classList.toggle('on', which==='c');
+      document.getElementById('t-modes').classList.toggle('on', which==='m');
+      document.getElementById('t-seats').classList.toggle('on', which==='s');
+      document.getElementById('list-conn').classList.toggle('hidden', which!=='c');
+      document.getElementById('list-modes').classList.toggle('hidden', which!=='m');
+      document.getElementById('list-seats').classList.toggle('hidden', which!=='s');
+      detail.classList.toggle('hidden', which!=='c');
+    }
+    document.getElementById('t-conn').onclick = () => tab('c');
+    document.getElementById('t-modes').onclick = () => tab('m');
+    document.getElementById('t-seats').onclick = () => tab('s');
+  </script>
+</body>
+</html>
