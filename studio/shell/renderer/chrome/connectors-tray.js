@@ -2,6 +2,7 @@
 
 (function attachConnectorsTray(Studio) {
   const assertNever = Studio.assertNever;
+  const P0_UX = ["github", "slack"];
 
   function connectorClass(status) {
     switch (status) {
@@ -31,21 +32,26 @@
     }
   }
 
+  function p0TrayRows(connectors) {
+    return (connectors || []).filter((item) => P0_UX.includes(item.id));
+  }
+
   function problemConnectors(connectors, inbox) {
-    const rows = connectors.filter((item) => isConnectorProblem(item.status));
+    const rows = p0TrayRows(connectors).filter((item) => isConnectorProblem(item.status));
     const falsePings = (inbox || []).filter((item) => item && item.need_you === false);
     if (!falsePings.length) {
       return rows;
     }
-    return rows.filter((row) => !falsePings.some((item) => item.provider === row.id && !isConnectorProblem(row.status)));
+    return rows.filter((row) => !falsePings.some((item) => item.provider === row.id && item.need_you === false && row.status === "live"));
   }
 
-  function problemLabel(connector) {
+  function trayLabel(connector) {
     switch (connector.status) {
       case "needs_auth":
       case "error":
         return `${connector.label} needs sign-in`;
       case "live":
+        return connector.label;
       case "disconnected":
         return connector.label;
       default:
@@ -58,15 +64,26 @@
     if (state.view === "cold") {
       return;
     }
-    for (const connector of problemConnectors(state.connectors, state.inbox)) {
+    for (const connector of p0TrayRows(state.connectors)) {
+      if (connector.status === "disconnected") {
+        continue;
+      }
+      if (connector.need_you === false) {
+        continue;
+      }
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `warn ${connectorClass(connector.status)}`;
+      button.className = connectorClass(connector.status);
       button.dataset.connector = connector.id;
       button.dataset.status = connector.status;
-      button.title = connector.status;
-      button.setAttribute("aria-label", problemLabel(connector));
-      button.textContent = problemLabel(connector);
+      button.dataset.inboxEntry = connector.status === "live" ? "true" : "false";
+      button.title = connector.status === "live" ? "inbox" : connector.status;
+      button.setAttribute("aria-label", trayLabel(connector));
+      button.setAttribute("aria-pressed", String(state.inboxFilter === connector.id));
+      if (state.inboxFilter === connector.id) {
+        button.classList.add("on");
+      }
+      button.textContent = trayLabel(connector);
       button.addEventListener("click", () => onConnector(connector.id));
       els.connectors.appendChild(button);
     }
@@ -74,6 +91,7 @@
 
   Studio.chrome = Studio.chrome || {};
   Studio.chrome.connectorClass = connectorClass;
+  Studio.chrome.p0TrayRows = p0TrayRows;
   Studio.chrome.problemConnectors = problemConnectors;
   Studio.chrome.renderConnectors = renderConnectors;
 })(globalThis.StudioShell = globalThis.StudioShell || {});

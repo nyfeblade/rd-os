@@ -34,7 +34,15 @@
   }
 
   function inboxForChat(state) {
-    return (state.inbox || []).filter((item) => item.need_you && chatDest(item));
+    return (state.inbox || []).filter((item) => {
+      if (!item.need_you || !chatDest(item)) {
+        return false;
+      }
+      if (state.inboxFilter && item.provider !== state.inboxFilter) {
+        return false;
+      }
+      return true;
+    });
   }
 
   function boundItem(state) {
@@ -94,7 +102,7 @@
     els.composeHint.textContent = `Outbound bound to this notification · ${bound.id}`;
   }
 
-  function renderThread(els, state, _handlers) {
+  function renderThread(els, state, handlers) {
     const seat = selectedSeat(state);
     const bound = boundItem(state);
     const inbox = inboxForChat(state);
@@ -102,9 +110,11 @@
 
     if (state.view === "live" && inbox.length) {
       for (const item of inbox) {
-        const wrap = document.createElement("div");
-        wrap.className = "msg inbound";
+        const wrap = document.createElement("button");
+        wrap.type = "button";
+        wrap.className = item.id === state.boundTo ? "msg inbound on" : "msg inbound";
         wrap.dataset.inbox = item.id;
+        wrap.setAttribute("aria-pressed", String(item.id === state.boundTo));
         const who = document.createElement("div");
         who.className = "who";
         who.textContent = `${item.provider === "github" ? "GitHub" : "Slack"} → inbox`;
@@ -112,6 +122,11 @@
         body.className = "txt";
         body.textContent = item.body || item.title;
         wrap.append(who, body);
+        wrap.addEventListener("click", () => {
+          if (handlers && typeof handlers.bindInbox === "function") {
+            handlers.bindInbox(item.id);
+          }
+        });
         els.messages.appendChild(wrap);
       }
       if (state.outbox && state.outbox.length) {

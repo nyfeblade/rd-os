@@ -12,7 +12,11 @@ const { ingressPresent, readIngressFixture, tryLoadIngress } = require("./read-i
 
 const P0_WIRE = ["github", "slack"];
 const TRAY_DEFAULT = ["live", "needs_auth"];
-const DEMO_INGEST = ["github-review-request.json", "github-issue-comment.json"];
+const DEMO_INGEST = [
+  "github-review-request.json",
+  "github-issue-comment.json",
+  "slack-mention.json",
+];
 const DEMO_QUIET = ["github-ping-dropped.json"];
 
 function assertNever(value) {
@@ -147,6 +151,20 @@ function stubInbox() {
       created_at: "2026-09-18T12:00:00Z",
       tray_state: "live",
     },
+    {
+      id: "slack:mention:Ceng:1726665600.000100",
+      provider: "slack",
+      kind: "mention",
+      need_you: true,
+      needs_gate: false,
+      dest: "chat",
+      thread_ref: { team: "T1", channel: "Ceng", ts: "1726665600.000100" },
+      title: "mentioned in #eng",
+      body: "<@Ubot> status on the runtime?",
+      actor: { login: "U123" },
+      created_at: "2026-09-18T12:00:00Z",
+      tray_state: "live",
+    },
   ];
 }
 
@@ -209,63 +227,24 @@ function cutoverFromSeats(seats) {
   return { status: attached ? "attached" : "unattached", in_studio_only: attached };
 }
 
-function stubReply(draft) {
-  const runtime = tryLoadRuntime();
-  if (runtime) {
-    return runtime.reply(draft);
-  }
-  if (!draft || typeof draft.bound_to !== "string" || draft.bound_to.trim() === "") {
-    return { ok: false, code: "UNBOUND_REPLY", outbound: null, verdict: null, clock_started: false };
-  }
-  if (typeof draft.body !== "string" || draft.body.trim() === "") {
-    return { ok: false, code: "EMPTY_BODY", outbound: null, verdict: null, clock_started: false };
-  }
-  if (draft.actor === "bot") {
-    const cutover = draft.cutover;
-    if (!(cutover && cutover.status === "attached" && cutover.in_studio_only === true)) {
-      return { ok: false, code: "BOT_SEND_NO_CUTOVER", outbound: null, verdict: null, clock_started: false };
-    }
-    if (!(draft.human_gate && draft.human_gate.status === "approved")) {
-      return { ok: false, code: "BOT_SEND_NO_GATE", outbound: null, verdict: null, clock_started: false };
-    }
-  }
-  if (draft.tray_state !== "live") {
-    return { ok: false, code: "NEEDS_AUTH", outbound: null, verdict: null, clock_started: false };
-  }
+function runtimeMissing() {
   return {
-    ok: true,
-    code: null,
-    outbound: { op: "stub", provider: draft.provider, actor: draft.actor, bound_to: draft.bound_to },
+    ok: false,
+    dropped: false,
+    code: "INVALID_EVENT",
+    detail: "runtime not present",
+    outbound: null,
     verdict: null,
     clock_started: false,
   };
 }
 
 function sendReply(draft) {
-  return stubReply(draft);
-}
-
-function humanGateAllows(draft) {
   const runtime = tryLoadRuntime();
-  if (runtime) {
-    return runtime.humanGateAllows(draft);
+  if (!runtime || typeof runtime.reply !== "function") {
+    return runtimeMissing();
   }
-  if (!draft || draft.actor !== "bot") {
-    return true;
-  }
-  return Boolean(draft.human_gate && draft.human_gate.status === "approved");
-}
-
-function cutoverAllows(draft) {
-  const runtime = tryLoadRuntime();
-  if (runtime) {
-    return runtime.cutoverAllows(draft);
-  }
-  if (!draft || draft.actor !== "bot") {
-    return true;
-  }
-  const cutover = draft.cutover;
-  return Boolean(cutover && cutover.status === "attached" && cutover.in_studio_only === true);
+  return runtime.reply(draft);
 }
 
 module.exports = {
@@ -273,10 +252,8 @@ module.exports = {
   TRAY_DEFAULT,
   boardInbox,
   chatInbox,
-  cutoverAllows,
   cutoverFromSeats,
   demoInbox,
-  humanGateAllows,
   ingressPresent,
   quietPingDropped,
   shouldTrayPing,

@@ -84,6 +84,8 @@ assert.match(css, /\.main\.code-open \.code-pane/);
 assert.match(css, /grid-template-columns:\s*1fr 280px/);
 assert.match(css, /grid-template-columns:\s*1fr 340px 260px/);
 assert.match(css, /\.warn/);
+assert.match(css, /\.tray button\.live/);
+assert.match(css, /\.tray button\.auth/);
 assert.match(css, /\.gate/);
 assert.match(css, /\.quiet/);
 assert.match(css, /\.switcher/);
@@ -106,6 +108,7 @@ assert.match(js, /setView/);
 assert.match(js, /applyLiveDemo/);
 assert.match(js, /needs_auth/);
 assert.match(js, /loadInbox/);
+assert.match(js, /inboxFilter/);
 assert.match(js, /bound_to/);
 assert.match(js, /actor: "bot"/);
 assert.match(js, /actor: "human"/);
@@ -127,7 +130,9 @@ assert.match(chat, /in-studio-only/);
 assert.match(chat, /seatList.hidden = true/);
 assert.match(chat, /bound_to|boundTo|boundItem/);
 assert.match(chat, /GitHub → inbox|inbox/);
+assert.match(chat, /inboxFilter/);
 assert.match(chat, /replyKindFor/);
+assert.match(chat, /handlers.bindInbox/);
 assert.doesNotMatch(chat, /person on/);
 assert.doesNotMatch(chat, /Eng Lead/);
 
@@ -146,6 +151,9 @@ assert.doesNotMatch(board, /PR#11/);
 
 assert.match(code, /setCodeOpen/);
 assert.match(tray, /problemConnectors/);
+assert.match(tray, /p0TrayRows/);
+assert.match(tray, /inboxEntry/);
+assert.match(tray, /P0_UX/);
 assert.match(tray, /needs sign-in/);
 assert.match(tray, /state.view === "cold"/);
 assert.match(tray, /case "live"/);
@@ -185,6 +193,8 @@ assert.match(readme, /CATALOG/);
 assert.match(readme, /Visibility law/);
 assert.match(readme, /connector problems/);
 assert.match(readme, /two-way|TWO-WAY|bound/);
+assert.match(readme, /inbox entry|inbox filter/);
+assert.match(readme, /runtime/);
 assert.match(readme, /Token meter|token meter/);
 assert.match(readme, /need_you=false|quiet/);
 assert.doesNotMatch(readme, /always visible/);
@@ -195,9 +205,15 @@ assert.match(read("renderer/chrome/token-meter.js"), /unknown|omit|knownTokens/)
 assert.match(read("lib/read-ingress.js"), /tryLoadIngress/);
 assert.doesNotMatch(read("lib/read-ingress.js"), /writeFile|writeFileSync/);
 assert.ok(fs.existsSync(path.join(root, "design", "CONNECTORS-TWO-WAY.md")));
+assert.ok(fs.existsSync(path.join(root, "design", "CONNECTORS-TWOWAY.md")));
 assert.ok(fs.existsSync(path.join(root, "design", "VISIBILITY.md")));
 assert.match(read("design/CONNECTORS-TWO-WAY.md"), /bidirectional/);
+assert.match(read("design/CONNECTORS-TWOWAY.md"), /inbox entry/);
 assert.match(read("lib/two-way.js"), /P0_WIRE/);
+assert.match(read("lib/two-way.js"), /runtime not present/);
+assert.doesNotMatch(read("lib/two-way.js"), /function stubReply/);
+assert.doesNotMatch(read("lib/two-way.js"), /function humanGateAllows/);
+assert.doesNotMatch(read("lib/two-way.js"), /function cutoverAllows/);
 assert.deepEqual(twoWay.P0_WIRE.slice().sort(), ["github", "slack"]);
 assert.deepEqual(twoWay.TRAY_DEFAULT.slice().sort(), ["live", "needs_auth"]);
 assert.doesNotMatch(read("lib/two-way.js"), /writeFile|writeFileSync/);
@@ -269,6 +285,8 @@ if (catalogPresent()) {
   assert.ok(inbox.every((item) => item.need_you === true));
   assert.ok(inbox.every((item) => twoWay.shouldTrayPing(item)));
   assert.ok(!inbox.some((item) => item.need_you === false), "quiet default: no need_you=false tray ping");
+  assert.ok(inbox.some((item) => item.provider === "github"), "P0 inbox includes GitHub");
+  assert.ok(inbox.some((item) => item.provider === "slack"), "P0 inbox includes Slack");
   if (ingressPresent()) {
     assert.equal(INGRESS_REL, "studio/connectors/ingress");
     assert.ok(tryLoadIngress());
@@ -276,7 +294,7 @@ if (catalogPresent()) {
     assert.equal(quiet.dropped, true, "github ping must drop");
     assert.equal(quiet.items.length, 0, "dropped ping must not enter inbox");
   }
-  const unbound = twoWay.sendReply({
+  const unboundDraft = {
     provider: "github",
     actor: "human",
     kind: "issue_comment",
@@ -284,10 +302,8 @@ if (catalogPresent()) {
     bound_to: "",
     body: "hi",
     thread_ref: { owner: "you", repo: "your-repo", issue_number: 14 },
-  });
-  assert.equal(unbound.ok, false);
-  assert.equal(unbound.code, "UNBOUND_REPLY");
-  const botNoGate = twoWay.sendReply({
+  };
+  const botDraft = {
     provider: "github",
     actor: "bot",
     kind: "issue_comment",
@@ -297,9 +313,19 @@ if (catalogPresent()) {
     thread_ref: inbox[0].thread_ref,
     cutover: { status: "attached", in_studio_only: true },
     human_gate: { status: "pending" },
-  });
-  assert.equal(botNoGate.ok, false);
-  assert.equal(botNoGate.code, "BOT_SEND_NO_GATE");
+  };
+  if (twoWay.runtimePresent()) {
+    const unbound = twoWay.sendReply(unboundDraft);
+    assert.equal(unbound.ok, false);
+    assert.equal(unbound.code, "UNBOUND_REPLY");
+    const botNoGate = twoWay.sendReply(botDraft);
+    assert.equal(botNoGate.ok, false);
+    assert.equal(botNoGate.code, "BOT_SEND_NO_GATE");
+  } else {
+    const missing = twoWay.sendReply(unboundDraft);
+    assert.equal(missing.ok, false);
+    assert.equal(missing.detail, "runtime not present");
+  }
 } else {
   assert.deepEqual(p0, []);
 }

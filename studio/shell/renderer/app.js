@@ -63,6 +63,7 @@
     connectors: FALLBACK_P0.map((item) => ({ ...item })),
     catalogRows: FALLBACK_P0.map((item) => ({ ...item })),
     inbox: [],
+    inboxFilter: null,
     outbox: [],
     boundTo: null,
     pendingBotSend: null,
@@ -78,6 +79,15 @@
     tokens: { session: null, board: null },
   };
 
+  function bindInbox(id) {
+    state.boundTo = id;
+    const item = (state.inbox || []).find((row) => row.id === id);
+    if (item) {
+      state.inboxFilter = item.provider;
+    }
+    renderChrome();
+  }
+
   const chatHandlers = {
     onConnectSeat(seat) {
       openCutover({
@@ -87,15 +97,13 @@
         copy: "This seat works in Studio only while connected.",
       });
     },
+    bindInbox,
   };
 
   const boardHandlers = {
     resolveGate,
     resolveBotSend,
-    bindInbox(id) {
-      state.boundTo = id;
-      renderChrome();
-    },
+    bindInbox,
     openDiff() {
       Studio.panes.setCodeOpen(els, state, true);
       Studio.panes.renderBoard(els, state, boardHandlers);
@@ -185,6 +193,7 @@
 
   function clearTwoWay() {
     state.inbox = [];
+    state.inboxFilter = null;
     state.outbox = [];
     state.boundTo = null;
     state.pendingBotSend = null;
@@ -315,11 +324,10 @@
     }
     switch (connector.status) {
       case "live": {
+        state.inboxFilter = id;
         const match = (state.inbox || []).find((item) => item.provider === id && item.need_you);
-        if (match) {
-          state.boundTo = match.id;
-          renderChrome();
-        }
+        state.boundTo = match ? match.id : null;
+        renderChrome();
         return;
       }
       case "needs_auth":
