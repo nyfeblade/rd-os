@@ -144,6 +144,21 @@ function main() {
     JSON.stringify(missingElectron)
   );
 
+  const missingApp = checkPreconditions(MAC_PACKAGE_RECIPE, {
+    platform: "darwin",
+    existsSync(target) {
+      return path.basename(target) === "package.json";
+    },
+    rootDir: ROOT,
+  });
+  assert(
+    "missing Electron.app fails",
+    missingApp.ok === false &&
+      missingApp.error ===
+        "FAIL package: ../shell/node_modules/electron/dist/Electron.app is missing. Run npm install in studio/shell on a Mac.",
+    JSON.stringify(missingApp)
+  );
+
   const windowsHost = checkPreconditions(MAC_PACKAGE_RECIPE, {
     platform: "win32",
     existsSync() {
@@ -199,7 +214,12 @@ function main() {
   assert("readme uses npm run package", readme.includes("npm run package"), "missing npm run package");
   assert("readme uses npm test", readme.includes("npm test"), "missing npm test");
   assert("readme names the .app", readme.includes("AI Coding Studio.app"), "missing AI Coding Studio.app");
+  assert("readme unpacks the zip", readme.includes("ditto -x -k dist/*.zip"), "missing ditto zip install");
   assert("readme is not a Windows path", !/Windows/i.test(readme) && !/nsis/i.test(readme), "Windows path documented");
+  const leaked = MAC_PACKAGE_RECIPE.killTargets.filter((key) =>
+    Object.prototype.hasOwnProperty.call(toBuilderConfig(MAC_PACKAGE_RECIPE), key)
+  );
+  assert("recipe config leaks no kill target", leaked.length === 0, JSON.stringify(leaked));
 
   const recipeSrc = read("recipe.js");
   const packageSrc = read("package.js");

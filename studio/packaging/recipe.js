@@ -7,6 +7,7 @@ const MAC_PACKAGE_RECIPE = Object.freeze({
   appId: "dev.rdos.studio",
   appDir: "../shell",
   electronModule: "../shell/node_modules/electron",
+  electronApp: "../shell/node_modules/electron/dist/Electron.app",
   electronVersion: "37.10.3",
   outputDir: "dist",
   configFile: "builder.yml",
@@ -182,13 +183,12 @@ function issuesInBuilderConfig(config) {
     return issues;
   }
 
-  for (const key of MAC_PACKAGE_RECIPE.killTargets) {
-    if (Object.prototype.hasOwnProperty.call(config, key)) {
+  const expected = toBuilderConfig(MAC_PACKAGE_RECIPE);
+  for (const key of Object.keys(config)) {
+    if (!Object.prototype.hasOwnProperty.call(expected, key)) {
       issues.push(`forbidden key ${key}`);
     }
   }
-
-  const expected = toBuilderConfig(MAC_PACKAGE_RECIPE);
   if (config.appId !== expected.appId) {
     issues.push(`appId ${String(config.appId)}`);
   }
@@ -211,6 +211,11 @@ function issuesInBuilderConfig(config) {
   if (!config.directories || typeof config.directories !== "object") {
     issues.push("directories is not a map");
   } else {
+    for (const key of Object.keys(config.directories)) {
+      if (key !== "app" && key !== "output") {
+        issues.push(`forbidden key directories.${key}`);
+      }
+    }
     if (config.directories.app !== expected.directories.app) {
       issues.push(`directories.app ${String(config.directories.app)}`);
     }
@@ -224,6 +229,11 @@ function issuesInBuilderConfig(config) {
   if (!config.mac || typeof config.mac !== "object") {
     issues.push("mac is not a map");
     return issues;
+  }
+  for (const key of Object.keys(config.mac)) {
+    if (key !== "identity" && key !== "category" && key !== "target") {
+      issues.push(`forbidden key mac.${key}`);
+    }
   }
   if (config.mac.identity !== null) {
     issues.push("mac.identity must be null");
@@ -260,6 +270,14 @@ function checkPreconditions(recipe, options) {
     return {
       ok: false,
       error: `FAIL package: ${recipe.electronModule} is missing. Run npm install in studio/shell.`,
+    };
+  }
+
+  const electronApp = path.resolve(options.rootDir, recipe.electronApp);
+  if (!options.existsSync(electronApp)) {
+    return {
+      ok: false,
+      error: `FAIL package: ${recipe.electronApp} is missing. Run npm install in studio/shell on a Mac.`,
     };
   }
 

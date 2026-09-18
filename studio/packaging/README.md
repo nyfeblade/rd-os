@@ -48,10 +48,12 @@ The build emits only a Mac DMG and a zip.
 
 ## Install the app
 
+Quit an installed copy of AI Coding Studio before replacing it.
+
 ```bash
 	mkdir -p ~/Applications
-	APP=$(find dist -name "AI Coding Studio.app" -type d | head -n 1)
-	cp -R "$APP" ~/Applications/
+	rm -rf ~/Applications/AI\ Coding\ Studio.app
+	ditto -x -k dist/*.zip ~/Applications
 ```
 
 The install target is `~/Applications`. Leave `/Applications` unused.
