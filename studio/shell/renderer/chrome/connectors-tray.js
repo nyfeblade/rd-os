@@ -48,13 +48,13 @@
   function trayLabel(connector) {
     switch (connector.status) {
       case "needs_auth":
-        return `${connector.label} needs sign-in`;
+        return `${connector.label} · sign in`;
       case "error":
-        return `${connector.label} error`;
+        return `${connector.label} · error`;
       case "live":
         return connector.label;
       case "disconnected":
-        return `${connector.label} disconnected`;
+        return connector.label;
       default:
         return assertNever(connector.status);
     }
@@ -84,7 +84,7 @@
       if (state.inboxFilter === connector.id) {
         button.classList.add("on");
       }
-      button.textContent = connector.label;
+      button.textContent = trayLabel(connector);
       button.addEventListener("click", () => onConnector(connector.id));
       els.connectors.appendChild(button);
     }

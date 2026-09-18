@@ -7,11 +7,11 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'self'"
     />
-    <title>AI Coding Studio</title>
+    <title>Studio</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body data-host="preview">
-    <div class="frame" role="application" aria-label="AI Coding Studio">
+    <div class="frame" role="application" aria-label="Studio">
       <div class="demo switcher" id="view-switcher" aria-label="Coverage states">
         demo
         <button type="button" id="view-live">working</button>
@@ -24,35 +24,34 @@
         <div class="tray" id="connectors-tray" data-chrome="connectors-tray" aria-label="Connectors"></div>
         <span class="grow"></span>
         <span class="meter" id="thread-meter" hidden></span>
-        <span id="cutover-chip" hidden>in-studio only</span>
+        <span id="cutover-chip" hidden>in-studio</span>
         <button type="button" id="btn-code" aria-pressed="false">Code</button>
         <button type="button" class="here" id="presence-btn" data-chrome="presence-bar" hidden aria-hidden="true" aria-expanded="false" aria-controls="presence-list">
-          <span id="presence-count">0 online</span>
+          <span id="presence-count">0</span>
         </button>
         <div class="popover" id="presence-list" hidden role="list"></div>
       </header>
 
       <main class="main" id="main">
         <section class="pane chat" data-pane="chat" data-module="chat-pane" id="pane-chat" aria-label="Chat">
-          <aside class="seats" id="seat-list" hidden aria-hidden="true" aria-label="Seats and rooms"></aside>
+          <aside class="seats" id="seat-list" hidden aria-hidden="true" aria-label="Seats"></aside>
           <div id="chat-live">
-            <p class="onboard" id="chat-onboard" hidden>Talk to agents here. What’s blocked on you sits on the Board.</p>
+            <p class="onboard" id="chat-onboard" hidden></p>
             <div class="ctx" id="inbox-ctx" hidden></div>
             <div class="msgs" id="messages" aria-live="polite"></div>
             <p class="open-code-hint" id="open-code-hint" hidden>
-              Need the repo? <button type="button" id="hint-code">Open code</button>
+              <button type="button" id="hint-code">Code</button>
             </p>
-            <p class="hint" id="compose-hint" hidden>Outbound bound to this notification</p>
+            <p class="hint" id="compose-hint" hidden></p>
             <form class="compose" id="composer">
-              <textarea id="composer-input" rows="2" placeholder="Message…" aria-label="Reply composer"></textarea>
+              <textarea id="composer-input" rows="2" placeholder="Message…" aria-label="Message"></textarea>
               <button class="send" type="submit" id="compose-send">Send</button>
             </form>
           </div>
           <div id="chat-cold" class="empty" hidden>
-            <h1>Connect GitHub and an agent</h1>
-            <p>Then you’ll see chat and whatever needs you.</p>
-            <button class="ok" type="button" id="cta-github">Connect GitHub</button>
-            <button type="button" id="cta-seat">Add agent</button>
+            <h1>Connect GitHub</h1>
+            <button class="ok" type="button" id="cta-github">Connect</button>
+            <button type="button" id="cta-seat">Add seat</button>
           </div>
         </section>
 
@@ -60,28 +59,29 @@
           <div class="code-h">
             <b>your-repo</b>
             <span id="editor-tab">StudioShell.tsx</span>
-            <button type="button" id="btn-close" aria-label="Close code">Close</button>
+            <button type="button" id="btn-close" aria-label="Close">Close</button>
           </div>
           <div class="code-body">
-            <nav class="tree" id="file-tree" hidden aria-hidden="true" aria-label="Repository files"></nav>
+            <nav class="tree" id="file-tree" hidden aria-hidden="true" aria-label="Files"></nav>
             <pre id="editor-body"></pre>
           </div>
         </section>
 
         <section class="pane board" data-pane="board" data-module="board-pane" id="pane-board" aria-label="Board">
+          <div class="board-h">Needs you</div>
           <span class="meter" id="board-meter" hidden></span>
           <span class="meter" id="seat-meters" hidden></span>
           <div id="board-body"></div>
-          <div class="instruments" id="instruments" hidden aria-hidden="true" aria-label="CA map"></div>
-          <div class="watches" id="watches" hidden aria-hidden="true" aria-label="Routines and watches"></div>
+          <div class="instruments" id="instruments" hidden aria-hidden="true" aria-label="Agents"></div>
+          <div class="watches" id="watches" hidden aria-hidden="true" aria-label="Watches"></div>
         </section>
       </main>
     </div>
 
     <div class="sheet" id="cutover-sheet" hidden>
       <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="cutover-title">
-        <h2 id="cutover-title">Connect seat</h2>
-        <p id="cutover-copy">This seat works in Studio only while connected.</p>
+        <h2 id="cutover-title">Connect</h2>
+        <p id="cutover-copy"></p>
         <div class="dialog-actions">
           <button type="button" class="no" id="cutover-cancel">Cancel</button>
           <button type="button" class="go" id="cutover-confirm">Connect</button>

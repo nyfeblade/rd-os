@@ -21,17 +21,17 @@
     switch (kind) {
       case "ca":
         if (who === "agent") {
-          return { label: "Agent map", state: "running", detail: "a coding agent · open gate" };
+          return { label: "Running", state: "running", detail: "" };
         }
-        return { label: "Agent map", state: "idle", detail: "no run — any provider" };
+        return { label: "Idle", state: "idle", detail: "" };
       case "proof":
         if (who === "proof") {
-          return { label: "Proof", state: "checking", detail: "dual-gate in progress" };
+          return { label: "Proof", state: "checking", detail: "" };
         }
         if (who === "human") {
-          return { label: "Proof", state: "ready", detail: "Lead-merge" };
+          return { label: "Proof", state: "ready", detail: "" };
         }
-        return { label: "Proof", state: "idle", detail: "no packet" };
+        return { label: "Proof", state: "idle", detail: "" };
       default:
         return assertNever(kind);
     }
@@ -74,19 +74,19 @@
 
   function renderInboxGate(els, item, handlers) {
     const gate = document.createElement("div");
-    gate.className = "gate";
+    gate.className = "gate row";
     gate.dataset.inbox = item.id;
     const label = document.createElement("div");
     label.className = "label";
-    label.textContent = "Needs you · also from inbox";
+    label.textContent = "Needs you";
     const title = document.createElement("div");
-    title.className = "title";
+    title.className = "title t";
     title.textContent = item.title;
     const acts = document.createElement("div");
     acts.className = "actions";
     const open = document.createElement("button");
     open.type = "button";
-    open.textContent = "Open thread";
+    open.textContent = "Open";
     open.addEventListener("click", () => handlers.bindInbox(item.id));
     acts.append(open);
     gate.append(label, title, acts);
@@ -140,10 +140,10 @@
 
   function actorLabel(pending) {
     if (!pending || pending.actor !== "bot") {
-      return "human";
+      return "You";
     }
     const seat = pending.seat ? ` · ${pending.seat}` : "";
-    return `bot${seat} · in-studio-only`;
+    return `Bot${seat}`;
   }
 
   function hitlPending(state) {
@@ -157,21 +157,21 @@
       return;
     }
     const gate = document.createElement("div");
-    gate.className = "gate";
+    gate.className = "gate row open";
     gate.id = "hitl-pending";
     gate.dataset.hitlKind = pending.kind;
     const label = document.createElement("div");
     label.className = "label";
-    label.textContent = "HITL · high-risk outbound";
+    label.textContent = "HITL";
     const title = document.createElement("div");
-    title.className = "title";
+    title.className = "title t";
     title.textContent = pending.title || hitlKindLabel(pending.kind);
     const dest = document.createElement("div");
     dest.className = "label dest";
-    dest.textContent = `Destination · ${pending.destination || "unknown"}`;
+    dest.textContent = pending.destination || "";
     const actor = document.createElement("div");
     actor.className = "label actor";
-    actor.textContent = `Actor · ${actorLabel(pending)}`;
+    actor.textContent = actorLabel(pending);
     const payloadLabel = document.createElement("div");
     payloadLabel.className = "label payload-label";
     payloadLabel.textContent = "Payload";
@@ -189,7 +189,7 @@
     const allow = document.createElement("button");
     allow.type = "button";
     allow.className = "ok";
-    allow.textContent = "Approve send";
+    allow.textContent = "Approve";
     allow.addEventListener("click", () => handlers.resolveHitl("approved"));
     const deny = document.createElement("button");
     deny.type = "button";
@@ -207,13 +207,13 @@
       return;
     }
     const gate = document.createElement("div");
-    gate.className = "gate";
+    gate.className = "gate row";
     gate.id = "human-gate";
     const label = document.createElement("div");
     label.className = "label";
     label.textContent = "Needs you";
     const title = document.createElement("div");
-    title.className = "title";
+    title.className = "title t";
     title.textContent = dump.p0.why || "Merge gate";
     const acts = document.createElement("div");
     acts.className = "actions";
@@ -228,7 +228,7 @@
     reject.addEventListener("click", () => handlers.resolveGate("reject"));
     const openDiff = document.createElement("button");
     openDiff.type = "button";
-    openDiff.textContent = "View diff";
+    openDiff.textContent = "Diff";
     openDiff.addEventListener("click", () => handlers.openDiff());
     acts.append(approve, reject, openDiff);
     gate.append(label, title, acts);
@@ -253,7 +253,7 @@
     } else if (state.view !== "cold" && !inboxGates(state).length && !hitlPending(state)) {
       const fail = document.createElement("p");
       fail.className = "quiet";
-      fail.textContent = "Can't reach the board stub";
+      fail.textContent = "Unreachable";
       els.boardBody.appendChild(fail);
     }
 
@@ -265,7 +265,7 @@
     } else if (state.flash) {
       quiet.textContent = state.flash;
     } else {
-      quiet.textContent = "Low-risk GitHub replies send from Chat composer. High-risk needs this card.";
+      quiet.textContent = "";
     }
     els.boardBody.appendChild(quiet);
 

@@ -1,21 +1,33 @@
+/* Visual lock: white / slate / black (Linear × Vercel × GitHub) */
 :root {
-  --void: #eee;
-  --bg: #fff;
-  --surface: #fafafa;
-  --wash: #fafafa;
-  --elev: #fff;
-  --sel: #f0f0f0;
-  --hover: #f5f5f5;
-  --line: #e8e8e8;
-  --ink: #111;
-  --mute: #666;
-  --faint: #888;
-  --accent: #111;
-  --accent-ink: #fff;
-  --online: #0a0;
-  --good: #0a0;
-  --warn: #886600;
-  --err: #a00;
-  --human: #fff;
-  --danger: #a00;
+  --void: #f1f5f9;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --wash: #ffffff;
+  --elev: #ffffff;
+  --panel: #ffffff;
+  --sel: #f8fafc;
+  --hover: #f8fafc;
+  --line: #e2e8f0;
+  --ink: #0a0a0a;
+  --mute: #64748b;
+  --faint: #94a3b8;
+  --slate: #334155;
+  --accent: #0a0a0a;
+  --accent-ink: #ffffff;
+  --online: #0a0a0a;
+  --good: #0a0a0a;
+  --warn: #475569;
+  --err: #0a0a0a;
+  --human: #ffffff;
+  --danger: #0a0a0a;
+
+  --radius: 4px;
+  --font-ui: "Studio Signal", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --motion-drawer: 180ms;
+  --motion-row: 100ms;
+  --motion-fade: 120ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
