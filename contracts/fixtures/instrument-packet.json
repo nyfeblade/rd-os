@@ -1,0 +1,13 @@
+{
+  "experiment_id": "exp-ca2-contract",
+  "packet_id": "pkt-run",
+  "kind": "run",
+  "uri": "evidence/runs/exp-ca2-contract/packet.json",
+  "runner_result": "REJECTED",
+  "measured_exit": 1,
+  "estimate_ca_hours": 1,
+  "estimate_proof_min": 5,
+  "human_gates": [{ "kind": "proof_accept", "reason": "Eng Proof owns verdict" }],
+  "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null },
+  "idempotency_key": "pkt-run-1"
+}

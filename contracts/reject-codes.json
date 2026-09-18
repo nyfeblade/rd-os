@@ -1,0 +1,30 @@
+{
+  "envelope": { "ok": false, "code": "RejectCode", "detail": "string" },
+  "retry_rule": "Agents must not retry a reject by dropping fields. RESOURCE_EXHAUSTED means STOP.",
+  "codes": [
+    "MISSING_MACHINE_TIME",
+    "HUMAN_WEEK_WITHOUT_GATE",
+    "MISSING_ACTUALS",
+    "SINGLE_LANE",
+    "PROBE_NOT_FETCH_OR_RUN",
+    "NO_EVIDENCE_RECOMBINE",
+    "NO_ENVELOPE_QUERY",
+    "NOT_FINISHED",
+    "NO_RESEARCH",
+    "WEIGHT_ONLY",
+    "UNDER_SCOPE",
+    "SELF_CERT",
+    "NOT_HUMAN",
+    "UNKNOWN_TOOL",
+    "MISSING_FIELD",
+    "MISSING_IDEMPOTENCY_KEY",
+    "IDEMPOTENCY_CONFLICT",
+    "LOCK_HELD",
+    "LOCK_REQUIRED",
+    "SEAT_FORBIDDEN",
+    "GATE_UNKNOWN_KIND",
+    "RESOURCE_EXHAUSTED",
+    "CLOCK_STARTED_FORBIDDEN",
+    "NOT_FOUND"
+  ]
+}

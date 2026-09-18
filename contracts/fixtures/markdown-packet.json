@@ -1,0 +1,8 @@
+{
+  "experiment_id": "exp-ca2-contract",
+  "packet_id": "pkt-md",
+  "kind": "markdown",
+  "uri": "notes/skill.md",
+  "body": "I looked it up",
+  "idempotency_key": "pkt-md-1"
+}
