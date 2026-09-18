@@ -1,6 +1,6 @@
 /**
  * HARD LAW 5 — live attention pane is P0; HARD LAW sits beside it.
- * Cockpit = this dump. UI may only render it.
+ * Cockpit = this dump (data SoT). Product UI waits on Designer greyscale Waiting mock.
  */
 
 export type WaitingOn = "human" | "agent" | "proof";

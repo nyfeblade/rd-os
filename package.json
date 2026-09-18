@@ -2,7 +2,7 @@
   "name": "rd-os",
   "version": "0.3.0",
   "private": true,
-  "description": "Local-first R&D OS lab: board/packets, MCP server, human steer UI, Proof Layer hook, day-0 kill harness. No 14d PASS from harness existence.",
+  "description": "Local-first R&D OS lab: board/packets, MCP server, Proof Layer hook, day-0 kill harness. attention.dump is SoT. No costume UI. No 14d PASS from harness existence.",
   "bin": {
     "rdos": "./bin/rdos.js",
     "rdos-mcp": "./bin/mcp.js",

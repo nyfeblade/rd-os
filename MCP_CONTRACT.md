@@ -1,6 +1,6 @@
 # MCP contract — portable, any agent
 
-**Status:** contract + stdio MCP server (`bin/mcp.js`) + `rdos` CLI shim + steer UI.  
+**Status:** contract + stdio MCP server (`bin/mcp.js`) + `rdos` CLI shim. `attention.dump` is SoT.  
 **Companion:** `ARCHITECTURE.md` (HARD LAW), `schema/mcp.ts`, `schema/machine-time.ts`, `bin/rdos.js`, `bin/mcp.js`.  
 **Portability:** any agent that speaks MCP stdio (`node bin/mcp.js`) or can exec `rdos <tool> --in payload.json --out result.json`. Do not require Cursor, Claude, or Grok specifically.
 
@@ -39,7 +39,7 @@ Names are stable. Payloads are the types in `schema/`. Unknown tools → `UNKNOW
 
 Attach (stdio MCP): `RDOS_HOME=./var node bin/mcp.js`. Same tool names and reject codes.  
 CLI shim: `rdos <tool> --in payload.json --out result.json --home <dir> --actor agent|human`.  
-Human cockpit: `npm start` (UI) or `rdos steer.gate --actor human`. MCP agents always get `NOT_HUMAN` on `steer.gate`.
+Human steer: `rdos steer.gate --actor human` (or lab `POST /api/steer`). MCP agents always get `NOT_HUMAN` on `steer.gate`.
 
 ---
 
@@ -183,7 +183,7 @@ Reject if any required key is missing. Reject if any string/number field looks l
 | Set `verdict` | (Eng Proof process, not a tool in v0) | no (`SELF_CERT`) |
 | Merge | git / GitHub — playbook human only | no |
 
-Cockpit = `attention.dump` (source of truth) rendered by `ui/` (thesis, attention, evidence, bottleneck, redirect). The UI does not invent a second contract.
+Cockpit = `attention.dump` (source of truth) + reject codes. Product UI waits on a Designer greyscale Waiting mock.
 
 ---
 

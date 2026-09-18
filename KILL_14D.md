@@ -119,10 +119,10 @@ Cold checkout, Node 18+, no npm install. Expect exit 0.
 ```bash
 git clone https://github.com/nyfeblade/rd-os.git
 cd rd-os
-npm start                          # steer UI http://127.0.0.1:7420
+npm start                          # dump SoT + lab API http://127.0.0.1:7420
 # other terminal / Eng Proof:
 chmod +x scripts/*.sh
-./scripts/stranger-check.sh        # board + MCP + UI smoke + day0 fields
+./scripts/stranger-check.sh        # board + MCP + dump/API smoke + day0 fields
 ./scripts/proof-layer.sh           # npm run demo:reject → REJECTED + measured_exit
 ./scripts/kill14d.sh --arm markdown --day 0
 ./scripts/kill14d.sh --arm rdos --day 0 --skip-m1
@@ -130,7 +130,7 @@ chmod +x scripts/*.sh
 npm run dual-gate
 ```
 
-`stranger-check.sh` asserts HARD LAW strings, opens a local board packet, dumps attention, rejects weight-only, smokes stdio MCP + steer UI, and runs day-0 kill fields (`--skip-m1` so a cold rd-os clone does not require cloning Proof Layer). It does **not** certify the 14-day experiment and does **not** start the clock (`clock_started: false`, `verdict: null`).
+`stranger-check.sh` asserts HARD LAW strings, opens a local board packet, dumps attention, rejects weight-only, smokes stdio MCP + dump/API, and runs day-0 kill fields (`--skip-m1` so a cold rd-os clone does not require cloning Proof Layer). It does **not** certify the 14-day experiment and does **not** start the clock (`clock_started: false`, `verdict: null`).
 
 ### First instrument (already merged — M1 day-0 evidence)
 
@@ -173,7 +173,7 @@ PASS/FAIL is computed from the numbers in this file, not from a narrative.
 
 Accept as **kill-clarity** only if:
 
-1. A stranger can run `./scripts/stranger-check.sh` on this PR head and get exit 0 (board + MCP + UI smoke + day0 fields).
+1. A stranger can run `./scripts/stranger-check.sh` on this PR head and get exit 0 (board + MCP + dump/API smoke + day0 fields).
 2. Every metric above has an integer threshold (no "better", no "faster feel").
 3. CNP v2 FAIL is cited; this file does not claim skill theater works.
 4. `verdict` on the 14-day run stays null until Eng Proof fills it.

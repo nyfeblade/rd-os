@@ -50,5 +50,6 @@ server.listen(parsed.port, parsed.host, () => {
   const url = `http://${parsed.host}:${parsed.port}`;
   process.stdout.write(`rd-os lab ${url}\n`);
   process.stdout.write(`MCP attach (stdio): node bin/mcp.js   # RDOS_HOME=${parsed.home}\n`);
-  process.stdout.write("Human steer UI is the cockpit. Agents speak MCP. verdict stays null.\n");
+  process.stdout.write("attention.dump is SoT. Product UI waits on Designer greyscale Waiting mock.\n");
+  process.stdout.write("Human steer: rdos steer.gate --actor human. Agents speak MCP. verdict stays null.\n");
 });

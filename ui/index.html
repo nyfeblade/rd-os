@@ -3,103 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>rd-os — steer cockpit</title>
-    <link rel="stylesheet" href="/app.css" />
+    <title>rd-os — attention.dump</title>
   </head>
   <body>
-    <header class="top">
-      <div class="brand">
-        <span class="mark">rd-os</span>
-        <span class="sub">local-first research lab</span>
-      </div>
-      <div class="top-meta" id="top-meta">connecting…</div>
-    </header>
-
-    <main class="grid">
-      <aside class="col board" aria-label="Board">
-        <h2>Board</h2>
-        <ol id="board-list" class="list"></ol>
-        <section>
-          <h2>Envelope</h2>
-          <ol id="envelope-list" class="list muted"></ol>
-        </section>
-      </aside>
-
-      <section class="col thesis" aria-label="Active thesis">
-        <div class="kicker">Active thesis</div>
-        <h1 id="thesis-title">—</h1>
-        <p id="thesis-kill" class="lede"></p>
-        <dl id="machine-time" class="chips"></dl>
-        <section>
-          <h2>Fan-out</h2>
-          <ol id="lanes" class="lanes"></ol>
-        </section>
-        <section>
-          <h2>Evidence</h2>
-          <ol id="evidence" class="list"></ol>
-        </section>
-        <section class="composer">
-          <h2>Drive</h2>
-          <div class="actions">
-            <button type="button" id="btn-proof" data-testid="run-proof-layer">Run Proof Layer</button>
-            <button type="button" id="btn-open" data-testid="open-experiment">Open packet</button>
-            <button type="button" id="btn-fanout">Fan-out</button>
-            <button type="button" id="btn-accept">Accept</button>
-            <button type="button" id="btn-claim">Submit claim</button>
-          </div>
-          <label class="sr" for="payload">JSON payload</label>
-          <textarea id="payload" rows="10" spellcheck="false"></textarea>
-          <pre id="result" class="result" data-testid="result"></pre>
-        </section>
-      </section>
-
-      <aside class="col attention" aria-label="Attention">
-        <div class="kicker">Attention</div>
-        <div id="p0" class="p0" data-testid="p0">
-          <div class="p0-id" id="p0-id">—</div>
-          <div class="p0-why" id="p0-why"></div>
-        </div>
-        <section>
-          <h2>HARD LAW</h2>
-          <ol id="hard-law" class="law" data-testid="hard-law"></ol>
-        </section>
-        <section>
-          <h2>Bottleneck</h2>
-          <p id="bottleneck" data-testid="bottleneck"></p>
-        </section>
-        <section>
-          <h2>Redirect</h2>
-          <p id="redirect-note" class="muted"></p>
-          <ol id="gates" class="list"></ol>
-          <form id="steer-form" class="steer">
-            <label>
-              Experiment
-              <input id="steer-id" name="experiment_id" required />
-            </label>
-            <label>
-              Gate
-              <select id="steer-kind" name="kind">
-                <option value="merge">merge</option>
-                <option value="proof_accept">proof_accept</option>
-                <option value="quota_unfreeze">quota_unfreeze</option>
-                <option value="scope_change">scope_change</option>
-                <option value="physical_access">physical_access</option>
-                <option value="legal">legal</option>
-                <option value="other">other</option>
-              </select>
-            </label>
-            <label>
-              Reason
-              <input id="steer-reason" name="reason" value="human steer" />
-            </label>
-            <div class="actions">
-              <button type="submit" data-testid="steer-add">Add gate</button>
-              <button type="button" id="btn-resolve" data-testid="steer-resolve">Resolve</button>
-            </div>
-          </form>
-        </section>
-      </aside>
-    </main>
-    <script src="/app.js"></script>
+    <p>attention.dump is the data SoT. Product UI waits on a Designer greyscale Waiting mock. Human steer: <code>rdos steer.gate --actor human</code>.</p>
+    <pre id="dump" data-testid="attention-dump">loading</pre>
+    <script src="/dump.js"></script>
   </body>
 </html>

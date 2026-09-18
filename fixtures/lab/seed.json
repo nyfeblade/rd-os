@@ -1,6 +1,6 @@
 {
   "experiment_id": "exp-2-rd-os-lab",
-  "title": "R&D OS usable lab (MCP + steer UI + Proof Layer)",
+  "title": "R&D OS usable lab (MCP + dump SoT + Proof Layer)",
   "estimate_ca_hours": 3,
   "estimate_proof_min": 30,
   "human_gates": [
