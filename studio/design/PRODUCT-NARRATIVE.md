@@ -21,16 +21,22 @@ Eng-optimized **Grok Bot capability set** (every power → eng surface, not a th
 | Routines | Board **watches** (Actions, Sentry, Linear, deploy…) |
 | Skills | **Modes** chips / rails (eng, design…) — research-before-claim, lane fences, no self-cert |
 | Memory | Seat/project memory in detail or Settings |
-| Connectors | **Connectors tray** (chrome) — discover → auth → live |
+| Connectors | **Two-way** tray + inbox — ingest, human reply FROM studio (thread-bound), bot send **with gates** |
 | Cloud Agents | **CA/builder map** on Board (+ tray entry) |
 | Proof / gates | Board — P0, Approve/Reject, human-only actions obvious |
 | Desktop/files | **Code drawer** on demand |
 
-## Connectors tray (critical)
-- States: `disconnected` | `needs_auth` | `live` | `error`  
-- **P0:** GitHub, Cursor/CA, Claude, Grok, Linear, Sentry, Vercel  
-- **P1:** Atlassian, GitLab, Datadog/Grafana, Cloudflare, Figma, Docker/K8s, Terraform, Notion, Slack(eng), LaunchDarkly, DBs, Postman, CodeRabbit  
+## Connectors TWO-WAY (product lock)
+Not a one-way ingest tray. Live connector = inbox + reply + gated bot send.
+
+- **Tray chrome (default):** `live` | `needs_auth` — show problems, not the full catalog ([VISIBILITY.md](./VISIBILITY.md))  
+- **Notification inbox:** inbound events/threads from live connectors  
+- **Human reply FROM studio:** composer is **thread-bound** (that GitHub PR/issue or Slack thread)  
+- **Bot send:** seats may post outbound only **with gates** (Board / policy)  
+- **P0 two-way:** **GitHub + Slack**  
+- Other providers (Cursor/CA, Claude, Grok, Linear, Sentry, Vercel, …) stay in the catalog; detail states include `disconnected` | `error`  
 - Catalog SoT (eng): `studio/connectors/CATALOG.md`  
+- Designer drop `CONNECTORS-TWO-WAY` / mock updates land here when received  
 
 ## Modes / rails
 Visible mode chips (eng / design / …). Align with `studio/modes` (PR#14). Encode: research-before-claim, lane fences, no self-cert.

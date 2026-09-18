@@ -4,7 +4,8 @@
 **Luke law:** eng-specialized Grok Bot (full capability set); multi-provider seats.  
 **Layout:** Chat | Board default · Code on demand (drawer) · Waiting-home dead. See `LAYOUT-LOCK.md`.  
 **Visibility:** only necessary info by default. See `VISIBILITY.md`.  
-**Chrome fences:** `SHELL-IA.md` is authoritative (tray + Code drawer).
+**Chrome fences:** `SHELL-IA.md` is authoritative (two-way tray + Code drawer).  
+**Connectors:** two-way — ingest + human reply FROM studio (thread-bound) + gated bot send. P0: GitHub + Slack.
 
 | File | Use |
 | --- | --- |
