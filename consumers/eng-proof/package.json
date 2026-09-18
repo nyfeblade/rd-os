@@ -1,0 +1,15 @@
+{
+  "name": "rd-os-eng-proof",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Eng Proof consumer: install rd-os from main and run that lab's dual-gate. Not the kernel.",
+  "scripts": {
+    "dual-gate": "./bin/dual-gate.sh"
+  },
+  "dependencies": {
+    "rd-os": "github:nyfeblade/rd-os#9457cac3e38fb442567fb6b1ffedeb8d9290ab00"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
