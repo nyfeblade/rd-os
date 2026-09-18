@@ -1,0 +1,14 @@
+{
+  "name": "@rd-os/studio-grok-bot-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "UI-click Grok/Elon seat connect + eng-team roster import. Not a new Grok Bot. Not a CLI attach path.",
+  "main": "./index.js",
+  "types": "./schema.ts",
+  "scripts": {
+    "test": "node test/run.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

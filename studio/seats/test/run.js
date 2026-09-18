@@ -15,6 +15,12 @@ const {
   SEAT_IDS,
   BOT_SEAT_IDS,
   KNOWN_PROVIDERS,
+  IMPORTABLE_IDS,
+  SKIPPED_IDS,
+  listImportableSeats,
+  importRoster,
+  listImported,
+  resolveGrokProvider,
   DEFAULT_TOOLS_ALLOWED,
   HIGH_RISK_TOOLS,
   PRODUCT_LOCK,
@@ -670,6 +676,152 @@ function cases() {
         rejects += 1;
       }
       return { ok: true, extra: { external_attempts: dests.length, external_rejects: rejects } };
+    })
+  );
+
+  rows.push(
+    runCase("importable roster matches Luke team (skip ctm/lingxi/eggbot)", () => {
+      const catalog = expectOk(listImportableSeats());
+      if (!catalog.ok) {
+        return catalog;
+      }
+      if (!eq(catalog.data.seats.map((row) => row.id), IMPORTABLE_IDS)) {
+        return { ok: false, error: `importable ${catalog.data.seats.map((row) => row.id).join(",")}` };
+      }
+      if (!eq(catalog.data.skipped.map((row) => row.id), SKIPPED_IDS)) {
+        return { ok: false, error: `skipped ${catalog.data.skipped.map((row) => row.id).join(",")}` };
+      }
+      const elon = catalog.data.seats.find((row) => row.id === "elon");
+      if (!elon || elon.provider !== "grok" || elon.seat_id !== "grok" || elon.aliased !== true || elon.team !== "eng") {
+        return { ok: false, error: JSON.stringify(elon) };
+      }
+      if (catalog.data.seats.some((row) => row.kind !== "bot" || row.cutover.protocol !== "hard")) {
+        return { ok: false, error: "roster cutover" };
+      }
+      if (catalog.data.seats.some((row) => row.id === "elon" ? false : row.provider === "grok")) {
+        return { ok: false, error: "imported a new Grok Bot" };
+      }
+      return { ok: true };
+    })
+  );
+
+  rows.push(
+    runCase("importRoster registers team; listImported matches; stranger dump stays four until import", () => {
+      const studio = fresh();
+      const before = expectOk(studio.dump());
+      if (!before.ok) {
+        return before;
+      }
+      if (before.data.seats.length !== 4 || before.data.north_star.stranger_usable !== true) {
+        return { ok: false, error: "stranger dump drifted before import" };
+      }
+      const empty = expectOk(studio.listImported());
+      if (!empty.ok) {
+        return empty;
+      }
+      if (empty.data.seats.length !== 0) {
+        return { ok: false, error: "auto-imported" };
+      }
+      const imported = expectOk(studio.importRoster());
+      if (!imported.ok) {
+        return imported;
+      }
+      if (!eq(imported.data.seats.map((row) => row.id), IMPORTABLE_IDS)) {
+        return { ok: false, error: `imported ${imported.data.seats.map((row) => row.id).join(",")}` };
+      }
+      const listed = expectOk(listImported(studio));
+      if (!listed.ok) {
+        return listed;
+      }
+      if (!eq(listed.data.seats.map((row) => row.id), IMPORTABLE_IDS)) {
+        return { ok: false, error: "listImported mismatch" };
+      }
+      const viaModule = expectOk(importRoster(studio));
+      if (!viaModule.ok) {
+        return viaModule;
+      }
+      const dumped = expectOk(studio.dump());
+      if (!dumped.ok) {
+        return dumped;
+      }
+      if (dumped.data.north_star.stranger_usable !== true || dumped.data.north_star.luke_fleet_only !== false) {
+        return { ok: false, error: JSON.stringify(dumped.data.north_star) };
+      }
+      if (dumped.data.seats.length !== 4 + (IMPORTABLE_IDS.length - 1)) {
+        return { ok: false, error: `dump seats ${dumped.data.seats.length}` };
+      }
+      if (dumped.data.seats.some((seat) => seat.id === "elon")) {
+        return { ok: false, error: "elon must alias onto grok, not a second seat" };
+      }
+      const lead = dumped.data.seats.find((seat) => seat.id === "eng-lead");
+      if (!lead || lead.kind !== "bot" || lead.agent !== "coding_agent") {
+        return { ok: false, error: "eng-lead missing" };
+      }
+      return { ok: true, extra: { stranger_usable: 1 } };
+    })
+  );
+
+  rows.push(
+    runCase("imported seat connect is in-studio-only; cutover rejects external/operator 1:1", () => {
+      const studio = fresh();
+      const imported = expectOk(studio.importRoster());
+      if (!imported.ok) {
+        return imported;
+      }
+      const connected = expectOk(studio.connect("eng-proof"));
+      if (!connected.ok) {
+        return connected;
+      }
+      if (
+        connected.data.connection.provider !== "eng-proof" ||
+        connected.data.in_studio_only !== true ||
+        connected.data.seat.presence !== "online" ||
+        connected.data.seat.cutover !== "attached"
+      ) {
+        return { ok: false, error: JSON.stringify(connected.data) };
+      }
+      const external = expectReject(
+        studio.emit({ from: "eng-proof", dest: "slack:eng", body: "leak" }),
+        "EXTERNAL_CHANNEL_FORBIDDEN"
+      );
+      if (!external.ok) {
+        return external;
+      }
+      const operator = expectReject(
+        studio.emit({ from: "eng-proof", dest: "operator", body: "status ping" }),
+        "OPERATOR_1TO1_FORBIDDEN"
+      );
+      if (!operator.ok) {
+        return operator;
+      }
+      const skipped = expectReject(studio.registerImportedSeat("eggbot"), "SKIPPED_ROSTER");
+      if (!skipped.ok) {
+        return skipped;
+      }
+      return {
+        ok: true,
+        extra: {
+          connect_in_studio_only: 1,
+          external_attempts: 1,
+          external_rejects: 1,
+          operator_1to1_attempts: 1,
+          operator_1to1_rejects: 1,
+          operator_1to1_leaks: 0,
+        },
+      };
+    })
+  );
+
+  rows.push(
+    runCase("elon alias resolves to grok without registering a stranger elon seat", () => {
+      const resolved = expectOk(resolveGrokProvider("elon"));
+      if (!resolved.ok) {
+        return resolved;
+      }
+      if (resolved.data.provider !== "grok" || resolved.data.alias !== "elon") {
+        return { ok: false, error: JSON.stringify(resolved.data) };
+      }
+      return expectReject(fresh().seats.connect("elon"), "UNKNOWN_SEAT");
     })
   );
 

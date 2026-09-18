@@ -1,0 +1,12 @@
+{
+  "note": "Advanced MCP attach only. Not the stranger path. UI calls connectGrokSeat().",
+  "mcpServers": {
+    "ai-coding-studio-grok": {
+      "command": "node",
+      "args": ["studio/mcp/server/bin.js"],
+      "env": {
+        "STUDIO_PROVIDER": "grok"
+      }
+    }
+  }
+}

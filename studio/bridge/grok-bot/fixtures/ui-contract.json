@@ -1,0 +1,35 @@
+{
+  "schema": "studio.bridge.grok-bot.ui/v1",
+  "stranger_path": "ui_click",
+  "product_lock": "connected_bots_speak_only_in_studio",
+  "connect_requires": "click",
+  "connect_forbids": ["terminal", "STUDIO_PROVIDER", "node bin", "mcpServers JSON"],
+  "actions": [
+    {
+      "id": "import-bot-team",
+      "label": "Import bot team",
+      "api": "importTeamRoster",
+      "seat": null
+    },
+    {
+      "id": "connect-grok",
+      "label": "Connect Grok",
+      "api": "connectGrokSeat",
+      "ids": ["grok", "elon"]
+    },
+    {
+      "id": "list-importable",
+      "label": "List importable seats",
+      "api": "listImportableSeats",
+      "seat": null
+    }
+  ],
+  "alias": { "elon": "grok" },
+  "provider": "grok",
+  "on_connect": {
+    "cutover": "hard",
+    "presence": "online",
+    "in_studio_only": true,
+    "hitl_still": ["merge", "deploy", "public"]
+  }
+}
