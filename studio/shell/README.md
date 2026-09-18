@@ -1,8 +1,8 @@
 # Studio A — desktop shell
 
-Studio is a full Grok Bot capability set, **specialized for engineering** — not a thin chat+board toy and not a life OS. Waiting-table-as-home is dead.
+Homebase for any AI developer: Grok Bot caps **optimized for engineering**, multi-provider, stranger cold-open. Waiting-table-as-home is dead.
 
-Default chrome is **Chat + Board**. **Code is on demand**. Titlebar: eng **mode** (build / proof / integrate) + **connectors tray**. Board: **CloudAgent map**, **Proof** gates, and **watches** (routines).
+Default chrome is **Chat + Board**. **Code is on demand** (not always-on). Titlebar: eng **mode** (build / proof / review) + **connectors tray**. Board: **agent map**, **Proof** gates, and **watches**.
 
 This package is Electron so the same stranger path runs on **macOS and Windows**. Linux can use the same commands.
 
@@ -47,4 +47,4 @@ studio/shell/
   scripts/smoke.js
 ```
 
-Live chrome prefers the Grok-clean **quiet-studio** look (Chat + Board default) over the denser always-on three-pane mock. `studio/design/` is consumed read-only — this lane does not write that path.
+Reconciled Designer SoT lives in [`design/`](./design/) (`quiet-studio.html`, narrative, spec). `studio/design/` is consumed read-only — this lane does not write that path.

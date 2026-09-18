@@ -1,22 +1,21 @@
 # AI Coding Studio — product SoT (LOCK)
 
-**status:** PRODUCT LOCK (Luke approved via Elon)  
-**kills:** Waiting-table-as-home · greyscale interrupt desk as product SoT  
-**supersedes:** `/workspace/rd-os-design/desktop/*` Waiting-home direction for **product UX**  
-**keeps:** `attention.dump` / board packets as **data** under the hood; eng fences for CA  
-**surface:** local-first desktop (Mac + Win) — Tauri or equivalent  
-**Studio Designer:** spec + mock only — no CA launch  
+**North star:** homebase for **ANY AI developer** (daily driver, stranger cold-open, multi-provider).  
+**Law:** Grok Bot caps **optimized for eng** — see [PRODUCT-NARRATIVE.md](./PRODUCT-NARRATIVE.md).
+(seats, routines→board watches, skills→modes, connectors, CA map, Proof gates).  
+See [PRODUCT-NARRATIVE.md](./PRODUCT-NARRATIVE.md).
 
----
+**Layout:** Chat | Board default · **Code on demand** ([LAYOUT-LOCK.md](./LAYOUT-LOCK.md)) · Waiting-home DEAD  
+
 
 ## USER JOB
-Run a multi-agent coding studio: talk to seats/rooms, see repos/code, clear board gates — in one immersive desktop.
+Daily-drive AI development: talk to agents/rooms, clear gates on the board, open code when needed — any provider, stranger-friendly.
 
 ## PRIMARY OUTCOME
-Always see **three panes**: Chat · Code · Board. Never a thin single-column “Waiting” home.
+Default **Chat | Board** always on. **Code on demand** (not automatic). Never Waiting-table-as-home.
 
 ## STORY
-Cursor × GitHub × multi-agent control room — density and presence, not a status website.
+Grok Bot optimized for engineering — seats/rooms, board watches, modes, connectors, CA map, Proof gates. Quiet chrome; code only when a diff matters.
 
 ---
 
@@ -27,9 +26,9 @@ Cursor × GitHub × multi-agent control room — density and presence, not a sta
 
 ---
 
-## IA — THREE PANES (always visible)
+## IA — SURFACES (Chat | Board default; Code on demand)
 
-Desktop window default **1440×900**, min **1200×720**. Panes resizable; **never** collapse to a single tab column as the default chrome.
+Desktop window default **1440×900**, min **1200×720**. Chat + Board resizable; Code slides in on demand. Never Waiting-as-home; never Code forced open.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

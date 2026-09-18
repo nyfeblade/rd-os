@@ -26,8 +26,8 @@
 
   const THREADS = {
     "eng-lead": [
-      { who: "Eng Lead", body: "Studio is the eng desk — CloudAgent and Proof live on the Board. Not a life OS.", me: false },
-      { who: "You", body: "Chat + gates by default. Code only when a diff matters.", me: true },
+      { who: "Eng Lead", body: "Talk to agents here. Gates and Proof sit on the Board. Code stays closed until a diff matters.", me: false },
+      { who: "You", body: "Any provider. Chat + Board first — not a fleet wall.", me: true },
     ],
     you: [{ who: "You", body: "Notes stay here. Code stays closed until a file matters.", me: true }],
     designer: [{ who: "Studio Designer", body: "Quiet chrome. Code stays away until a diff matters.", me: false }],
@@ -69,7 +69,7 @@
       { id: "github", label: "GitHub", status: "connected" },
       { id: "cloudagent", label: "CloudAgent", status: "connected" },
       { id: "notion", label: "Notion", status: "needs-auth" },
-      { id: "add", label: "+ connector", status: "add" },
+      { id: "add", label: "Connect provider", status: "add" },
     ],
     selectedSeat: "eng-lead",
     selectedFile: "shell",
@@ -130,8 +130,8 @@
         return "build";
       case "proof":
         return "proof";
-      case "integrate":
-        return "integrate";
+      case "review":
+        return "review";
       default:
         return assertNever(mode);
     }
@@ -142,8 +142,8 @@
       case "build":
         return "proof";
       case "proof":
-        return "integrate";
-      case "integrate":
+        return "review";
+      case "review":
         return "build";
       default:
         return assertNever(mode);
@@ -155,9 +155,9 @@
     switch (kind) {
       case "ca":
         if (who === "agent") {
-          return { label: "CloudAgent", state: "running", detail: "nyfeblade/rd-os · PR#11" };
+          return { label: "Agent map", state: "running", detail: "nyfeblade/rd-os · PR#11" };
         }
-        return { label: "CloudAgent", state: "idle", detail: "nyfeblade/rd-os · no run" };
+        return { label: "Agent map", state: "idle", detail: "nyfeblade/rd-os · no run" };
       case "proof":
         if (who === "proof") {
           return { label: "Proof", state: "checking", detail: "Eng Proof · dual-gate" };
@@ -518,8 +518,8 @@
         openCutover({
           kind: "connector",
           id: "add",
-          title: "Add connector",
-          copy: "This seat works in Studio only while connected.",
+          title: "Connect a provider",
+          copy: "Connect GitHub / an agent provider. This seat works in Studio only while connected.",
         });
         return;
       default:

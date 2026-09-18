@@ -1,13 +1,11 @@
-# AI Coding Studio — design SoT
+# AI Coding Studio — shell-local SoT copies
 
-Snapshot of `studio/design/` (PR#12) plus `PRODUCT-NARRATIVE.md` for VMs. Live chrome prefers **quiet-studio** (Chat + Board; Code on demand) over `three-pane.html`. Does not write `studio/design/**`.
-
-**PRODUCT LOCK.** Waiting-table-as-home is DEAD.
+Live chrome follows **quiet-studio** + the reconciled spec: **Chat | Board** default, **Code on demand**. Waiting-home is dead. Does **not** write `studio/design/**`.
 
 | File | Use |
 | --- | --- |
-| `STUDIO-SHELL-SPEC.md` | IA, three panes, cutover, acceptance |
-| `three-pane.html` | Immersive wire (Chat · Code · Board always on) |
-| `tokens.css` | Dark studio tokens |
-
-Feed CA lanes fencing `studio/shell|seats|github`. Desktop Mac+Win.
+| `PRODUCT-NARRATIVE.md` | Eng Grok Bot caps; stranger homebase |
+| `STUDIO-SHELL-SPEC.md` | IA, cutover, acceptance (Code not always-on) |
+| `quiet-studio.html` | Visual + layout mock |
+| `three-pane.html` | Historical denser wire — not the live default |
+| `tokens.css` | Dark tokens from design lane |

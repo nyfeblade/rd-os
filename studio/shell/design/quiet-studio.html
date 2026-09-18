@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Coding Studio — code on demand</title>
+<style>
+  :root {
+    --void: #0a0a0b;
+    --bg: #111113;
+    --elev: #18181b;
+    --line: rgba(255,255,255,0.06);
+    --ink: #ececef;
+    --mute: #8b8b93;
+    --faint: #5c5c66;
+    --accent: #a5b4fc;
+    --accent-ink: #12131a;
+    --online: #86efac;
+    --human: rgba(165,180,252,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--void); color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .frame {
+    height: 100%; max-width: 1280px; margin: 0 auto;
+    display: flex; flex-direction: column;
+    background: var(--bg); border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+  }
+  .bar {
+    height: 44px; display: flex; align-items: center; gap: 12px;
+    padding: 0 16px; border-bottom: 1px solid var(--line);
+  }
+  .name { font-size: 13px; font-weight: 560; letter-spacing: -0.02em; }
+  .bar button {
+    font: inherit; font-size: 12px; font-weight: 560;
+    padding: 5px 10px; border-radius: 8px; cursor: pointer;
+    background: transparent; color: var(--mute); border: 1px solid transparent;
+  }
+  .bar button.on {
+    color: var(--ink); border-color: var(--line); background: var(--elev);
+  }
+  .right { margin-left: auto; font-size: 12px; color: var(--mute); display: flex; align-items: center; gap: 8px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--online); }
+
+  /* default: chat + board only */
+  .main {
+    flex: 1; min-height: 0;
+    display: grid;
+    grid-template-columns: 1.35fr 0.9fr;
+  }
+  .main.code-open {
+    grid-template-columns: 1fr 1.15fr 0.85fr;
+  }
+  .pane {
+    display: flex; flex-direction: column; min-width: 0; min-height: 0;
+    border-right: 1px solid var(--line);
+  }
+  .pane:last-child { border-right: none; }
+  .code-pane { display: none; }
+  .main.code-open .code-pane { display: flex; }
+
+  .label {
+    padding: 14px 16px 8px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--faint);
+  }
+
+  .chat-body { flex: 1; display: flex; min-height: 0; }
+  .seats {
+    width: 128px; padding: 4px 8px 12px;
+    border-right: 1px solid var(--line); overflow: auto;
+  }
+  .seat { padding: 10px 8px; border-radius: 10px; color: var(--mute); }
+  .seat.on { background: var(--elev); color: var(--ink); }
+  .seat .row { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; }
+  .seat .row i { width: 6px; height: 6px; border-radius: 50%; background: var(--online); }
+  .badge { margin-top: 5px; font-size: 10px; color: var(--accent); }
+  .thread { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .msgs { flex: 1; overflow: auto; padding: 8px 18px 16px; }
+  .bubble { max-width: 36em; margin-bottom: 18px; }
+  .bubble .meta { font-size: 12px; color: var(--faint); margin-bottom: 6px; }
+  .bubble .text { font-size: 15px; line-height: 1.5; }
+  .bubble.me .text { color: var(--mute); }
+  .composer { padding: 12px 16px 16px; }
+  .composer-box {
+    display: flex; align-items: flex-end; gap: 8px;
+    background: var(--elev); border: 1px solid var(--line);
+    border-radius: 14px; padding: 10px 10px 10px 14px;
+  }
+  .composer-box textarea {
+    flex: 1; border: 0; outline: 0; resize: none; background: transparent;
+    color: var(--ink); font: inherit; min-height: 48px;
+  }
+  .composer-box textarea::placeholder { color: var(--faint); }
+  .send {
+    border: 0; background: var(--accent); color: var(--accent-ink);
+    font: inherit; font-size: 13px; font-weight: 600;
+    border-radius: 10px; padding: 8px 12px; cursor: pointer;
+  }
+
+  .code-top { padding: 0 14px 8px; font-size: 13px; color: var(--mute); }
+  .code-top strong { color: var(--ink); font-weight: 560; }
+  .code-split { flex: 1; display: flex; min-height: 0; border-top: 1px solid var(--line); }
+  .tree { width: 140px; padding: 12px 8px; border-right: 1px solid var(--line); color: var(--mute); font-size: 12.5px; }
+  .tree .on { background: var(--elev); color: var(--ink); border-radius: 6px; padding: 4px 8px; }
+  .editor { flex: 1; display: flex; flex-direction: column; background: var(--void); min-width: 0; }
+  .filetab { padding: 8px 14px; font-size: 12px; color: var(--mute); border-bottom: 1px solid var(--line); }
+  .filetab b { color: var(--ink); font-weight: 500; }
+  pre {
+    margin: 0; flex: 1; overflow: auto; padding: 16px;
+    font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; color: #c4c4cc;
+  }
+  .code-close {
+    margin-left: auto; font: inherit; font-size: 11px; color: var(--mute);
+    background: transparent; border: 0; cursor: pointer; padding: 4px 8px;
+  }
+
+  .board { flex: 1; overflow: auto; padding: 0 8px 12px; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
+  th { text-align: left; font-size: 11px; font-weight: 500; color: var(--faint); padding: 6px 10px 10px; }
+  td { padding: 12px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+  tr.need td { background: var(--human); }
+  .what { font-weight: 500; }
+  .sub { margin-top: 4px; font-size: 12px; color: var(--mute); }
+  .acts { margin-top: 10px; display: flex; gap: 8px; }
+  .acts button {
+    font: inherit; font-size: 12px; font-weight: 600; border-radius: 8px; padding: 6px 10px; cursor: pointer;
+  }
+  .acts .go { background: var(--accent); color: var(--accent-ink); border: 0; }
+  .acts .no { background: transparent; color: var(--mute); border: 1px solid var(--line); }
+  .mute { color: var(--mute); font-weight: 400; }
+  .foot { margin: 8px 10px 0; font-size: 12px; color: var(--faint); }
+
+  .open-code-hint {
+    margin: 0 16px 12px; font-size: 12px; color: var(--faint);
+  }
+  .open-code-hint button {
+    font: inherit; font-size: 12px; color: var(--accent);
+    background: none; border: 0; cursor: pointer; text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>
+</head>
+<body>
+  <div class="frame" role="application" aria-label="AI Coding Studio">
+    <header class="bar">
+      <div class="name">Studio</div>
+      <button type="button" id="btn-code" aria-pressed="false">Code</button>
+      <div class="right"><span class="dot"></span> 3 here · GitHub</div>
+    </header>
+
+    <main class="main" id="main">
+      <section class="pane" aria-label="Chat">
+        <div class="label">Chat</div>
+        <div class="chat-body">
+          <aside class="seats">
+            <div class="seat on">
+              <div class="row"><i></i> Eng Lead</div>
+              <div class="badge">in studio</div>
+            </div>
+            <div class="seat">
+              <div class="row"><i></i> You</div>
+              <div class="badge">in studio</div>
+            </div>
+          </aside>
+          <div class="thread">
+            <div class="msgs">
+              <div class="bubble">
+                <div class="meta">Eng Lead</div>
+                <div class="text">Coding stays optional — open it when a diff matters.</div>
+              </div>
+              <div class="bubble me">
+                <div class="meta">You</div>
+                <div class="text">Default is talk + gates. Not an IDE that never shuts up.</div>
+              </div>
+            </div>
+            <p class="open-code-hint">Need the repo? <button type="button" id="hint-code">Open code</button></p>
+            <div class="composer">
+              <div class="composer-box">
+                <textarea rows="2" placeholder="Message Eng Lead…" aria-label="Message"></textarea>
+                <button class="send" type="button">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pane code-pane" aria-label="Code" id="code-pane">
+        <div class="label" style="display:flex;align-items:center">
+          Code
+          <button class="code-close" type="button" id="btn-close" aria-label="Close code">Close</button>
+        </div>
+        <div class="code-top"><strong>nyfeblade/rd-os</strong> · main</div>
+        <div class="code-split">
+          <nav class="tree"><div class="on">StudioShell.tsx</div><div style="padding:4px 8px">BoardPane.tsx</div></nav>
+          <div class="editor">
+            <div class="filetab"><b>StudioShell.tsx</b></div>
+            <pre>// only here when you asked
+export function StudioShell() {
+  return &lt;ChatAndBoard /&gt;
+}</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="pane" aria-label="Board">
+        <div class="label">Board</div>
+        <div class="board">
+          <table>
+            <thead><tr><th>What</th><th>On</th><th>Age</th></tr></thead>
+            <tbody>
+              <tr class="need">
+                <td>
+                  <div class="what">Merge gate</div>
+                  <div class="sub">Studio shell</div>
+                  <div class="acts">
+                    <button class="go" type="button">Approve</button>
+                    <button class="no" type="button">Reject</button>
+                  </div>
+                </td>
+                <td>You</td>
+                <td>12m</td>
+              </tr>
+              <tr>
+                <td class="mute"><div class="what" style="font-weight:400">PR checks</div></td>
+                <td class="mute">Proof</td>
+                <td class="mute">4m</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="foot">Code closed by default</p>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const main = document.getElementById('main');
+    const btn = document.getElementById('btn-code');
+    const hint = document.getElementById('hint-code');
+    const close = document.getElementById('btn-close');
+    function setOpen(on) {
+      main.classList.toggle('code-open', on);
+      btn.classList.toggle('on', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    btn.onclick = () => setOpen(!main.classList.contains('code-open'));
+    hint.onclick = () => setOpen(true);
+    close.onclick = () => setOpen(false);
+  </script>
+</body>
+</html>

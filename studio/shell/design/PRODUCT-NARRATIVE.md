@@ -1,34 +1,50 @@
 # AI Coding Studio — product narrative (Luke law)
 
-**Studio = full Grok Bot capability set, specialized for engineering.**  
-Not a thin “chat + board” toy. Same power as Grok Bot; shaped for eng work.
+## North star
+**Homebase for ANY AI developer** — a daily driver, not a Luke-fleet-only ops panel.  
+Stranger cold-open must work. Multi-provider (not Cursor-only). Eng-optimized Grok Bot capability set.
 
-## Capability map (Grok Bot → Studio)
+## Who it’s for
+- Solo AI-assisted developers and small teams  
+- People using agents / CloudAgents / Copilot-class tools across providers  
+- Not: internal-only control surface for one studio’s bot roster  
 
-| Grok Bot | Studio (eng-specialized) |
+## Product law
+Studio = **Grok Bot capability set, OPTIMIZED FOR ENGINEERING** — bent toward any AI developer’s day, not one fleet’s org chart.
+
+## Capability → eng surface map
+
+| Grok Bot capability | Studio eng surface |
 | --- | --- |
-| Seats / agents | Seats in-studio-only while connected |
-| Chat 1:1 + rooms | Chat pane (default) |
-| Routines | Board watches / scheduled eng checks |
-| Skills / modes | Eng modes (build, proof, integrate…) |
-| Connectors | Connectors tray (GitHub, CA, Notion, …) |
-| Cloud Agents | CA map — who’s running, on which PR/repo |
-| Human gates | Board pane — Proof gates, approve/reject |
-| Desktop / computer | Code on demand (not automatic) |
+| **Seats** (agents) | Seat list in Chat; optional **in-studio-only** while connected |
+| **Rooms** | Rooms in Chat — project/coord threads |
+| **1:1 chat** | Chat pane (default) |
+| **Routines** | **Board watches** — scheduled/event checks as board rows/chips |
+| **Skills / modes** | **Eng modes** — Build, Proof, Review… (provider-agnostic presets) |
+| **Memory** | Project / seat memory — detail or Settings (not a home column) |
+| **Connectors** | Connectors tray — GitHub, agents/CA, Notion, … **multi-provider** |
+| **Cloud Agents / coding agents** | **Agent map** — who’s running, where (repo/PR); not one-vendor locked |
+| **Proof / human gates** | **Board** — P0, gates, Approve/Reject |
+| **Desktop / files** | **Code on demand** ([LAYOUT-LOCK.md](./LAYOUT-LOCK.md)) |
 
-## Layout lock (unchanged)
-- **Default:** Chat | Board  
+## Cold open (stranger)
+1. Lands on **Chat | Board** — understands “talk to agents” + “what’s blocked on me” in ≤30s  
+2. No fleet jargon required (Eng Lead / Proof as *examples*, not mandatory taxonomy)  
+3. Connectors empty-state: “Connect GitHub / an agent provider” — not a brick wall  
+4. Code closed until asked  
+
+## Layout lock (holds)
+- **Default:** Chat \| Board  
 - **Code:** on demand only  
-- Waiting-table-as-home: DEAD  
+- Waiting-table-as-home: **DEAD**  
+- Not a fleet-only status wall  
 
 ## Story
-An eng-optimized Grok Bot: talk to seats, watch the board, open code when a diff matters — with routines, skills, connectors, and CloudAgents in one desktop.
+The AI developer’s homebase: chat with agents, clear gates, open code when a diff matters — any provider, every day.
 
-## Artifacts
-- `LAYOUT-LOCK.md` — Code on demand  
-- `quiet-studio.html` — visual mock  
-- `STUDIO-SHELL-SPEC.md` — amend with this narrative (see below)  
-- Design CA: patch `studio/design/**` in repo when landing  
+## Land in repo
+Design CA: `studio/design/**`  
+Local SoT: this folder (`PRODUCT-NARRATIVE.md`, `LAYOUT-LOCK.md`, `quiet-studio.html`, `STUDIO-SHELL-SPEC.md`, `tokens.css`)
 
 ## Out
-Mac-only; Code always-on; Waiting-as-home; Studio launching CAs from Design seat.
+Fleet-only chrome; Mac-only; Code always-on; Waiting-as-home; single-provider lock-in; Design launching CAs.
