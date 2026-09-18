@@ -3,6 +3,7 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
+const { readCatalogP0 } = require("../lib/read-catalog");
 
 const MIN_WIDTH = 1200;
 const MIN_HEIGHT = 720;
@@ -66,6 +67,10 @@ ipcMain.handle("studio:platform", () => {
     default:
       return "desktop";
   }
+});
+
+ipcMain.handle("studio:catalog", () => {
+  return readCatalogP0();
 });
 
 ipcMain.handle("studio:loadDump", (_event, name) => {

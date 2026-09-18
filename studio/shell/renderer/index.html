@@ -14,11 +14,11 @@
     <div class="frame" role="application" aria-label="AI Coding Studio">
       <header class="bar">
         <div class="name">Studio</div>
-        <button type="button" class="bar-btn mode" id="mode-chip" aria-label="Eng mode">build</button>
+        <button type="button" class="bar-btn mode" id="mode-chip" data-chrome="modes-rail" aria-label="Eng mode">build</button>
         <button type="button" class="bar-btn" id="btn-code" aria-pressed="false">Code</button>
-        <div class="tray" id="connectors-tray" aria-label="Connectors"></div>
+        <div class="tray" id="connectors-tray" data-chrome="connectors-tray" aria-label="Connectors"></div>
         <div class="right">
-          <button type="button" class="whisper" id="presence-btn" aria-expanded="false" aria-controls="presence-list">
+          <button type="button" class="whisper" id="presence-btn" data-chrome="presence-bar" aria-expanded="false" aria-controls="presence-list">
             <span class="dot" aria-hidden="true"></span>
             <span id="presence-count">0 here</span>
           </button>
@@ -27,7 +27,7 @@
       </header>
 
       <main class="main" id="main">
-        <section class="pane" data-pane="chat" id="pane-chat" aria-label="Chat">
+        <section class="pane" data-pane="chat" data-module="chat-pane" id="pane-chat" aria-label="Chat">
           <div class="label">Chat</div>
           <p class="onboard" id="chat-onboard">Talk to agents here. What’s blocked on you sits on the Board.</p>
           <div class="chat-body">
@@ -39,7 +39,7 @@
               </p>
               <form class="composer" id="composer">
                 <div class="composer-box">
-                  <textarea id="composer-input" rows="2" placeholder="Message Eng Lead…" aria-label="Message"></textarea>
+                  <textarea id="composer-input" rows="2" placeholder="Message You…" aria-label="Message"></textarea>
                   <button class="send" type="submit">Send</button>
                 </div>
               </form>
@@ -47,12 +47,12 @@
           </div>
         </section>
 
-        <section class="pane code-pane" data-pane="code" id="pane-code" aria-label="Code" hidden>
+        <section class="pane code-pane" data-pane="code" data-module="code-drawer" id="pane-code" aria-label="Code" hidden>
           <div class="label">
             Code
             <button class="code-close" type="button" id="btn-close" aria-label="Close code">Close</button>
           </div>
-          <div class="code-top"><strong>nyfeblade/rd-os</strong> · main</div>
+          <div class="code-top"><strong>your-repo</strong> · connect GitHub to bind</div>
           <div class="code-split">
             <nav class="tree" id="file-tree" aria-label="Repository files"></nav>
             <div class="editor">
@@ -62,7 +62,7 @@
           </div>
         </section>
 
-        <section class="pane" data-pane="board" id="pane-board" aria-label="Board">
+        <section class="pane" data-pane="board" data-module="board-pane" id="pane-board" aria-label="Board">
           <div class="label">Board</div>
           <p class="onboard">What’s blocked on you</p>
           <div class="instruments" id="instruments" aria-label="CloudAgent and Proof"></div>
@@ -83,6 +83,13 @@
       </div>
     </div>
 
+    <script src="./assert.js"></script>
+    <script src="./chrome/modes-rail.js"></script>
+    <script src="./chrome/presence-bar.js"></script>
+    <script src="./chrome/connectors-tray.js"></script>
+    <script src="./panes/chat-pane.js"></script>
+    <script src="./panes/board-pane.js"></script>
+    <script src="./panes/code-drawer.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

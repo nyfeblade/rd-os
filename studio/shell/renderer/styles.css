@@ -34,11 +34,12 @@ body[data-host="electron"] .frame {
 }
 
 .bar {
-  height: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
-  padding: 0 16px;
+  padding: 8px 16px;
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
 }
@@ -77,7 +78,9 @@ body[data-host="electron"][data-platform="mac"] .bar {
   align-items: center;
   gap: 6px;
   margin-left: 4px;
+  flex: 1;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .tray-empty {

@@ -88,18 +88,18 @@ Tokens (starter — eng may refine):
 ## FILE MAP (repo)
 
 ```
-desktop/   # or studio/ — Eng Lead picks fence; prefer desktop/studio UI under existing Tauri tree
-  … shell …
-  src/
-    shell/StudioShell.tsx      # 3-pane layout ALWAYS
-    panes/
-      ChatPane.tsx
-      CodePane.tsx
-      BoardPane.tsx
-    chrome/
-      ConnectorsTray.tsx
-      PresenceBar.tsx
+studio/shell/
+  renderer/
+    app.js
+    chrome/connectors-tray.js
+    chrome/modes-rail.js
+    chrome/presence-bar.js
+    panes/chat-pane.js
+    panes/board-pane.js
+    panes/code-drawer.js
 ```
+
+Live chrome follows **PRIMARY OUTCOME**: Chat | Board default; Code on demand. `studio/design/**` is read-only. Connectors tray consumes `studio/connectors/CATALOG.md` (P0). Seats consume `studio/seats` types (not a Luke fleet).
 
 **Fence for CA:** do not delete board/kernel; **do** stop treating Waiting route as home. Board pane consumes dump.
 
@@ -107,13 +107,13 @@ desktop/   # or studio/ — Eng Lead picks fence; prefer desktop/studio UI under
 
 ## ACCEPTANCE
 
-1. Cold open: **three panes visible** without clicking tabs to reveal Code or Board  
-2. Chat shows seat/room list + thread + composer  
-3. Code shows repo/tree (fixture OK)  
-4. Board shows gates/P0 + actions  
-5. Connectors tray visible; presence count visible  
+1. Cold open: **Chat | Board** visible; **Code closed** until asked  
+2. Chat shows You + Grok / Claude / Cursor + Agents room + thread + composer  
+3. Code stays a drawer (fixture OK) — generic repo, not a fleet checkout  
+4. Board empty-state or gates/P0 + Approve/Reject; Agent map + Proof instruments  
+5. Connectors tray shows catalog **P0** (needs-auth) + “Connect GitHub / an agent provider”  
 6. Cutover seats show **in-studio-only**  
-7. No Waiting-table-as-sole-home  
+7. No Waiting-table-as-sole-home; no fleet-only roster  
 
 ## OUT
 Greyscale Waiting as product home; single-column tab shell; glass HUD theater; Studio launching CAs.

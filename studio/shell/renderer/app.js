@@ -1,39 +1,19 @@
 "use strict";
 
 (() => {
+  const Studio = globalThis.StudioShell;
   const host = window.studioShell ? "electron" : "preview";
   document.body.dataset.host = host;
 
-  const SEATS = [
-    { id: "you", name: "You", kind: "human", presence: "online", cutover: true },
-    { id: "agent", name: "Agent", kind: "seat", presence: "offline", cutover: false },
-    { id: "project", name: "#project", kind: "room", presence: "offline", cutover: false },
+  const FALLBACK_P0 = [
+    { id: "github", label: "GitHub", status: "needs-auth" },
+    { id: "cursor", label: "Cursor", status: "needs-auth" },
+    { id: "claude", label: "Claude", status: "needs-auth" },
+    { id: "grok", label: "Grok", status: "needs-auth" },
+    { id: "linear", label: "Linear", status: "needs-auth" },
+    { id: "sentry", label: "Sentry", status: "needs-auth" },
+    { id: "vercel", label: "Vercel", status: "needs-auth" },
   ];
-
-  const FILES = [
-    {
-      id: "shell",
-      tab: "StudioShell.tsx",
-      body: "// only here when you asked\nexport function StudioShell() {\n  return <ChatAndBoard />\n}\n",
-    },
-    {
-      id: "board",
-      tab: "BoardPane.tsx",
-      body: "// gates live on the board — not a Waiting home\nexport function BoardPane() {\n  return <Gates />\n}\n",
-    },
-  ];
-
-  const THREADS = {
-    you: [
-      {
-        who: "Studio",
-        body: "Talk to agents here. The Board shows what’s blocked on you. Code stays closed until you ask.",
-        me: false,
-      },
-    ],
-    agent: [{ who: "Agent", body: "Connect this seat to chat. Work stays in Studio only while connected.", me: false }],
-    project: [{ who: "#project", body: "A project room. Connect to cut over — any provider.", me: false }],
-  };
 
   const els = {
     main: document.getElementById("main"),
@@ -65,13 +45,9 @@
   };
 
   const state = {
-    seats: SEATS.map((seat) => ({ ...seat })),
-    connectors: [
-      { id: "github", label: "GitHub", status: "needs-auth" },
-      { id: "agent", label: "Agent provider", status: "needs-auth" },
-      { id: "notion", label: "Notion", status: "needs-auth" },
-    ],
-    selectedSeat: "you",
+    seats: Studio.panes.coldOpenSeats(),
+    connectors: FALLBACK_P0.map((item) => ({ ...item })),
+    selectedSeat: "human",
     selectedFile: "shell",
     dump: null,
     flash: null,
@@ -81,129 +57,20 @@
     mode: "build",
   };
 
-  function assertNever(value) {
-    throw new Error(`unhandled variant: ${value}`);
-  }
+  const chatHandlers = {
+    onConnectSeat(seat) {
+      openCutover({
+        kind: "seat",
+        id: seat.id,
+        title: `Connect ${seat.name}`,
+        copy: "This seat works in Studio only while connected.",
+      });
+    },
+  };
 
-  function presenceDotClass(presence) {
-    switch (presence) {
-      case "online":
-        return "";
-      case "away":
-        return "away";
-      case "offline":
-        return "off";
-      default:
-        return assertNever(presence);
-    }
-  }
-
-  function connectorClass(status) {
-    switch (status) {
-      case "connected":
-        return "chip on";
-      case "needs-auth":
-        return "chip";
-      case "add":
-        return "chip";
-      default:
-        return assertNever(status);
-    }
-  }
-
-  function waitingLabel(who) {
-    switch (who) {
-      case "human":
-        return "You";
-      case "agent":
-        return "CloudAgent";
-      case "proof":
-        return "Proof";
-      default:
-        return assertNever(who);
-    }
-  }
-
-  function modeLabel(mode) {
-    switch (mode) {
-      case "build":
-        return "build";
-      case "proof":
-        return "proof";
-      case "review":
-        return "review";
-      default:
-        return assertNever(mode);
-    }
-  }
-
-  function nextMode(mode) {
-    switch (mode) {
-      case "build":
-        return "proof";
-      case "proof":
-        return "review";
-      case "review":
-        return "build";
-      default:
-        return assertNever(mode);
-    }
-  }
-
-  function instrumentFor(kind, dump) {
-    const who = dump && dump.p0 ? dump.p0.waiting_on : null;
-    switch (kind) {
-      case "ca":
-        if (who === "agent") {
-          return { label: "Agent map", state: "running", detail: "nyfeblade/rd-os · PR#11" };
-        }
-        return { label: "Agent map", state: "idle", detail: "no run — any provider" };
-      case "proof":
-        if (who === "proof") {
-          return { label: "Proof", state: "checking", detail: "Eng Proof · dual-gate" };
-        }
-        if (who === "human") {
-          return { label: "Proof", state: "ready", detail: "checks in · PR#11" };
-        }
-        return { label: "Proof", state: "idle", detail: "no packet" };
-      default:
-        return assertNever(kind);
-    }
-  }
-
-  function formatAge(ageS) {
-    const minutes = Math.max(0, Math.floor(ageS / 60));
-    if (minutes < 60) {
-      return `${Math.max(1, minutes)}m`;
-    }
-    const hours = Math.floor(minutes / 60);
-    const rest = minutes % 60;
-    return rest ? `${hours}h ${rest}m` : `${hours}h`;
-  }
-
-  function onlineMembers() {
-    return state.seats.filter((member) => member.presence === "online");
-  }
-
-  function selectedSeat() {
-    return state.seats.find((seat) => seat.id === state.selectedSeat) || state.seats[0];
-  }
-
-  function selectedFile() {
-    return FILES.find((file) => file.id === state.selectedFile) || FILES[0];
-  }
-
-  function setCodeOpen(open) {
-    state.codeOpen = open;
-    els.main.classList.toggle("code-open", open);
-    els.codePane.hidden = !open;
-    els.btnCode.classList.toggle("on", open);
-    els.btnCode.setAttribute("aria-pressed", open ? "true" : "false");
-    els.codeHint.hidden = open;
-    if (open) {
-      renderCode();
-    }
-  }
+  const boardHandlers = {
+    resolveGate,
+  };
 
   function setPresenceOpen(open) {
     state.presenceOpen = open;
@@ -211,292 +78,14 @@
     els.presenceList.hidden = !open;
   }
 
-  function renderPresence() {
-    const online = onlineMembers();
-    els.presenceCount.textContent = `${online.length} here`;
-    els.presenceList.replaceChildren();
-    for (const member of state.seats) {
-      const row = document.createElement("div");
-      row.className = "popover-row";
-      row.setAttribute("role", "listitem");
-      const dot = document.createElement("i");
-      dot.className = `dot ${presenceDotClass(member.presence)}`;
-      const name = document.createElement("span");
-      name.textContent = member.name;
-      const meta = document.createElement("span");
-      meta.className = "meta";
-      meta.textContent = member.cutover && member.presence === "online" ? "in studio" : member.presence;
-      row.append(dot, name, meta);
-      els.presenceList.appendChild(row);
-    }
-  }
-
-  function renderConnectors() {
-    els.connectors.replaceChildren();
-    const connected = state.connectors.some((item) => item.status === "connected");
-    if (!connected) {
-      const hint = document.createElement("span");
-      hint.className = "tray-empty";
-      hint.textContent = "Connect GitHub / an agent provider";
-      els.connectors.appendChild(hint);
-    }
-    for (const connector of state.connectors) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = connectorClass(connector.status);
-      button.dataset.connector = connector.id;
-      button.textContent = connector.label;
-      button.addEventListener("click", () => onConnector(connector.id));
-      els.connectors.appendChild(button);
-    }
-  }
-
-  function renderInstruments() {
-    els.instruments.replaceChildren();
-    for (const kind of ["ca", "proof"]) {
-      const item = instrumentFor(kind, state.dump);
-      const card = document.createElement("div");
-      card.className = "instrument";
-      card.dataset.instrument = kind;
-      const k = document.createElement("div");
-      k.className = "k";
-      k.textContent = item.label;
-      const v = document.createElement("div");
-      v.className = "v";
-      v.textContent = item.state;
-      const d = document.createElement("div");
-      d.className = "d";
-      d.textContent = item.detail;
-      card.append(k, v, d);
-      els.instruments.appendChild(card);
-    }
-  }
-
-  function renderMode() {
-    els.modeChip.textContent = modeLabel(state.mode);
-  }
-
-  function renderWatches() {
-    els.watches.replaceChildren();
-    const head = document.createElement("div");
-    head.className = "k";
-    head.textContent = "Watches";
-    els.watches.appendChild(head);
-    const items = state.dump && state.dump.p0
-      ? ["nightly proof packet", "merge-gate age"]
-      : [];
-    if (!items.length) {
-      const empty = document.createElement("div");
-      empty.className = "watch";
-      empty.textContent = "No watches yet. Add a check after you connect a provider.";
-      els.watches.appendChild(empty);
-      return;
-    }
-    for (const item of items) {
-      const row = document.createElement("div");
-      row.className = "watch";
-      row.textContent = item;
-      els.watches.appendChild(row);
-    }
-  }
-
-  function renderSeats() {
-    els.seatList.replaceChildren();
-    for (const seat of state.seats) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = seat.id === state.selectedSeat ? "seat on" : "seat";
-      button.dataset.seat = seat.id;
-      const row = document.createElement("div");
-      row.className = "row";
-      const dot = document.createElement("i");
-      if (presenceDotClass(seat.presence)) {
-        dot.className = presenceDotClass(seat.presence);
-      }
-      row.append(dot, document.createTextNode(seat.name));
-      button.appendChild(row);
-      if (seat.cutover) {
-        const badge = document.createElement("div");
-        badge.className = "badge";
-        badge.textContent = "in studio";
-        button.appendChild(badge);
-      } else {
-        const badge = document.createElement("div");
-        badge.className = "badge";
-        badge.textContent = "connect";
-        button.appendChild(badge);
-      }
-      button.addEventListener("click", () => {
-        if (!seat.cutover) {
-          openCutover({
-            kind: "seat",
-            id: seat.id,
-            title: `Connect ${seat.name}`,
-            copy: "This seat works in Studio only while connected.",
-          });
-          return;
-        }
-        state.selectedSeat = seat.id;
-        renderSeats();
-        renderThread();
-      });
-      els.seatList.appendChild(button);
-    }
-  }
-
-  function renderThread() {
-    const seat = selectedSeat();
-    els.composerInput.placeholder = `Message ${seat.name}…`;
-    const messages = THREADS[seat.id] || [];
-    els.messages.replaceChildren();
-    for (const message of messages) {
-      const wrap = document.createElement("div");
-      wrap.className = message.me ? "bubble me" : "bubble";
-      const who = document.createElement("div");
-      who.className = "meta";
-      who.textContent = message.who;
-      const body = document.createElement("div");
-      body.className = "text";
-      body.textContent = message.body;
-      wrap.append(who, body);
-      els.messages.appendChild(wrap);
-    }
-    els.messages.scrollTop = els.messages.scrollHeight;
-  }
-
-  function renderCode() {
-    const current = selectedFile();
-    els.fileTree.replaceChildren();
-    for (const file of FILES) {
-      const item = document.createElement("button");
-      item.type = "button";
-      item.className = file.id === current.id ? "tree-item on" : "tree-item";
-      item.textContent = file.tab;
-      item.addEventListener("click", () => {
-        state.selectedFile = file.id;
-        renderCode();
-      });
-      els.fileTree.appendChild(item);
-    }
-    els.editorTab.replaceChildren();
-    const name = document.createElement("b");
-    name.textContent = current.tab;
-    els.editorTab.appendChild(name);
-    els.editorBody.textContent = current.body;
-  }
-
-  function boardRows(dump) {
-    const rows = [];
-    if (dump && dump.p0 && dump.p0.waiting_on === "human") {
-      rows.push({
-        id: dump.p0.id,
-        what: "Merge gate",
-        sub: "Studio shell",
-        waitingOn: "human",
-        ageS: dump.p0.age_s,
-      });
-    }
-    const ca = instrumentFor("ca", dump);
-    const proof = instrumentFor("proof", dump);
-    rows.push({
-      id: "ca",
-      what: "CloudAgent",
-      sub: ca.detail,
-      waitingOn: "agent",
-      ageS: dump && dump.p0 && dump.p0.waiting_on === "agent" ? dump.p0.age_s : 0,
-    });
-    rows.push({
-      id: "proof",
-      what: "Proof",
-      sub: proof.detail,
-      waitingOn: "proof",
-      ageS: dump && dump.p0 && dump.p0.waiting_on === "proof" ? dump.p0.age_s : 240,
-    });
-    return rows;
-  }
-
-  function renderBoard() {
-    const dump = state.dump;
-    renderInstruments();
-    els.boardBody.replaceChildren();
-
-    if (!dump) {
-      const empty = document.createElement("p");
-      empty.className = "foot";
-      empty.textContent = "Can't reach the board stub.";
-      els.boardBody.appendChild(empty);
-      return;
-    }
-
-    if (!dump.p0) {
-      const empty = document.createElement("p");
-      empty.className = "foot";
-      empty.id = "board-empty";
-      empty.textContent = "Nothing blocked on you. Connect a provider to see gates.";
-      els.boardBody.appendChild(empty);
-      return;
-    }
-
-    const table = document.createElement("table");
-    const thead = document.createElement("thead");
-    thead.innerHTML = "<tr><th>What</th><th>On</th><th>Age</th></tr>";
-    table.appendChild(thead);
-    const tbody = document.createElement("tbody");
-    for (const row of boardRows(dump)) {
-      const tr = document.createElement("tr");
-      if (row.waitingOn === "human") {
-        tr.className = "need";
-      }
-      const what = document.createElement("td");
-      if (row.waitingOn !== "human") {
-        what.className = "mute";
-      }
-      const title = document.createElement("div");
-      title.className = "what";
-      title.textContent = row.what;
-      what.appendChild(title);
-      if (row.sub) {
-        const sub = document.createElement("div");
-        sub.className = "sub";
-        sub.textContent = row.sub;
-        what.appendChild(sub);
-      }
-      if (row.waitingOn === "human") {
-        const acts = document.createElement("div");
-        acts.className = "acts";
-        const approve = document.createElement("button");
-        approve.type = "button";
-        approve.className = "go";
-        approve.textContent = "Approve";
-        approve.addEventListener("click", () => resolveGate("approve"));
-        const reject = document.createElement("button");
-        reject.type = "button";
-        reject.className = "no";
-        reject.textContent = "Reject";
-        reject.addEventListener("click", () => resolveGate("reject"));
-        acts.append(approve, reject);
-        what.appendChild(acts);
-      }
-      const on = document.createElement("td");
-      on.className = row.waitingOn === "human" ? "" : "mute";
-      on.textContent = waitingLabel(row.waitingOn);
-      const age = document.createElement("td");
-      age.className = row.waitingOn === "human" ? "" : "mute";
-      age.textContent = row.ageS > 0 ? formatAge(row.ageS) : "—";
-      tr.append(what, on, age);
-      tbody.appendChild(tr);
-    }
-    table.appendChild(tbody);
-    els.boardBody.appendChild(table);
-
-    const gates = dump.open_gates && dump.open_gates.length ? dump.open_gates.join(" · ") : "none";
-    const cutoverCount = state.seats.filter((seat) => seat.cutover).length;
-    const foot = document.createElement("p");
-    foot.className = "foot";
-    const codeNote = state.codeOpen ? "Code open on demand" : "Code closed by default";
-    const flash = state.flash ? ` · ${state.flash}` : "";
-    foot.textContent = `Open gates: ${gates} · in-studio cutover on ${cutoverCount} seats · ${codeNote}${flash}`;
-    els.boardBody.appendChild(foot);
+  function renderChrome() {
+    Studio.chrome.renderMode(els, state);
+    Studio.chrome.renderConnectors(els, state, onConnector);
+    Studio.chrome.renderPresence(els, state);
+    Studio.panes.renderSeats(els, state, chatHandlers);
+    Studio.panes.renderThread(els, state);
+    Studio.panes.renderWatches(els, state);
+    Studio.panes.renderBoard(els, state, boardHandlers);
   }
 
   function resolveGate(action) {
@@ -508,7 +97,7 @@
         state.flash = "rejected locally (stub)";
         break;
       default:
-        assertNever(action);
+        Studio.assertNever(action);
     }
     if (state.dump && state.dump.p0) {
       state.dump = {
@@ -517,7 +106,7 @@
         open_gates: [],
       };
     }
-    renderBoard();
+    Studio.panes.renderBoard(els, state, boardHandlers);
   }
 
   function onConnector(id) {
@@ -545,7 +134,7 @@
         });
         return;
       default:
-        assertNever(connector.status);
+        Studio.assertNever(connector.status);
     }
   }
 
@@ -589,32 +178,28 @@
         break;
       }
       default:
-        assertNever(pending.kind);
+        Studio.assertNever(pending.kind);
     }
     closeCutover();
-    renderConnectors();
-    renderPresence();
-    renderSeats();
-    renderThread();
-    renderBoard();
+    renderChrome();
   }
 
   function wireChrome() {
     els.modeChip.addEventListener("click", () => {
-      state.mode = nextMode(state.mode);
-      renderMode();
+      state.mode = Studio.chrome.nextMode(state.mode);
+      Studio.chrome.renderMode(els, state);
     });
     els.btnCode.addEventListener("click", () => {
-      setCodeOpen(!state.codeOpen);
-      renderBoard();
+      Studio.panes.setCodeOpen(els, state, !state.codeOpen);
+      Studio.panes.renderBoard(els, state, boardHandlers);
     });
     els.hintCode.addEventListener("click", () => {
-      setCodeOpen(true);
-      renderBoard();
+      Studio.panes.setCodeOpen(els, state, true);
+      Studio.panes.renderBoard(els, state, boardHandlers);
     });
     els.btnClose.addEventListener("click", () => {
-      setCodeOpen(false);
-      renderBoard();
+      Studio.panes.setCodeOpen(els, state, false);
+      Studio.panes.renderBoard(els, state, boardHandlers);
     });
     els.presenceBtn.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -633,18 +218,15 @@
       if (!text) {
         return;
       }
-      const seat = selectedSeat();
-      if (!THREADS[seat.id]) {
-        THREADS[seat.id] = [];
-      }
-      THREADS[seat.id].push({ who: "You", body: text, me: true });
-      THREADS[seat.id].push({
+      const seat = Studio.panes.selectedSeat(state);
+      Studio.panes.pushLocal(seat.id, { who: "You", body: text, me: true });
+      Studio.panes.pushLocal(seat.id, {
         who: seat.name,
         body: "Placeholder seat. Model attach is later. Still in Studio only.",
         me: false,
       });
       els.composerInput.value = "";
-      renderThread();
+      Studio.panes.renderThread(els, state);
     });
     els.composerInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
@@ -683,21 +265,46 @@
     }
   }
 
+  async function loadCatalog() {
+    try {
+      if (window.studioShell && typeof window.studioShell.loadCatalog === "function") {
+        const rows = await window.studioShell.loadCatalog();
+        if (Array.isArray(rows) && rows.length) {
+          state.connectors = rows.map((row) => ({
+            id: row.id,
+            label: row.label,
+            status: "needs-auth",
+          }));
+        }
+        return;
+      }
+      const response = await fetch("./catalog.json");
+      if (!response.ok) {
+        return;
+      }
+      const rows = await response.json();
+      if (Array.isArray(rows) && rows.length) {
+        state.connectors = rows.map((row) => ({
+          id: row.id,
+          label: row.label,
+          status: "needs-auth",
+        }));
+      }
+    } catch (_err) {
+      state.connectors = FALLBACK_P0.map((item) => ({ ...item }));
+    }
+  }
+
   async function boot() {
     if (window.studioShell && typeof window.studioShell.platform === "function") {
       const platform = await window.studioShell.platform();
       document.body.dataset.platform = platform;
     }
 
+    await loadCatalog();
     await loadDump();
-    setCodeOpen(false);
-    renderMode();
-    renderConnectors();
-    renderPresence();
-    renderSeats();
-    renderThread();
-    renderWatches();
-    renderBoard();
+    Studio.panes.setCodeOpen(els, state, false);
+    renderChrome();
     wireChrome();
   }
 
