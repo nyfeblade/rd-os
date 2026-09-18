@@ -21,10 +21,19 @@ if (!pre.ok) {
   process.exit(1);
 }
 
+const electronManifest = path.join(
+  path.resolve(rootDir, MAC_PACKAGE_RECIPE.electronModule),
+  "package.json"
+);
+const installed = JSON.parse(fs.readFileSync(electronManifest, "utf8"));
+const electronVersion =
+  typeof installed.version === "string" ? installed.version : MAC_PACKAGE_RECIPE.electronVersion;
+
 const configPath = path.join(rootDir, MAC_PACKAGE_RECIPE.configFile);
 const args = [
   "--config",
   configPath,
+  `--config.electronVersion=${electronVersion}`,
   "--mac",
   "--publish",
   "never",
