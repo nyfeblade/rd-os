@@ -150,6 +150,7 @@
     <header class="bar">
       <div class="name">Studio</div>
       <button type="button" id="btn-code" aria-pressed="false">Code</button>
+      <button type="button" class="on" aria-pressed="true">Ship</button>
       <div class="right"><span class="dot"></span> 3 here · GitHub</div>
     </header>
 
@@ -166,16 +167,20 @@
               <div class="row"><i></i> You</div>
               <div class="badge">in studio</div>
             </div>
+            <div class="seat">
+              <div class="row"><i></i> #rd-os</div>
+              <div class="badge">room</div>
+            </div>
           </aside>
           <div class="thread">
             <div class="msgs">
               <div class="bubble">
                 <div class="meta">Eng Lead</div>
-                <div class="text">Coding stays optional — open it when a diff matters.</div>
+                <div class="text">Grok-complete, optimized for engineering. Seats, rooms, routines, skills, memory, connectors, CAs, Proof — not a life OS.</div>
               </div>
               <div class="bubble me">
                 <div class="meta">You</div>
-                <div class="text">Default is talk + gates. Not an IDE that never shuts up.</div>
+                <div class="text">Talk + gates by default. Code when a diff matters. Hard cutover. GitHub first.</div>
               </div>
             </div>
             <p class="open-code-hint">Need the repo? <button type="button" id="hint-code">Open code</button></p>
@@ -229,6 +234,12 @@ export function StudioShell() {
                 <td class="mute"><div class="what" style="font-weight:400">PR checks</div></td>
                 <td class="mute">Proof</td>
                 <td class="mute">4m</td>
+              </tr>
+              <tr>
+                <td class="mute"><div class="what" style="font-weight:400">Nightly Proof sweep</div>
+                  <div class="sub">routine</div></td>
+                <td class="mute">Skill</td>
+                <td class="mute">2h</td>
               </tr>
             </tbody>
           </table>
