@@ -144,15 +144,22 @@
 
       <aside class="col board" aria-label="Board">
         <div class="gate">
-          <div class="label">Needs you · also from inbox</div>
-          <div class="title">Bot Slack reply (cutover)</div>
-          <div class="label" style="margin-top:8px">Human gate before bot sends out</div>
+          <div class="label">HITL · high-risk outbound</div>
+          <div class="title">Deploy to production (Vercel)</div>
+          <div class="label" style="margin-top:8px">Payload</div>
+          <pre style="margin:6px 0;padding:8px;border:1px solid #e8e8e8;font-size:11px;background:#fafafa;white-space:pre-wrap">project: rd-os
+target: production
+commit: 5265a25
+actor: Cursor (bot) · in-studio-only</pre>
+          <div class="label">Diff</div>
+          <pre style="margin:6px 0;padding:8px;border:1px solid #e8e8e8;font-size:11px;background:#fafafa">+ vercel.json prod promote
+- preview-only flag</pre>
           <div class="actions">
-            <button class="ok" type="button">Allow send</button>
+            <button class="ok" type="button">Approve send</button>
             <button type="button">Deny</button>
           </div>
         </div>
-        <div class="quiet">Visibility: only need-you + auth problems.</div>
+        <div class="quiet">Low-risk GitHub replies send from Chat composer. High-risk needs this card.</div>
       </aside>
     </div>
   </div>
