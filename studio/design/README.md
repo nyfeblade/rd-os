@@ -12,7 +12,7 @@
 | `PRODUCT-LAW.md` | Grok-complete lock; no life-OS theater |
 | `LAYOUT-LOCK.md` | Code not automatic |
 | `STUDIO-SHELL-SPEC.md` | Prior shell spec (kept); defer chrome to `SHELL-IA.md` |
-| `quiet-studio.html` | Preferred visual: live + cold-open, tray, modes, Chat\|Board, Code drawer, CA map, watches |
+| `quiet-studio.html` | Preferred visual: light utilitarian; Chat\|Board default; Code drawer; live + cold-open |
 | `three-pane.html` | Denser wire — **superseded** for Code-always-on |
 | `tokens.css` | Dark quiet tokens |
 

@@ -3,312 +3,337 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Studio — Elon coverage brief</title>
+<title>Studio</title>
 <style>
   :root {
-    --bg: #0c0c0e; --surface: #141416; --elev: #1a1a1e;
-    --line: rgba(255,255,255,0.07); --ink: #f2f2f4; --mute: #9a9aa3; --faint: #5e5e68;
-    --accent: #c4b5fd; --accent-dim: rgba(196,181,253,0.12);
-    --good: #6ee7b7; --warn: #fcd34d; --err: #f87171;
+    --bg: #fff;
+    --ink: #111;
+    --mute: #666;
+    --line: #e6e6e6;
+    --hover: #f5f5f5;
+    --sel: #f0f0f0;
+    --focus: #111;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
-    font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-    background: #050506; color: var(--ink); -webkit-font-smoothing: antialiased;
+    font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #f3f3f3;
+    color: var(--ink);
   }
   .app {
-    height: 100%; max-width: 1280px; margin: 0 auto;
-    display: flex; flex-direction: column;
-    background: var(--bg); box-shadow: 0 0 0 1px var(--line);
+    height: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    background: var(--bg);
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
   }
-  .switcher {
-    display: flex; gap: 8px; align-items: center;
-    padding: 8px 16px; background: #08080a; border-bottom: 1px solid var(--line);
-    font-size: 12px; color: var(--mute);
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
   }
-  .switcher button {
-    font: inherit; font-size: 12px; font-weight: 560; padding: 5px 10px;
-    border-radius: 999px; cursor: pointer; background: transparent;
-    color: var(--mute); border: 1px solid var(--line);
+  .bar b { font-weight: 600; }
+  .bar a {
+    color: var(--mute);
+    text-decoration: none;
+    margin-right: 8px;
   }
-  .switcher button.on { color: var(--ink); border-color: rgba(196,181,253,.4); background: var(--accent-dim); }
+  .bar a.on { color: var(--ink); }
+  .bar .states span {
+    color: var(--mute);
+    margin-right: 6px;
+  }
+  .bar .states span.ok::before { content: "● "; color: #0a0; font-size: 9px; }
+  .bar .states span.bad::before { content: "○ "; color: #999; font-size: 9px; }
+  .bar .states span.warn::before { content: "● "; color: #c80; font-size: 9px; }
+  .grow { flex: 1; }
+  .bar button {
+    font: inherit;
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+  }
+  .bar button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
 
-  /* chrome from brief §4 §5 */
-  .top {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    padding: 10px 16px; border-bottom: 1px solid var(--line);
+  .body {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 300px;
   }
-  .wordmark { font-size: 14px; font-weight: 650; letter-spacing: -0.03em; }
-  .modes { display: flex; gap: 4px; }
-  .modes span {
-    font-size: 11px; font-weight: 650; padding: 4px 9px; border-radius: 999px;
-    border: 1px solid var(--line); color: var(--mute); cursor: default;
+  .body.code-open { grid-template-columns: 1fr 360px 280px; }
+  .col {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--line);
   }
-  .modes span.on { color: var(--accent); border-color: rgba(196,181,253,.35); background: var(--accent-dim); }
-  .tray { display: flex; gap: 3px; align-items: center; margin-left: 4px; }
-  .conn {
-    width: 26px; height: 26px; border-radius: 8px; border: 0; cursor: pointer;
-    background: var(--elev); color: var(--faint); font-size: 9px; font-weight: 800;
-    position: relative;
-  }
-  .conn.live { color: var(--mute); }
-  .conn.live::after, .conn.auth::after, .conn.err::after {
-    content: ""; position: absolute; right: 3px; top: 3px;
-    width: 5px; height: 5px; border-radius: 50%;
-  }
-  .conn.live::after { background: var(--good); }
-  .conn.auth::after { background: var(--warn); }
-  .conn.err::after { background: var(--err); }
-  .conn.off { opacity: 0.45; }
-  .top-r { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-  .ghost {
-    font: inherit; font-size: 12px; font-weight: 560; padding: 5px 11px;
-    border-radius: 999px; border: 1px solid var(--line); background: transparent;
-    color: var(--mute); cursor: pointer;
-  }
-  .ghost.on { color: var(--ink); background: var(--accent-dim); border-color: rgba(196,181,253,.35); }
-  .here { font-size: 12px; color: var(--faint); display: flex; align-items: center; gap: 6px; }
-  .here i { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
-
-  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.25fr 360px; }
-  .body.code-open { grid-template-columns: 1fr 400px 340px; }
-  .pane { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1px solid var(--line); }
-  .pane:last-child { border-right: 0; }
-  .code { display: none; background: var(--bg); }
+  .col:last-child { border-right: 0; }
+  .code { display: none; background: #fafafa; }
   .body.code-open .code { display: flex; }
 
-  /* Chat §1 */
-  .people { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px 0; }
-  .person {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 540;
-    color: var(--mute); border: 1px solid transparent;
+  .split { flex: 1; display: flex; min-height: 0; }
+  .seats {
+    width: 140px;
+    border-right: 1px solid var(--line);
+    overflow: auto;
+    font-size: 12px;
   }
-  .person.on { background: var(--surface); border-color: var(--line); color: var(--ink); }
-  .person i { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
-  .person i.off { background: var(--faint); }
-  .person i.away { background: var(--warn); }
-  .tag { font-size: 10px; color: var(--accent); font-weight: 650; }
-  .thread { flex: 1; overflow: auto; padding: 20px 16px 8px; max-width: 42rem; }
-  .bubble { margin-bottom: 18px; }
-  .bubble .w { font-size: 12px; color: var(--faint); margin-bottom: 5px; }
-  .bubble .t { font-size: 15px; line-height: 1.55; letter-spacing: -0.01em; }
+  .seats div {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    color: var(--mute);
+    cursor: default;
+  }
+  .seats div.on { background: var(--sel); color: var(--ink); font-weight: 600; }
+  .seats .meta { display: block; font-weight: 400; color: #999; font-size: 11px; margin-top: 2px; }
+
+  .thread { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .msgs { flex: 1; overflow: auto; padding: 16px; }
+  .msg { margin-bottom: 14px; max-width: 36em; }
+  .msg .who { font-size: 11px; color: #888; margin-bottom: 3px; }
+  .msg .bodytxt { font-size: 14px; line-height: 1.5; }
   .empty {
-    flex: 1; display: flex; flex-direction: column; justify-content: center;
-    padding: 32px 24px; max-width: 28rem;
+    flex: 1; padding: 40px 24px; color: var(--mute);
   }
-  .empty h1 { margin: 0 0 8px; font-size: 22px; font-weight: 600; letter-spacing: -0.03em; }
-  .empty p { margin: 0 0 16px; color: var(--mute); font-size: 14px; line-height: 1.5; }
-  .empty .cta { display: flex; flex-wrap: wrap; gap: 8px; }
-  .empty .cta button {
-    font: inherit; font-size: 13px; font-weight: 650; padding: 9px 14px;
-    border-radius: 12px; cursor: pointer; border: 0;
+  .empty h1 { margin: 0 0 8px; font-size: 18px; color: var(--ink); font-weight: 600; }
+  .empty button {
+    margin: 8px 8px 0 0;
+    font: inherit; font-size: 12px; padding: 6px 10px;
+    border: 1px solid var(--line); background: #fff; cursor: pointer;
   }
-  .empty .cta .p { background: var(--accent); color: #1a1428; }
-  .empty .cta .g { background: transparent; color: var(--mute); border: 1px solid var(--line); }
-  .composer-wrap { padding: 8px 16px 16px; max-width: 42rem; }
-  .composer {
-    display: flex; align-items: flex-end; gap: 8px;
-    padding: 10px 10px 10px 14px; background: var(--surface);
-    border: 1px solid var(--line); border-radius: 16px;
+  .empty button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .compose {
+    border-top: 1px solid var(--line);
+    padding: 10px;
+    display: flex;
+    gap: 8px;
   }
-  .composer textarea {
-    flex: 1; border: 0; outline: 0; resize: none; background: transparent;
-    color: var(--ink); font: inherit; font-size: 14px; min-height: 48px;
+  .compose textarea {
+    flex: 1;
+    border: 1px solid var(--line);
+    padding: 8px;
+    font: inherit;
+    font-size: 13px;
+    resize: none;
+    min-height: 56px;
   }
-  .composer textarea::placeholder { color: var(--faint); }
-  .send {
-    border: 0; background: var(--accent); color: #1a1428;
-    font: inherit; font-weight: 650; font-size: 13px;
-    border-radius: 11px; padding: 9px 12px; cursor: pointer;
+  .compose button {
+    font: inherit;
+    font-size: 12px;
+    padding: 0 12px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: #fff;
+    cursor: pointer;
   }
 
-  /* Code §3 */
-  .code-h { display: flex; align-items: center; gap: 8px; padding: 12px 12px 8px; }
-  .code-h b { font-size: 13px; font-weight: 560; }
-  .code-h button { margin-left: auto; font: inherit; font-size: 12px; color: var(--mute); background: 0; border: 0; cursor: pointer; }
-  .code-split { flex: 1; display: flex; min-height: 0; border-top: 1px solid var(--line); }
-  .tree { width: 128px; padding: 10px; border-right: 1px solid var(--line); font-size: 12px; color: var(--mute); }
-  .tree .on { background: var(--elev); color: var(--ink); border-radius: 8px; padding: 5px 8px; }
-  .ed { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #09090b; }
-  .diff {
-    padding: 8px 12px; font-size: 11px; color: var(--faint); border-bottom: 1px solid var(--line);
+  .board { background: #fafafa; }
+  .board h2 {
+    margin: 0;
+    padding: 10px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #888;
+    border-bottom: 1px solid var(--line);
+    background: #fff;
   }
-  pre { margin: 0; flex: 1; overflow: auto; padding: 12px; font: 12px/1.55 ui-monospace, Menlo, monospace; color: #c8c8d0; }
-  .add { color: #6ee7b7; } .del { color: #f87171; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; }
+  th {
+    text-align: left; font-weight: 500; color: #888;
+    padding: 6px 10px; border-bottom: 1px solid var(--line);
+  }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr.need { background: #fffbe6; }
+  .actions { margin-top: 6px; }
+  .actions button {
+    font: inherit; font-size: 11px; margin-right: 4px;
+    padding: 3px 8px; border: 1px solid var(--line); background: #fff; cursor: pointer;
+  }
+  .actions button.ok { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .section {
+    padding: 8px 10px; font-size: 11px; color: #888; background: #fafafa;
+    border-bottom: 1px solid var(--line);
+  }
+  .rowline {
+    padding: 8px 10px; border-bottom: 1px solid var(--line);
+    font-size: 12px; background: #fff;
+  }
+  .rowline span { color: #888; }
 
-  /* Board §2 */
-  .board { background: var(--surface); display: flex; flex-direction: column; min-height: 0; }
-  .bh { padding: 14px 14px 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--faint); }
-  .cards { flex: 1; overflow: auto; padding: 4px 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-  .card {
-    background: var(--elev); border: 1px solid var(--line); border-radius: 14px; padding: 12px;
+  .code-h {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border-bottom: 1px solid var(--line); background: #fff;
+    font-size: 12px;
   }
-  .card.need { border-color: rgba(196,181,253,.3); background: linear-gradient(180deg, var(--accent-dim), var(--elev) 50%); }
-  .card .k { font-size: 11px; color: var(--faint); margin-bottom: 4px; }
-  .card .t { font-size: 13.5px; font-weight: 560; letter-spacing: -0.02em; }
-  .card .m { margin-top: 4px; font-size: 12px; color: var(--mute); }
-  .card .row { margin-top: 10px; display: flex; gap: 6px; align-items: center; }
-  .card .age { margin-left: auto; font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
-  .btn { font: inherit; font-size: 12px; font-weight: 650; border-radius: 9px; padding: 6px 10px; cursor: pointer; }
-  .btn.p { background: var(--accent); color: #1a1428; border: 0; }
-  .btn.g { background: transparent; color: var(--mute); border: 1px solid var(--line); }
+  .code-h button {
+    margin-left: auto; font: inherit; font-size: 12px;
+    border: 1px solid var(--line); background: #fff; padding: 2px 8px; cursor: pointer;
+  }
+  .code-body { flex: 1; display: flex; min-height: 0; }
+  .tree {
+    width: 120px; border-right: 1px solid var(--line); padding: 8px;
+    font-size: 12px; background: #fff; overflow: auto;
+  }
+  .tree .on { background: var(--sel); font-weight: 600; padding: 2px 4px; }
+  pre {
+    margin: 0; flex: 1; overflow: auto; padding: 10px;
+    font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: #fff; color: #222;
+  }
+  .add { color: #080; } .del { color: #a00; }
   .hidden { display: none !important; }
+  .toggle {
+    padding: 6px 12px; font-size: 11px; color: #888;
+    border-bottom: 1px solid var(--line); background: #fafafa;
+  }
+  .toggle button {
+    font: inherit; font-size: 11px; margin-left: 6px;
+    padding: 2px 6px; border: 1px solid var(--line); background: #fff; cursor: pointer;
+  }
+  .toggle button.on { background: #111; color: #fff; }
 </style>
 </head>
 <body>
   <div class="app">
-    <div class="switcher">
-      brief states
-      <button type="button" class="on" id="s-live">Live homebase</button>
-      <button type="button" id="s-cold">Stranger cold-open</button>
+    <div class="toggle">
+      state
+      <button type="button" class="on" id="s-live">live</button>
+      <button type="button" id="s-cold">cold open</button>
     </div>
 
-    <!-- §4 connectors + §5 modes -->
-    <header class="top">
-      <div class="wordmark">Studio</div>
-      <div class="modes" aria-label="Modes">
-        <span class="on">eng</span>
-        <span>design</span>
-      </div>
-      <div class="tray" aria-label="Connectors P0">
-        <button class="conn live" type="button" title="GitHub · live">GH</button>
-        <button class="conn live" type="button" title="Cursor/CA · live">Cu</button>
-        <button class="conn auth" type="button" title="Claude · needs_auth">Cl</button>
-        <button class="conn live" type="button" title="Grok · live">Gr</button>
-        <button class="conn live" type="button" title="Linear · live">Li</button>
-        <button class="conn off" type="button" title="Sentry · disconnected">Se</button>
-        <button class="conn off" type="button" title="Vercel · disconnected">Ve</button>
-        <button class="conn" type="button" title="Add connector">+</button>
-      </div>
-      <div class="top-r">
-        <button type="button" class="ghost" id="codeBtn" aria-pressed="false">Code</button>
-        <div class="here"><i></i> 4</div>
-      </div>
+    <header class="bar">
+      <b>Studio</b>
+      <span style="color:#999">eng</span>
+      <span class="states" title="Connectors">
+        <span class="ok">GitHub</span>
+        <span class="ok">Cursor</span>
+        <span class="warn">Claude</span>
+        <span class="ok">Grok</span>
+        <span class="ok">Linear</span>
+        <span class="bad">Sentry</span>
+        <span class="bad">Vercel</span>
+      </span>
+      <span class="grow"></span>
+      <button type="button" id="codeBtn">Code</button>
+      <span style="color:#999">3 online</span>
     </header>
 
     <div class="body" id="body">
-      <!-- §1 Chat -->
-      <section class="pane" aria-label="Chat">
-        <div id="chat-live">
-          <div class="people">
-            <div class="person on"><i></i> Cursor <span class="tag">in-studio-only</span></div>
-            <div class="person"><i></i> Claude <span class="tag">in-studio-only</span></div>
-            <div class="person"><i></i> Grok</div>
-            <div class="person"><i class="away"></i> Lead</div>
-            <div class="person"><i></i> Proof</div>
-            <div class="person"><i class="off"></i> #pr-14</div>
-            <div class="person"><i class="off"></i> Builder</div>
-          </div>
-          <div class="thread">
-            <div class="bubble"><div class="w">Cursor</div><div class="t">Diff’s ready. Open <b style="font-weight:600">Code</b> when you want it — Board has the Proof gate.</div></div>
-            <div class="bubble"><div class="w">You</div><div class="t" style="color:var(--mute)">@Proof take the gate when CI’s green. @Claude stay on the modes PR.</div></div>
-            <div class="bubble"><div class="w">#pr-14</div><div class="t">room · bot↔bot traffic lands here for the mission.</div></div>
-          </div>
-          <div class="composer-wrap">
-            <div class="composer">
-              <textarea placeholder="Message seat or #room… use @ to address"></textarea>
-              <button class="send" type="button">Send</button>
+      <section class="col" aria-label="Chat">
+        <div id="live">
+          <div class="split">
+            <aside class="seats">
+              <div class="on">Cursor<span class="meta">in studio</span></div>
+              <div>Claude<span class="meta">in studio</span></div>
+              <div>Grok</div>
+              <div>Proof</div>
+              <div>Lead</div>
+              <div>#pr-14<span class="meta">room</span></div>
+            </aside>
+            <div class="thread">
+              <div class="msgs">
+                <div class="msg">
+                  <div class="who">Cursor</div>
+                  <div class="bodytxt">Diff is ready. Use Code if you want it. Proof gate is on the board.</div>
+                </div>
+                <div class="msg">
+                  <div class="who">You</div>
+                  <div class="bodytxt">@Proof take the gate when CI is green.</div>
+                </div>
+              </div>
+              <div class="compose">
+                <textarea placeholder="Message…"></textarea>
+                <button type="button">Send</button>
+              </div>
             </div>
           </div>
         </div>
-        <!-- §6 cold open -->
-        <div id="chat-cold" class="empty hidden">
+        <div id="cold" class="empty hidden">
           <h1>Connect a seat to start</h1>
-          <p>Homebase for any AI developer. Hook up GitHub and one agent provider — then your board lights up.</p>
-          <div class="cta">
-            <button class="p" type="button">Connect GitHub</button>
-            <button class="g" type="button">Add Cursor / Claude / Grok</button>
-          </div>
+          <p>Connect GitHub and one agent. Then the board fills in.</p>
+          <button class="primary" type="button">Connect GitHub</button>
+          <button type="button">Add agent</button>
         </div>
       </section>
 
-      <!-- §3 Code drawer -->
-      <aside class="pane code" aria-label="Code">
+      <aside class="col code" aria-label="Code">
         <div class="code-h">
           <b>nyfeblade/rd-os</b>
-          <span style="color:var(--faint);font-size:12px">main</span>
+          <span style="color:#888">main</span>
           <button type="button" id="codeClose">Close</button>
         </div>
-        <div class="code-split">
+        <div class="code-body">
           <nav class="tree">
             <div class="on">StudioShell.tsx</div>
-            <div style="padding:5px 8px">BoardPane.tsx</div>
-            <div style="padding:5px 8px">ChatPane.tsx</div>
+            <div>BoardPane.tsx</div>
           </nav>
-          <div class="ed">
-            <div class="diff">diff · PR#14 · +24 −3</div>
-            <pre><span class="del">- Always see three panes</span>
-<span class="add">+ Chat | Board default</span>
-<span class="add">+ Code on demand only</span>
+          <pre><span class="del">- three panes always</span>
+<span class="add">+ chat | board default</span>
+<span class="add">+ code on demand</span>
 
 export function StudioShell() {
   return &lt;ChatAndBoard /&gt;
 }</pre>
-          </div>
         </div>
       </aside>
 
-      <!-- §2 Board -->
-      <aside class="pane board" aria-label="Board">
-        <div class="bh">Needs you</div>
-        <div class="cards">
-          <div class="card need">
-            <div class="k">Proof · human gate</div>
-            <div class="t">Accept PR#14 modes</div>
-            <div class="m">research-before-claim · no self-cert</div>
-            <div class="row">
-              <button class="btn p" type="button">Approve</button>
-              <button class="btn g" type="button">Reject</button>
-              <button class="btn g" type="button" id="openDiff">Open diff</button>
-              <span class="age">12m</span>
-            </div>
-          </div>
-
-          <div class="bh" style="padding:10px 2px 0">CA / builders</div>
-          <div class="card">
-            <div class="k">Cloud agent</div>
-            <div class="t">bc-7c385702 · design</div>
-            <div class="m">studio/design/** · running</div>
-          </div>
-          <div class="card">
-            <div class="k">Cloud agent</div>
-            <div class="t">bc-d0f3 · shell</div>
-            <div class="m">desktop/ · idle</div>
-          </div>
-
-          <div class="bh" style="padding:10px 2px 0">Watches</div>
-          <div class="card">
-            <div class="k">Linear</div>
-            <div class="t">eng board</div>
-            <div class="m">live via connector</div>
-          </div>
-          <div class="card" style="opacity:.65">
-            <div class="k">Sentry</div>
-            <div class="t">errors</div>
-            <div class="m">disconnected — connect in tray</div>
-          </div>
-          <div class="card" style="opacity:.65">
-            <div class="k">Vercel</div>
-            <div class="t">deploys</div>
-            <div class="m">disconnected</div>
-          </div>
-        </div>
+      <aside class="col board" aria-label="Board">
+        <h2>Board</h2>
+        <table>
+          <thead><tr><th>What</th><th>On</th><th>Age</th></tr></thead>
+          <tbody>
+            <tr class="need">
+              <td>
+                Accept PR#14 modes
+                <div class="actions">
+                  <button class="ok" type="button">Approve</button>
+                  <button type="button">Reject</button>
+                  <button type="button" id="openDiff">Diff</button>
+                </div>
+              </td>
+              <td>You</td>
+              <td>12m</td>
+            </tr>
+            <tr>
+              <td style="color:#666">CI · shell</td>
+              <td style="color:#666">Proof</td>
+              <td style="color:#666">4m</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="section">Agents</div>
+        <div class="rowline"><b>bc-7c385702</b> design · running</div>
+        <div class="rowline"><b>bc-d0f3</b> shell · idle</div>
+        <div class="section">Watches</div>
+        <div class="rowline">Linear eng board · <span>live</span></div>
+        <div class="rowline">Sentry · <span>off</span></div>
+        <div class="rowline">Vercel · <span>off</span></div>
       </aside>
     </div>
   </div>
   <script>
     const body = document.getElementById('body');
     const codeBtn = document.getElementById('codeBtn');
-    const live = document.getElementById('chat-live');
-    const cold = document.getElementById('chat-cold');
+    const live = document.getElementById('live');
+    const cold = document.getElementById('cold');
     const sLive = document.getElementById('s-live');
     const sCold = document.getElementById('s-cold');
     function setCode(on) {
       body.classList.toggle('code-open', on);
       codeBtn.classList.toggle('on', on);
-      codeBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
     }
     codeBtn.onclick = () => setCode(!body.classList.contains('code-open'));
     document.getElementById('codeClose').onclick = () => setCode(false);
