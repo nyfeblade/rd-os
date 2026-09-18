@@ -1,0 +1,21 @@
+{
+  "tool": "synth.render",
+  "expect": { "ok": true, "tool": "synth.render", "has_sha": true, "has_ir": true },
+  "payload": {
+    "seed": 11,
+    "format": "wav",
+    "patch": {
+      "version": "sfx.graph.v1",
+      "id": "render.seed",
+      "sample_rate": 48000,
+      "duration_ms": 60,
+      "nodes": {
+        "air": { "type": "noise", "color": "white", "gain": 0.3 },
+        "tone": { "type": "osc", "wave": "sine", "hz": 660, "gain": 0.35 },
+        "mix": { "type": "mix", "inputs": ["air", "tone"], "gains": [0.4, 0.8] },
+        "out": { "type": "env", "input": "mix", "attack_ms": 3, "decay_ms": 30, "sustain": 0, "release_ms": 12 }
+      },
+      "out": "out"
+    }
+  }
+}

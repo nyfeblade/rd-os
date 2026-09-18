@@ -1,0 +1,19 @@
+{
+  "tool": "synth.render",
+  "expect": { "ok": true, "tool": "synth.render", "format": "flac", "has_sha": true },
+  "payload": {
+    "seed": 4,
+    "format": "flac",
+    "patch": {
+      "version": "sfx.graph.v1",
+      "id": "render.flac",
+      "sample_rate": 48000,
+      "duration_ms": 40,
+      "nodes": {
+        "osc": { "type": "osc", "wave": "sine", "hz": 880, "gain": 0.4 },
+        "out": { "type": "env", "input": "osc", "attack_ms": 2, "decay_ms": 20, "sustain": 0, "release_ms": 8 }
+      },
+      "out": "out"
+    }
+  }
+}

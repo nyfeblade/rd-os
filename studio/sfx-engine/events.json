@@ -1,0 +1,16 @@
+{
+  "catalog": "studio.chrome.events.v1",
+  "source": "STUDIO-EVENTS",
+  "clock_started": false,
+  "events": [
+    { "id": "ui.send", "when": "Chat send / outbound reply", "file": "ui_send.wav" },
+    { "id": "ui.need_you", "when": "need_you becomes true", "file": "ui_need_you.wav" },
+    { "id": "ui.approve", "when": "Gate Approve", "file": "ui_approve.wav" },
+    { "id": "ui.deny", "when": "Gate Deny", "file": "ui_deny.wav" },
+    { "id": "ui.connect_ok", "when": "Connector → live", "file": "ui_connect_ok.wav" },
+    { "id": "ui.error", "when": "Connector error / send fail", "file": "ui_error.wav" },
+    { "id": "ui.code_open", "when": "Code drawer opens", "file": "ui_code_open.wav" },
+    { "id": "ui.expand", "when": "Need-you row expands", "file": "ui_expand.wav" },
+    { "id": "ui.craft_gen_done", "when": "Pack render finished", "file": "ui_craft_gen_done.wav" }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "tool": "chat.whoosh",
+  "expect": { "ok": false, "code": "UNKNOWN_TOOL" },
+  "payload": {
+    "prompt": "make a whoosh"
+  }
+}

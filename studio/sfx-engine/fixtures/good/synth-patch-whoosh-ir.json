@@ -1,0 +1,21 @@
+{
+  "tool": "synth.patch",
+  "expect": { "ok": true, "tool": "synth.patch", "has_ir": true },
+  "payload": {
+    "patch": {
+      "version": "sfx.graph.v1",
+      "id": "ui.code_open",
+      "sample_rate": 48000,
+      "duration_ms": 110,
+      "nodes": {
+        "air": { "type": "noise", "color": "pink", "gain": 0.45 },
+        "sweep": { "type": "lfo", "wave": "saw", "hz": 8, "amount": 2200, "target": "bp.hz", "bipolar": false },
+        "bp": { "type": "filter", "input": "air", "mode": "bandpass", "hz": 1400, "q": 2.1 },
+        "body": { "type": "env", "input": "bp", "attack_ms": 18, "decay_ms": 70, "sustain": 0, "release_ms": 22 },
+        "grains": { "type": "granular", "input": "body", "grain_ms": 8, "density": 48, "pitch": 1.12, "jitter": 0.22 },
+        "out": { "type": "mix", "inputs": ["grains"], "gains": [1] }
+      },
+      "out": "out"
+    }
+  }
+}

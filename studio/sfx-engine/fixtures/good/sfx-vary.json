@@ -1,0 +1,20 @@
+{
+  "tool": "sfx.vary",
+  "expect": { "ok": true, "tool": "sfx.vary", "n": 3, "has_ir": true },
+  "payload": {
+    "seed": 9,
+    "n": 3,
+    "patch": {
+      "version": "sfx.graph.v1",
+      "id": "vary.base",
+      "duration_ms": 50,
+      "nodes": {
+        "air": { "type": "noise", "color": "pink", "gain": 0.3 },
+        "tone": { "type": "osc", "wave": "sine", "hz": 500, "gain": 0.4 },
+        "mix": { "type": "mix", "inputs": ["air", "tone"], "gains": [0.5, 0.8] },
+        "out": { "type": "env", "input": "mix", "attack_ms": 4, "decay_ms": 28, "sustain": 0, "release_ms": 10 }
+      },
+      "out": "out"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "tool": "synth.patch",
+  "expect": { "ok": false, "code": "CLOCK_STARTED_FORBIDDEN" },
+  "payload": {
+    "clock_started": true,
+    "patch": {
+      "version": "sfx.graph.v1",
+      "id": "clock",
+      "duration_ms": 40,
+      "nodes": {
+        "osc": { "type": "osc", "wave": "sine", "hz": 440, "gain": 0.3 },
+        "out": { "type": "env", "input": "osc", "attack_ms": 2, "decay_ms": 20, "sustain": 0, "release_ms": 8 }
+      },
+      "out": "out"
+    }
+  }
+}
