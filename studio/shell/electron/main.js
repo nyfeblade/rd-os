@@ -33,6 +33,7 @@ function createWindow() {
     backgroundColor: "#ffffff",
     show: false,
     titleBarStyle: isMac ? "hiddenInset" : "default",
+    ...(isMac ? { trafficLightPosition: { x: 16, y: 18 } } : {}),
     ...(isWin
       ? {
           titleBarOverlay: {
