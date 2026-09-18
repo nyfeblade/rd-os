@@ -1,0 +1,18 @@
+{
+  "name": "@rd-os/studio-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "First-party AI Coding Studio MCP: coding agents connect into Studio seats. Not a vendor-MCP wrapper. Not R&D OS kernel MCP.",
+  "main": "./index.js",
+  "types": "./schema.ts",
+  "bin": {
+    "studio-mcp": "./server/bin.js"
+  },
+  "scripts": {
+    "test": "node test/run.js",
+    "start": "node server/bin.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
