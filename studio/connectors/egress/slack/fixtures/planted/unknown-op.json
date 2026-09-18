@@ -1,0 +1,12 @@
+{
+  "op": "map",
+  "expect": { "ok": false, "code": "UNKNOWN_EVENT" },
+  "input": {
+    "op": "create_issue_comment",
+    "provider": "slack",
+    "request": {
+      "channel": "Ceng",
+      "text": "wrong closed op"
+    }
+  }
+}

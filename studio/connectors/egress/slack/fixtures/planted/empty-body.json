@@ -1,0 +1,12 @@
+{
+  "op": "map",
+  "expect": { "ok": false, "code": "EMPTY_BODY" },
+  "input": {
+    "op": "post_message",
+    "provider": "slack",
+    "request": {
+      "channel": "Ceng",
+      "text": "   "
+    }
+  }
+}

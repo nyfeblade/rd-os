@@ -1,0 +1,9 @@
+{
+  "op": "dm",
+  "live": true,
+  "env": {},
+  "expect": { "ok": false, "code": "NEEDS_AUTH" },
+  "input": {
+    "text": "must not open IM without SLACK_DM_USER_ID"
+  }
+}

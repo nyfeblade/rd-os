@@ -1,0 +1,20 @@
+{
+  "op": "map",
+  "expect": {
+    "ok": true,
+    "dry": true,
+    "method": "chat.postMessage",
+    "channel": "Ceng",
+    "text": "top-level ack",
+    "outbound_op": "post_message"
+  },
+  "input": {
+    "provider": "slack",
+    "actor": "human",
+    "kind": "message",
+    "body": "top-level ack",
+    "thread_ref": {
+      "channel": "Ceng"
+    }
+  }
+}

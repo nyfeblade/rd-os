@@ -1,0 +1,12 @@
+{
+  "op": "map",
+  "expect": { "ok": false, "code": "UNKNOWN_PROVIDER" },
+  "input": {
+    "op": "post_message",
+    "provider": "github",
+    "request": {
+      "channel": "Ceng",
+      "text": "github is not this harness"
+    }
+  }
+}

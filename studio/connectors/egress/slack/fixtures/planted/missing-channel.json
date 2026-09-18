@@ -1,0 +1,13 @@
+{
+  "op": "map",
+  "expect": { "ok": false, "code": "INVALID_EVENT" },
+  "input": {
+    "provider": "slack",
+    "actor": "human",
+    "kind": "message",
+    "body": "no channel on the bound thread",
+    "thread_ref": {
+      "thread_ts": "1726665600.000100"
+    }
+  }
+}
