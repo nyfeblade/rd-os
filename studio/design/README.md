@@ -1,6 +1,6 @@
 # AI Coding Studio — design SoT
 
-**PRODUCT LAW (Luke).** Studio = everything Grok Bot can do, **OPTIMIZED FOR ENGINEERING.** See `PRODUCT-LAW.md`. No life-OS theater.
+**PRODUCT LAW (Luke).** Studio = everything Grok Bot can do, **OPTIMIZED FOR ENGINEERING.** See `PRODUCT-LAW.md` + `PRODUCT-NARRATIVE.md`. No life-OS theater.
 
 **PRODUCT LOCK.** Waiting-table-as-home is DEAD.
 
@@ -9,6 +9,7 @@
 | File | Use |
 | --- | --- |
 | `PRODUCT-LAW.md` | Grok-complete, eng-optimized; surface map |
+| `PRODUCT-NARRATIVE.md` | Eng Grok Bot story + Grok→Studio capability map |
 | `LAYOUT-LOCK.md` | Layout lock: Chat + Board default; Code on demand |
 | `STUDIO-SHELL-SPEC.md` | IA, panes, cutover, modes, acceptance |
 | `quiet-studio.html` | Preferred visual (Grok-clean); toggle Code |

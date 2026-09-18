@@ -1,7 +1,7 @@
 # AI Coding Studio — product SoT (LOCK)
 
 **status:** PRODUCT LAW (Luke) + PRODUCT LOCK + LAYOUT LOCK (Luke 2026-09-18)  
-**product law:** `PRODUCT-LAW.md` — Studio = everything Grok Bot can do, **OPTIMIZED FOR ENGINEERING**  
+**product law:** `PRODUCT-LAW.md` + `PRODUCT-NARRATIVE.md` — Studio = everything Grok Bot can do, **OPTIMIZED FOR ENGINEERING**  
 **kills:** Waiting-table-as-home · greyscale interrupt desk as product SoT · equal three-column forever · code forced open · life-OS theater  
 **supersedes:** `/workspace/rd-os-design/desktop/*` Waiting-home direction for **product UX**; `three-pane.html` **Code-always-on** claim  
 **keeps:** `attention.dump` / board packets as **data** under the hood; eng fences for CA  
@@ -181,6 +181,7 @@ Greyscale Waiting as product home; single-column tab shell; glass HUD theater; S
 
 ## ARTIFACTS
 - `PRODUCT-LAW.md`  
+- `PRODUCT-NARRATIVE.md`  
 - `LAYOUT-LOCK.md`  
 - This spec  
 - `quiet-studio.html` preferred mock (toggle Code)  
