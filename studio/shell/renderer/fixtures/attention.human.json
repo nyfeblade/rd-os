@@ -1,9 +1,9 @@
 {
   "p0": {
     "id": "studio-a-shell",
-    "why": "human gate on the merge — board pane only, not a Waiting home",
+    "why": "Merge gate · Studio shell",
     "waiting_on": "human",
-    "age_s": 420
+    "age_s": 720
   },
   "hard_law": [
     "machine-time",

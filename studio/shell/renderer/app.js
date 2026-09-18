@@ -5,105 +5,60 @@
   document.body.dataset.host = host;
 
   const SEATS = [
-    {
-      id: "eng-lead",
-      name: "Eng Lead",
-      kind: "seat",
-      presence: "online",
-      cutover: true,
-    },
-    {
-      id: "designer",
-      name: "Studio Designer",
-      kind: "seat",
-      presence: "online",
-      cutover: true,
-    },
-    {
-      id: "rd-os",
-      name: "#rd-os",
-      kind: "room",
-      presence: "offline",
-      cutover: false,
-    },
+    { id: "eng-lead", name: "Eng Lead", kind: "seat", presence: "online", cutover: true },
+    { id: "you", name: "You", kind: "human", presence: "online", cutover: true },
+    { id: "designer", name: "Studio Designer", kind: "seat", presence: "online", cutover: true },
+    { id: "rd-os", name: "#rd-os", kind: "room", presence: "offline", cutover: false },
   ];
-
-  const HUMAN = {
-    id: "you",
-    name: "you",
-    kind: "human",
-    presence: "online",
-    cutover: true,
-  };
 
   const FILES = [
     {
-      id: "main",
-      tree: "electron/main.js",
-      tab: "main.js",
-      body: `const win = new BrowserWindow({\n  width: 1440,\n  height: 900,\n  minWidth: 1200,\n  minHeight: 720,\n  title: "AI Coding Studio",\n});\n\n// Chat | Code | Board stay mounted.\n// Board consumes attention.dump later — no kernel ownership.\n`,
-    },
-    {
       id: "shell",
-      tree: "renderer/index.html",
-      tab: "index.html",
-      body: `<main class="panes">\n  <section data-pane="chat">…</section>\n  <section data-pane="code">…</section>\n  <section data-pane="board">…</section>\n</main>\n`,
+      tab: "StudioShell.tsx",
+      body: "// only here when you asked\nexport function StudioShell() {\n  return <ChatAndBoard />\n}\n",
     },
     {
       id: "board",
-      tree: "renderer/app.js",
-      tab: "app.js",
-      body: `// Board pane owns gates. Chat stays seats. Code stays repos.\n// Waiting-table-as-home is dead.\n`,
+      tab: "BoardPane.tsx",
+      body: "// gates live on the board — not a Waiting home\nexport function BoardPane() {\n  return <Gates />\n}\n",
     },
   ];
 
   const THREADS = {
     "eng-lead": [
-      {
-        who: "Eng Lead · 8:01",
-        body: "Three-pane SoT supersedes Waiting-home. Board pane owns gates.",
-      },
-      {
-        who: "you",
-        body: "Chat stays seats. Code stays repos. in-studio-only on cutover seats.",
-      },
+      { who: "Eng Lead", body: "Coding stays optional — open it when a diff matters.", me: false },
+      { who: "You", body: "Default is talk + gates. Not an IDE that never shuts up.", me: true },
     ],
-    designer: [
-      {
-        who: "Studio Designer · 8:04",
-        body: "Dark immersive chrome. Connectors tray + presence stay in the titlebar.",
-      },
-    ],
-    "rd-os": [
-      {
-        who: "#rd-os",
-        body: "Room is offline. Connect to cut over — work happens in Studio only.",
-      },
-    ],
+    you: [{ who: "You", body: "Notes stay here. Code stays closed until a file matters.", me: true }],
+    designer: [{ who: "Studio Designer", body: "Quiet chrome. Code stays away until a diff matters.", me: false }],
+    "rd-os": [{ who: "#rd-os", body: "Room is offline. Connect to cut over — work happens in Studio only.", me: false }],
   };
 
   const els = {
-    connectors: document.getElementById("connectors-tray"),
+    main: document.getElementById("main"),
+    btnCode: document.getElementById("btn-code"),
+    hintCode: document.getElementById("hint-code"),
+    btnClose: document.getElementById("btn-close"),
+    codePane: document.getElementById("pane-code"),
+    codeHint: document.getElementById("open-code-hint"),
     presenceBtn: document.getElementById("presence-btn"),
     presenceCount: document.getElementById("presence-count"),
     presenceList: document.getElementById("presence-list"),
+    connectorsBtn: document.getElementById("connectors-btn"),
+    connectors: document.getElementById("connectors-tray"),
     seatList: document.getElementById("seat-list"),
     messages: document.getElementById("messages"),
     composer: document.getElementById("composer"),
     composerInput: document.getElementById("composer-input"),
     fileTree: document.getElementById("file-tree"),
-    editorTabs: document.getElementById("editor-tabs"),
+    editorTab: document.getElementById("editor-tab"),
     editorBody: document.getElementById("editor-body"),
     boardBody: document.getElementById("board-body"),
-    boardFoot: document.getElementById("board-foot"),
     cutoverSheet: document.getElementById("cutover-sheet"),
     cutoverTitle: document.getElementById("cutover-title"),
     cutoverCopy: document.getElementById("cutover-copy"),
     cutoverCancel: document.getElementById("cutover-cancel"),
     cutoverConfirm: document.getElementById("cutover-confirm"),
-    panes: document.getElementById("panes"),
-    splitLeft: document.getElementById("split-left"),
-    splitRight: document.getElementById("split-right"),
   };
 
   const state = {
@@ -115,12 +70,13 @@
       { id: "add", label: "+ connector", status: "add" },
     ],
     selectedSeat: "eng-lead",
-    selectedFile: "main",
+    selectedFile: "shell",
     dump: null,
     flash: null,
     pendingCutover: null,
     presenceOpen: false,
-    paneWidths: null,
+    connectorsOpen: false,
+    codeOpen: false,
   };
 
   function assertNever(value) {
@@ -140,14 +96,14 @@
     }
   }
 
-  function connectorClass(status) {
+  function connectorMeta(status) {
     switch (status) {
       case "connected":
-        return "chip on";
+        return "on";
       case "needs-auth":
-        return "chip";
+        return "needs auth";
       case "add":
-        return "chip";
+        return "";
       default:
         return assertNever(status);
     }
@@ -156,7 +112,7 @@
   function waitingLabel(who) {
     switch (who) {
       case "human":
-        return "Human";
+        return "You";
       case "agent":
         return "Agent";
       case "proof":
@@ -177,7 +133,7 @@
   }
 
   function onlineMembers() {
-    return [HUMAN, ...state.seats].filter((member) => member.presence === "online");
+    return state.seats.filter((member) => member.presence === "online");
   }
 
   function selectedSeat() {
@@ -188,36 +144,53 @@
     return FILES.find((file) => file.id === state.selectedFile) || FILES[0];
   }
 
-  function renderConnectors() {
-    els.connectors.replaceChildren();
-    for (const connector of state.connectors) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = connectorClass(connector.status);
-      button.dataset.connector = connector.id;
-      button.textContent = connector.label;
-      if (connector.status === "connected") {
-        button.setAttribute("aria-pressed", "true");
-        button.title = `${connector.label} connected`;
-      } else if (connector.status === "needs-auth") {
-        button.title = `${connector.label} needs auth`;
-      }
-      button.addEventListener("click", () => onConnector(connector.id));
-      els.connectors.appendChild(button);
+  function whisperConnectorLabel() {
+    const connected = state.connectors.filter((item) => item.status === "connected");
+    return connected[0] ? connected[0].label : "Connectors";
+  }
+
+  function setCodeOpen(open) {
+    state.codeOpen = open;
+    els.main.classList.toggle("code-open", open);
+    els.codePane.hidden = !open;
+    els.btnCode.classList.toggle("on", open);
+    els.btnCode.setAttribute("aria-pressed", open ? "true" : "false");
+    els.codeHint.hidden = open;
+    if (open) {
+      renderCode();
     }
+  }
+
+  function setMenu(which, open) {
+    switch (which) {
+      case "presence":
+        state.presenceOpen = open;
+        if (open) {
+          state.connectorsOpen = false;
+        }
+        break;
+      case "connectors":
+        state.connectorsOpen = open;
+        if (open) {
+          state.presenceOpen = false;
+        }
+        break;
+      default:
+        assertNever(which);
+    }
+    els.presenceBtn.setAttribute("aria-expanded", String(state.presenceOpen));
+    els.connectorsBtn.setAttribute("aria-expanded", String(state.connectorsOpen));
+    els.presenceList.hidden = !state.presenceOpen;
+    els.connectors.hidden = !state.connectorsOpen;
   }
 
   function renderPresence() {
     const online = onlineMembers();
-    els.presenceCount.textContent = `${online.length} online`;
-    els.presenceBtn.setAttribute("aria-expanded", String(state.presenceOpen));
-    els.presenceList.hidden = !state.presenceOpen;
+    els.presenceCount.textContent = `${online.length} here`;
     els.presenceList.replaceChildren();
-
-    const members = [HUMAN, ...state.seats];
-    for (const member of members) {
+    for (const member of state.seats) {
       const row = document.createElement("div");
-      row.className = "presence-row";
+      row.className = "popover-row";
       row.setAttribute("role", "listitem");
       const dot = document.createElement("i");
       dot.className = `dot ${presenceDotClass(member.presence)}`;
@@ -225,9 +198,28 @@
       name.textContent = member.name;
       const meta = document.createElement("span");
       meta.className = "meta";
-      meta.textContent = member.cutover && member.presence === "online" ? "in-studio-only" : member.presence;
+      meta.textContent = member.cutover && member.presence === "online" ? "in studio" : member.presence;
       row.append(dot, name, meta);
       els.presenceList.appendChild(row);
+    }
+  }
+
+  function renderConnectors() {
+    els.connectorsBtn.textContent = whisperConnectorLabel();
+    els.connectors.replaceChildren();
+    for (const connector of state.connectors) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "connector-row";
+      button.dataset.connector = connector.id;
+      const label = document.createElement("span");
+      label.textContent = connector.label;
+      const meta = document.createElement("span");
+      meta.className = "meta";
+      meta.textContent = connectorMeta(connector.status);
+      button.append(label, meta);
+      button.addEventListener("click", () => onConnector(connector.id));
+      els.connectors.appendChild(button);
     }
   }
 
@@ -236,26 +228,26 @@
     for (const seat of state.seats) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = seat.id === state.selectedSeat ? "seat active" : "seat";
+      button.className = seat.id === state.selectedSeat ? "seat on" : "seat";
       button.dataset.seat = seat.id;
-      const name = document.createElement("div");
-      name.className = "n";
+      const row = document.createElement("div");
+      row.className = "row";
       const dot = document.createElement("i");
       if (presenceDotClass(seat.presence)) {
         dot.className = presenceDotClass(seat.presence);
       }
-      name.append(dot, document.createTextNode(seat.name));
-      button.appendChild(name);
+      row.append(dot, document.createTextNode(seat.name));
+      button.appendChild(row);
       if (seat.cutover) {
-        const pill = document.createElement("span");
-        pill.className = "pill";
-        pill.textContent = "in-studio-only";
-        button.appendChild(pill);
+        const badge = document.createElement("div");
+        badge.className = "badge";
+        badge.textContent = "in studio";
+        button.appendChild(badge);
       } else {
-        const connect = document.createElement("span");
-        connect.className = "pill";
-        connect.textContent = "connect";
-        button.appendChild(connect);
+        const badge = document.createElement("div");
+        badge.className = "badge";
+        badge.textContent = "connect";
+        button.appendChild(badge);
       }
       button.addEventListener("click", () => {
         if (!seat.cutover) {
@@ -282,12 +274,12 @@
     els.messages.replaceChildren();
     for (const message of messages) {
       const wrap = document.createElement("div");
-      wrap.className = "msg";
+      wrap.className = message.me ? "bubble me" : "bubble";
       const who = document.createElement("div");
-      who.className = "who";
+      who.className = "meta";
       who.textContent = message.who;
       const body = document.createElement("div");
-      body.className = "b";
+      body.className = "text";
       body.textContent = message.body;
       wrap.append(who, body);
       els.messages.appendChild(wrap);
@@ -298,37 +290,21 @@
   function renderCode() {
     const current = selectedFile();
     els.fileTree.replaceChildren();
-    const repo = document.createElement("div");
-    repo.className = "repo";
-    repo.textContent = "nyfeblade/rd-os";
-    els.fileTree.appendChild(repo);
-    const root = document.createElement("div");
-    root.textContent = "studio/shell/";
-    els.fileTree.appendChild(root);
     for (const file of FILES) {
       const item = document.createElement("button");
       item.type = "button";
       item.className = file.id === current.id ? "tree-item on" : "tree-item";
-      item.textContent = `└ ${file.tree}`;
+      item.textContent = file.tab;
       item.addEventListener("click", () => {
         state.selectedFile = file.id;
         renderCode();
       });
       els.fileTree.appendChild(item);
     }
-
-    els.editorTabs.replaceChildren();
-    for (const file of FILES) {
-      const tab = document.createElement("button");
-      tab.type = "button";
-      tab.className = file.id === current.id ? "tab on" : "tab";
-      tab.textContent = file.tab;
-      tab.addEventListener("click", () => {
-        state.selectedFile = file.id;
-        renderCode();
-      });
-      els.editorTabs.appendChild(tab);
-    }
+    els.editorTab.replaceChildren();
+    const name = document.createElement("b");
+    name.textContent = current.tab;
+    els.editorTab.appendChild(name);
     els.editorBody.textContent = current.body;
   }
 
@@ -336,19 +312,16 @@
     if (!dump || !dump.p0) {
       return [];
     }
-    const rows = [
-      {
-        id: dump.p0.id,
-        what: dump.p0.why,
-        waitingOn: dump.p0.waiting_on,
-        ageS: dump.p0.age_s,
-      },
-    ];
+    const primary = {
+      id: dump.p0.id,
+      what: dump.p0.waiting_on === "human" ? "Merge gate" : dump.p0.why,
+      sub: dump.p0.waiting_on === "human" ? "Studio shell" : dump.p0.why,
+      waitingOn: dump.p0.waiting_on,
+      ageS: dump.p0.age_s,
+    };
+    const rows = [primary];
     if (dump.p0.waiting_on === "human") {
-      rows.push(
-        { id: "proof-checks", what: "PR checks", waitingOn: "proof", ageS: 240 },
-        { id: "agent-impl", what: "Studio shell implement", waitingOn: "agent", ageS: 3600 },
-      );
+      rows.push({ id: "proof-checks", what: "PR checks", sub: "", waitingOn: "proof", ageS: 240 });
     }
     return rows;
   }
@@ -358,51 +331,70 @@
     els.boardBody.replaceChildren();
 
     if (!dump) {
-      els.boardBody.innerHTML = `<div class="quiet" style="padding:16px">Can't reach the board stub.</div>`;
-      els.boardFoot.textContent = "Board is a view. No kernel ownership.";
+      const empty = document.createElement("p");
+      empty.className = "foot";
+      empty.textContent = "Can't reach the board stub.";
+      els.boardBody.appendChild(empty);
       return;
     }
 
     if (!dump.p0) {
-      els.boardBody.innerHTML = `<div class="quiet" style="padding:16px">Nothing on the board. Chat and Code stay open.</div>`;
-      els.boardFoot.textContent = "Open gates: none · stub · attention.dump / MCP later";
+      const empty = document.createElement("p");
+      empty.className = "foot";
+      empty.textContent = state.flash || "Nothing on the board. Chat stays open.";
+      els.boardBody.appendChild(empty);
+      const note = document.createElement("p");
+      note.className = "foot";
+      note.textContent = "Code closed by default";
+      els.boardBody.appendChild(note);
       return;
     }
 
     const table = document.createElement("table");
-    table.innerHTML = `<thead><tr><th>What</th><th>On</th><th>Age</th></tr></thead>`;
+    const thead = document.createElement("thead");
+    thead.innerHTML = "<tr><th>What</th><th>On</th><th>Age</th></tr>";
+    table.appendChild(thead);
     const tbody = document.createElement("tbody");
     for (const row of boardRows(dump)) {
       const tr = document.createElement("tr");
       if (row.waitingOn === "human") {
-        tr.className = "human";
+        tr.className = "need";
       }
       const what = document.createElement("td");
       if (row.waitingOn !== "human") {
-        what.className = "quiet";
+        what.className = "mute";
       }
-      what.append(document.createTextNode(row.what));
+      const title = document.createElement("div");
+      title.className = "what";
+      title.textContent = row.what;
+      what.appendChild(title);
+      if (row.sub) {
+        const sub = document.createElement("div");
+        sub.className = "sub";
+        sub.textContent = row.sub;
+        what.appendChild(sub);
+      }
       if (row.waitingOn === "human") {
-        const actions = document.createElement("div");
-        actions.className = "actions";
+        const acts = document.createElement("div");
+        acts.className = "acts";
         const approve = document.createElement("button");
         approve.type = "button";
-        approve.className = "p";
+        approve.className = "go";
         approve.textContent = "Approve";
         approve.addEventListener("click", () => resolveGate("approve"));
         const reject = document.createElement("button");
         reject.type = "button";
-        reject.className = "s";
+        reject.className = "no";
         reject.textContent = "Reject";
         reject.addEventListener("click", () => resolveGate("reject"));
-        actions.append(approve, reject);
-        what.appendChild(actions);
+        acts.append(approve, reject);
+        what.appendChild(acts);
       }
       const on = document.createElement("td");
-      on.className = row.waitingOn === "human" ? "" : "quiet";
+      on.className = row.waitingOn === "human" ? "" : "mute";
       on.textContent = waitingLabel(row.waitingOn);
       const age = document.createElement("td");
-      age.className = row.waitingOn === "human" ? "" : "quiet";
+      age.className = row.waitingOn === "human" ? "" : "mute";
       age.textContent = formatAge(row.ageS);
       tr.append(what, on, age);
       tbody.appendChild(tr);
@@ -412,8 +404,12 @@
 
     const gates = dump.open_gates && dump.open_gates.length ? dump.open_gates.join(" · ") : "none";
     const cutoverCount = state.seats.filter((seat) => seat.cutover).length;
+    const foot = document.createElement("p");
+    foot.className = "foot";
+    const codeNote = state.codeOpen ? "Code open on demand" : "Code closed by default";
     const flash = state.flash ? ` · ${state.flash}` : "";
-    els.boardFoot.textContent = `Open gates: ${gates} · in-studio-only cutover on ${cutoverCount} seats · stub · attention.dump / MCP later${flash}`;
+    foot.textContent = `Open gates: ${gates} · in-studio cutover on ${cutoverCount} seats · ${codeNote}${flash}`;
+    els.boardBody.appendChild(foot);
   }
 
   function resolveGate(action) {
@@ -444,6 +440,7 @@
     }
     switch (connector.status) {
       case "connected":
+        setMenu("connectors", false);
         return;
       case "needs-auth":
         openCutover({
@@ -471,6 +468,8 @@
     els.cutoverTitle.textContent = pending.title;
     els.cutoverCopy.textContent = pending.copy;
     els.cutoverSheet.hidden = false;
+    setMenu("connectors", false);
+    setMenu("presence", false);
     els.cutoverConfirm.focus();
   }
 
@@ -487,13 +486,11 @@
     }
     switch (pending.kind) {
       case "connector": {
-        if (pending.id === "add") {
-          state.flash = "more connectors later";
-          break;
-        }
-        const connector = state.connectors.find((item) => item.id === pending.id);
-        if (connector) {
-          connector.status = "connected";
+        if (pending.id !== "add") {
+          const connector = state.connectors.find((item) => item.id === pending.id);
+          if (connector) {
+            connector.status = "connected";
+          }
         }
         break;
       }
@@ -513,10 +510,43 @@
     renderConnectors();
     renderPresence();
     renderSeats();
+    renderThread();
     renderBoard();
   }
 
-  function wireComposer() {
+  function wireChrome() {
+    els.btnCode.addEventListener("click", () => {
+      setCodeOpen(!state.codeOpen);
+      renderBoard();
+    });
+    els.hintCode.addEventListener("click", () => {
+      setCodeOpen(true);
+      renderBoard();
+    });
+    els.btnClose.addEventListener("click", () => {
+      setCodeOpen(false);
+      renderBoard();
+    });
+    els.presenceBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      setMenu("presence", !state.presenceOpen);
+    });
+    els.connectorsBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      setMenu("connectors", !state.connectorsOpen);
+    });
+    document.addEventListener("click", (event) => {
+      if (!els.presenceBtn.contains(event.target) && !els.presenceList.contains(event.target)) {
+        if (state.presenceOpen) {
+          setMenu("presence", false);
+        }
+      }
+      if (!els.connectorsBtn.contains(event.target) && !els.connectors.contains(event.target)) {
+        if (state.connectorsOpen) {
+          setMenu("connectors", false);
+        }
+      }
+    });
     els.composer.addEventListener("submit", (event) => {
       event.preventDefault();
       const text = els.composerInput.value.trim();
@@ -527,32 +557,21 @@
       if (!THREADS[seat.id]) {
         THREADS[seat.id] = [];
       }
-      THREADS[seat.id].push({ who: "you", body: text });
+      THREADS[seat.id].push({ who: "You", body: text, me: true });
       THREADS[seat.id].push({
-        who: `${seat.name} · stub`,
+        who: seat.name,
         body: "Placeholder seat. Model attach is later. Still in Studio only.",
+        me: false,
       });
       els.composerInput.value = "";
       renderThread();
     });
-  }
-
-  function wirePresence() {
-    els.presenceBtn.addEventListener("click", () => {
-      state.presenceOpen = !state.presenceOpen;
-      renderPresence();
-    });
-    document.addEventListener("click", (event) => {
-      if (!els.presenceBtn.contains(event.target) && !els.presenceList.contains(event.target)) {
-        if (state.presenceOpen) {
-          state.presenceOpen = false;
-          renderPresence();
-        }
+    els.composerInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        els.composer.requestSubmit();
       }
     });
-  }
-
-  function wireCutover() {
     els.cutoverCancel.addEventListener("click", closeCutover);
     els.cutoverConfirm.addEventListener("click", confirmCutover);
     document.addEventListener("keydown", (event) => {
@@ -560,50 +579,6 @@
         closeCutover();
       }
     });
-  }
-
-  function wireSplitters() {
-    const panes = els.panes;
-
-    function applyWidths(chat, code, board) {
-      const chatW = Math.max(280, chat);
-      const boardW = Math.max(280, board);
-      const codeW = Math.max(360, code);
-      panes.style.gridTemplateColumns = `${chatW}px 5px ${codeW}px 5px ${boardW}px`;
-    }
-
-    function startDrag(which, event) {
-      event.preventDefault();
-      const startX = event.clientX;
-      const chat = document.getElementById("pane-chat");
-      const code = document.getElementById("pane-code");
-      const board = document.getElementById("pane-board");
-      const start = {
-        chat: chat.getBoundingClientRect().width,
-        code: code.getBoundingClientRect().width,
-        board: board.getBoundingClientRect().width,
-      };
-
-      function move(moveEvent) {
-        const dx = moveEvent.clientX - startX;
-        if (which === "left") {
-          applyWidths(start.chat + dx, start.code - dx, start.board);
-          return;
-        }
-        applyWidths(start.chat, start.code + dx, start.board - dx);
-      }
-
-      function up() {
-        window.removeEventListener("pointermove", move);
-        window.removeEventListener("pointerup", up);
-      }
-
-      window.addEventListener("pointermove", move);
-      window.addEventListener("pointerup", up);
-    }
-
-    els.splitLeft.addEventListener("pointerdown", (event) => startDrag("left", event));
-    els.splitRight.addEventListener("pointerdown", (event) => startDrag("right", event));
   }
 
   async function loadDump() {
@@ -629,16 +604,13 @@
     }
 
     await loadDump();
+    setCodeOpen(false);
     renderConnectors();
     renderPresence();
     renderSeats();
     renderThread();
-    renderCode();
     renderBoard();
-    wireComposer();
-    wirePresence();
-    wireCutover();
-    wireSplitters();
+    wireChrome();
   }
 
   boot();

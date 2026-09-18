@@ -1,11 +1,14 @@
 :root {
-  --bg: #0e0e10;
-  --pane: #161618;
-  --pane-2: #1c1c1f;
-  --line: #2a2a2e;
-  --ink: #e8e8ea;
-  --ink-2: #9a9aa2;
-  --accent: #6b8afd;
-  --online: #3dd68c;
+  --void: #0a0a0b;
+  --bg: #111113;
+  --elev: #18181b;
+  --line: rgba(255, 255, 255, 0.06);
+  --ink: #ececef;
+  --mute: #8b8b93;
+  --faint: #5c5c66;
+  --accent: #a5b4fc;
+  --accent-ink: #12131a;
+  --online: #86efac;
+  --human: rgba(165, 180, 252, 0.08);
   --danger: #e85d5d;
 }

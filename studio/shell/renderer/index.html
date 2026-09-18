@@ -11,58 +11,64 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body data-host="preview">
-    <div class="stage">
-      <div class="app" role="application" aria-label="AI Coding Studio">
-        <header class="titlebar">
-          <div class="traffic" aria-hidden="true"><i></i><i></i><i></i></div>
-          <div class="title">AI Coding Studio</div>
-          <div class="tray" id="connectors-tray" aria-label="Connectors"></div>
-          <div class="presence">
-            <button type="button" class="presence-btn" id="presence-btn" aria-expanded="false" aria-controls="presence-list">
-              <b aria-hidden="true"></b>
-              <span id="presence-count">0 online</span>
-            </button>
-            <div class="presence-list" id="presence-list" hidden role="list"></div>
+    <div class="frame" role="application" aria-label="AI Coding Studio">
+      <header class="bar">
+        <div class="name">Studio</div>
+        <button type="button" class="bar-btn" id="btn-code" aria-pressed="false">Code</button>
+        <div class="right">
+          <button type="button" class="whisper" id="presence-btn" aria-expanded="false" aria-controls="presence-list">
+            <span class="dot" aria-hidden="true"></span>
+            <span id="presence-count">0 here</span>
+          </button>
+          <span aria-hidden="true">·</span>
+          <button type="button" class="whisper" id="connectors-btn" aria-expanded="false" aria-controls="connectors-tray">
+            GitHub
+          </button>
+          <div class="popover" id="presence-list" hidden role="list"></div>
+          <div class="popover" id="connectors-tray" hidden aria-label="Connectors"></div>
+        </div>
+      </header>
+
+      <main class="main" id="main">
+        <section class="pane" data-pane="chat" id="pane-chat" aria-label="Chat">
+          <div class="label">Chat</div>
+          <div class="chat-body">
+            <aside class="seats" id="seat-list" aria-label="Seats and rooms"></aside>
+            <div class="thread">
+              <div class="msgs" id="messages" aria-live="polite"></div>
+              <p class="open-code-hint" id="open-code-hint">
+                Need the repo? <button type="button" id="hint-code">Open code</button>
+              </p>
+              <form class="composer" id="composer">
+                <div class="composer-box">
+                  <textarea id="composer-input" rows="2" placeholder="Message Eng Lead…" aria-label="Message"></textarea>
+                  <button class="send" type="submit">Send</button>
+                </div>
+              </form>
+            </div>
           </div>
-        </header>
+        </section>
 
-        <main class="panes" id="panes" aria-label="Studio workspace">
-          <section class="pane" data-pane="chat" id="pane-chat" aria-label="Chat" tabindex="-1">
-            <div class="ph"><span>Chat</span> · seats / rooms</div>
-            <div class="split">
-              <div class="seats" id="seat-list" aria-label="Seats and rooms"></div>
-              <div class="thread">
-                <div class="msgs" id="messages" aria-live="polite"></div>
-                <form class="composer" id="composer">
-                  <input id="composer-input" aria-label="Message" autocomplete="off" />
-                  <button type="submit">Send</button>
-                </form>
-              </div>
+        <section class="pane code-pane" data-pane="code" id="pane-code" aria-label="Code" hidden>
+          <div class="label">
+            Code
+            <button class="code-close" type="button" id="btn-close" aria-label="Close code">Close</button>
+          </div>
+          <div class="code-top"><strong>nyfeblade/rd-os</strong> · main</div>
+          <div class="code-split">
+            <nav class="tree" id="file-tree" aria-label="Repository files"></nav>
+            <div class="editor">
+              <div class="filetab" id="editor-tab"><b>StudioShell.tsx</b></div>
+              <pre id="editor-body"></pre>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <button type="button" class="split-handle" id="split-left" aria-label="Resize chat and code"></button>
-
-          <section class="pane" data-pane="code" id="pane-code" aria-label="Code" tabindex="-1">
-            <div class="ph"><span>Code</span> · <span id="repo-label">nyfeblade/rd-os</span></div>
-            <div class="code-body">
-              <div class="tree" id="file-tree" aria-label="Repository files"></div>
-              <div class="editor">
-                <div class="tabs" id="editor-tabs"></div>
-                <pre id="editor-body"></pre>
-              </div>
-            </div>
-          </section>
-
-          <button type="button" class="split-handle" id="split-right" aria-label="Resize code and board"></button>
-
-          <section class="pane" data-pane="board" id="pane-board" aria-label="Board" tabindex="-1">
-            <div class="ph"><span>Board</span> · gates</div>
-            <div class="board" id="board-body"></div>
-            <div class="foot" id="board-foot"></div>
-          </section>
-        </main>
-      </div>
+        <section class="pane" data-pane="board" id="pane-board" aria-label="Board">
+          <div class="label">Board</div>
+          <div class="board" id="board-body"></div>
+        </section>
+      </main>
     </div>
 
     <div class="sheet" id="cutover-sheet" hidden>
@@ -70,8 +76,8 @@
         <h2 id="cutover-title">Connect seat</h2>
         <p id="cutover-copy">This seat works in Studio only while connected.</p>
         <div class="dialog-actions">
-          <button type="button" class="s" id="cutover-cancel">Cancel</button>
-          <button type="button" class="p" id="cutover-confirm">Connect</button>
+          <button type="button" class="no" id="cutover-cancel">Cancel</button>
+          <button type="button" class="go" id="cutover-confirm">Connect</button>
         </div>
       </div>
     </div>
