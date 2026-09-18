@@ -17,9 +17,39 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.switcher {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 16px;
+  background: #08080a;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--mute);
+  flex-shrink: 0;
+}
+
+.switcher button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 560;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--mute);
+  border: 1px solid var(--line);
+}
+
+.switcher button.on {
+  color: var(--ink);
+  border-color: rgba(196, 181, 253, 0.4);
+  background: var(--accent-dim);
+}
+
 .frame {
   height: 100%;
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -51,19 +81,27 @@ body[data-host="electron"][data-platform="mac"] .bar {
   letter-spacing: -0.03em;
 }
 
-.mode {
+.modes {
+  display: flex;
+  gap: 4px;
+}
+
+.modes button {
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 650;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
   color: var(--mute);
-  padding: 2px 0;
-  background: none;
-  border: 0;
+  background: transparent;
   cursor: pointer;
 }
 
-.mode strong {
-  color: var(--ink);
-  font-weight: 500;
+.modes button.on {
+  color: var(--accent);
+  border-color: rgba(196, 181, 253, 0.35);
+  background: var(--accent-dim);
 }
 
 .icons {
@@ -81,15 +119,16 @@ body[data-host="electron"][data-platform="mac"] .bar {
   margin-right: 6px;
 }
 
-.icons button {
-  width: 28px;
-  height: 28px;
+.icons button,
+.conn {
+  width: 26px;
+  height: 26px;
   border: 0;
   border-radius: 8px;
-  background: transparent;
+  background: var(--elev);
   color: var(--faint);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 800;
   cursor: pointer;
   position: relative;
 }
@@ -224,11 +263,11 @@ body[data-host="electron"][data-platform="mac"] .bar {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1.25fr 360px;
 }
 
 .main.code-open {
-  grid-template-columns: 1fr 420px 320px;
+  grid-template-columns: 1fr 400px 340px;
 }
 
 .pane {
@@ -335,6 +374,61 @@ body[data-host="electron"][data-platform="mac"] .bar {
 .bubble.me .text,
 .bubble.me .txt {
   color: var(--mute);
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 32px 24px;
+  max-width: 28rem;
+}
+
+.empty[hidden],
+#chat-live[hidden] {
+  display: none;
+}
+
+.empty h1 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.empty p {
+  margin: 0 0 16px;
+  color: var(--mute);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.empty .cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.empty .cta button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  padding: 9px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.empty .cta .p {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 0;
+}
+
+.empty .cta .g {
+  background: transparent;
+  color: var(--mute);
+  border: 1px solid var(--line);
 }
 
 .empty-cta {

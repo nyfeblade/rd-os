@@ -51,7 +51,7 @@
     for (const connector of state.connectors) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = connectorClass(connector.status);
+      button.className = `conn ${connectorClass(connector.status)}`;
       button.dataset.connector = connector.id;
       button.dataset.status = connector.status;
       button.title = `${connector.label} · ${connector.status}`;
@@ -62,6 +62,7 @@
     }
     const add = document.createElement("button");
     add.type = "button";
+    add.className = "conn";
     add.dataset.connector = "add";
     add.textContent = "+";
     add.title = "Connect GitHub / an agent provider";

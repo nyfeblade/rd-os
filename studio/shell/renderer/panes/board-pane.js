@@ -63,16 +63,38 @@
     return el;
   }
 
+  function sectionHead(title) {
+    const head = document.createElement("div");
+    head.className = "board-h";
+    head.textContent = title;
+    return head;
+  }
+
   function renderInstruments(els, state) {
     els.instruments.replaceChildren();
+    els.instruments.appendChild(sectionHead("CA / builders"));
     const item = instrumentFor("ca", state.dump);
-    const el = card("CA map", item.label, `${item.state} · ${item.detail}`);
+    const el = card("Cloud agent", item.label, `${item.state} · ${item.detail}`);
     el.dataset.instrument = "ca";
     els.instruments.appendChild(el);
+    if (state.view === "live") {
+      els.instruments.appendChild(card("Cloud agent", "shell · idle", "no run — any provider"));
+    }
   }
 
   function renderWatches(els, state) {
     els.watches.replaceChildren();
+    els.watches.appendChild(sectionHead("Watches"));
+    if (state.view === "live") {
+      els.watches.appendChild(card("Linear", "eng board", "live via connector"));
+      const sentry = card("Sentry", "errors", "disconnected — connect in tray");
+      sentry.style.opacity = "0.65";
+      els.watches.appendChild(sentry);
+      const vercel = card("Vercel", "deploys", "disconnected");
+      vercel.style.opacity = "0.65";
+      els.watches.appendChild(vercel);
+      return;
+    }
     const items = state.dump && state.dump.p0 ? ["nightly proof packet", "merge-gate age"] : [];
     if (!items.length) {
       els.watches.appendChild(card("Watch", "No watches yet", "Connect a provider to enable"));

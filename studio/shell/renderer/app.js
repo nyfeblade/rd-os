@@ -42,11 +42,18 @@
     cutoverCopy: document.getElementById("cutover-copy"),
     cutoverCancel: document.getElementById("cutover-cancel"),
     cutoverConfirm: document.getElementById("cutover-confirm"),
+    chatLive: document.getElementById("chat-live"),
+    chatCold: document.getElementById("chat-cold"),
+    viewLive: document.getElementById("view-live"),
+    viewCold: document.getElementById("view-cold"),
+    ctaGithub: document.getElementById("cta-github"),
+    ctaSeat: document.getElementById("cta-seat"),
   };
 
   const state = {
     seats: Studio.panes.coldOpenSeats(),
     connectors: FALLBACK_P0.map((item) => ({ ...item })),
+    catalogRows: FALLBACK_P0.map((item) => ({ ...item })),
     selectedSeat: "human",
     selectedFile: "shell",
     dump: null,
@@ -55,6 +62,7 @@
     presenceOpen: false,
     codeOpen: false,
     mode: "eng",
+    view: "cold",
   };
 
   const chatHandlers = {
@@ -82,13 +90,73 @@
     els.presenceList.hidden = !open;
   }
 
+  function onMode(mode) {
+    state.mode = mode;
+    renderChrome();
+  }
+
   function renderChrome() {
-    Studio.chrome.renderMode(els, state);
+    Studio.chrome.renderMode(els, state, onMode);
     Studio.chrome.renderConnectors(els, state, onConnector);
     Studio.chrome.renderPresence(els, state);
     Studio.panes.renderSeats(els, state, chatHandlers);
     Studio.panes.renderThread(els, state, chatHandlers);
     Studio.panes.renderBoard(els, state, boardHandlers);
+  }
+
+  function applyLiveDemo() {
+    state.seats = Studio.panes.coldOpenSeats().map((seat) => {
+      if (seat.id === "human" || seat.id === "cursor" || seat.id === "claude") {
+        return { ...seat, presence: "online", cutover: true };
+      }
+      return { ...seat };
+    });
+    state.selectedSeat = "cursor";
+    state.connectors = state.catalogRows.map((row) => {
+      const next = { ...row };
+      switch (row.id) {
+        case "github":
+        case "cursor":
+        case "grok":
+        case "linear":
+          next.status = "live";
+          break;
+        case "claude":
+          next.status = "needs_auth";
+          break;
+        case "sentry":
+        case "vercel":
+          next.status = "disconnected";
+          break;
+        default:
+          next.status = "needs_auth";
+      }
+      return next;
+    });
+  }
+
+  function setView(view) {
+    switch (view) {
+      case "cold":
+      case "live":
+        break;
+      default:
+        Studio.assertNever(view);
+    }
+    state.view = view;
+    els.viewCold.classList.toggle("on", view === "cold");
+    els.viewLive.classList.toggle("on", view === "live");
+    els.chatCold.hidden = view !== "cold";
+    els.chatLive.hidden = view === "cold";
+    if (view === "cold") {
+      state.seats = Studio.panes.coldOpenSeats();
+      state.selectedSeat = "human";
+      state.connectors = state.catalogRows.map((row) => ({ ...row, status: "needs_auth" }));
+      Studio.panes.setCodeOpen(els, state, false);
+    } else {
+      applyLiveDemo();
+    }
+    renderChrome();
   }
 
   function resolveGate(action) {
@@ -191,9 +259,20 @@
   }
 
   function wireChrome() {
-    els.modeChip.addEventListener("click", () => {
-      state.mode = Studio.chrome.nextMode(state.mode);
-      Studio.chrome.renderMode(els, state);
+    els.viewCold.addEventListener("click", () => {
+      setView("cold");
+      loadNamedDump("attention.empty.json").then(() => renderChrome());
+    });
+    els.viewLive.addEventListener("click", () => {
+      setView("live");
+      loadNamedDump("attention.human.json").then(() => renderChrome());
+    });
+    els.ctaGithub.addEventListener("click", () => onConnector("github"));
+    els.ctaSeat.addEventListener("click", () => {
+      const bot = state.seats.find((seat) => seat.kind === "bot" && !seat.cutover);
+      if (bot) {
+        chatHandlers.onConnectSeat(bot);
+      }
     });
     els.btnCode.addEventListener("click", () => {
       Studio.panes.setCodeOpen(els, state, !state.codeOpen);
@@ -259,11 +338,17 @@
 
   function dumpName() {
     const query = new URLSearchParams(window.location.search);
-    return query.get("fixture") === "human" ? "attention.human.json" : "attention.empty.json";
+    return query.get("fixture") === "human" || query.get("view") === "live"
+      ? "attention.human.json"
+      : "attention.empty.json";
   }
 
-  async function loadDump() {
-    const name = dumpName();
+  function initialView() {
+    const query = new URLSearchParams(window.location.search);
+    return query.get("fixture") === "human" || query.get("view") === "live" ? "live" : "cold";
+  }
+
+  async function loadNamedDump(name) {
     try {
       if (window.studioShell && typeof window.studioShell.loadDump === "function") {
         state.dump = await window.studioShell.loadDump(name);
@@ -279,16 +364,21 @@
     }
   }
 
+  async function loadDump() {
+    await loadNamedDump(dumpName());
+  }
+
   async function loadCatalog() {
     try {
       if (window.studioShell && typeof window.studioShell.loadCatalog === "function") {
         const rows = await window.studioShell.loadCatalog();
         if (Array.isArray(rows) && rows.length) {
-          state.connectors = rows.map((row) => ({
+          state.catalogRows = rows.map((row) => ({
             id: row.id,
             label: row.label,
             status: "needs_auth",
           }));
+          state.connectors = state.catalogRows.map((row) => ({ ...row }));
         }
         return;
       }
@@ -298,11 +388,12 @@
       }
       const rows = await response.json();
       if (Array.isArray(rows) && rows.length) {
-        state.connectors = rows.map((row) => ({
+        state.catalogRows = rows.map((row) => ({
           id: row.id,
           label: row.label,
           status: "needs_auth",
         }));
+        state.connectors = state.catalogRows.map((row) => ({ ...row }));
       }
     } catch (_err) {
       state.connectors = FALLBACK_P0.map((item) => ({ ...item }));
@@ -318,7 +409,7 @@
     await loadCatalog();
     await loadDump();
     Studio.panes.setCodeOpen(els, state, false);
-    renderChrome();
+    setView(initialView());
     wireChrome();
   }
 

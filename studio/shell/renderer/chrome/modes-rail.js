@@ -2,6 +2,7 @@
 
 (function attachModesRail(Studio) {
   const assertNever = Studio.assertNever;
+  const MODES = ["eng", "design"];
 
   function modeLabel(mode) {
     switch (mode) {
@@ -25,15 +26,18 @@
     }
   }
 
-  function renderMode(els, state) {
-    const name = document.getElementById("mode-name");
-    const label = modeLabel(state.mode);
-    if (name) {
-      name.textContent = label;
-    } else {
-      els.modeChip.textContent = `mode ${label}`;
-    }
+  function renderMode(els, state, onMode) {
+    els.modeChip.replaceChildren();
     els.modeChip.dataset.mode = state.mode;
+    for (const mode of MODES) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = mode === state.mode ? "on" : "";
+      chip.dataset.mode = mode;
+      chip.textContent = modeLabel(mode);
+      chip.addEventListener("click", () => onMode(mode));
+      els.modeChip.appendChild(chip);
+    }
   }
 
   Studio.chrome = Studio.chrome || {};
