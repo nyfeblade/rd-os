@@ -1,0 +1,17 @@
+{
+  "name": "@rd-os/studio-packaging",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mac-only electron-builder recipe for AI Coding Studio.",
+  "scripts": {
+    "package": "node package.js",
+    "test": "node smoke.js",
+    "smoke": "node smoke.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "electron-builder": "^26.15.3"
+  }
+}
