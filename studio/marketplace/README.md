@@ -48,11 +48,8 @@ const { createStudioMarketplace } = require("@rd-os/studio-marketplace");
 
 const market = createStudioMarketplace({ home: "/tmp/studio-marketplace" });
 market.install("github");
-// { ok: true, data: { entry: { state: "needs_auth", ... } } }
 market.connect("github");
-// live
 market.revoke("github");
-// available
 ```
 
 `connect(id)` means auth finished. Do not pass tokens. `connect(id, { error: "oauth_denied" })` stores the provider error string and moves the entry to `error`.

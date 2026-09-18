@@ -1,8 +1,3 @@
-/**
- * Eng-native marketplace catalog + install state.
- * Discover / install / connect / revoke. Not a Grok Bot UI clone.
- */
-
 export type InstallState = "available" | "needs_auth" | "live" | "error";
 
 export type EntryKind = "seat" | "connector" | "mcp";
