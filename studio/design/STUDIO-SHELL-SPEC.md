@@ -1,11 +1,14 @@
 # AI Coding Studio — product SoT (LOCK)
 
-**Luke law:** Studio = **full Grok Bot capability set, specialized for eng**  
-(seats, rooms, routines→board watches, skills→modes, memory, connectors, CA map, Proof gates).  
+**North star:** homebase for **ANY** AI developer — daily driver, not a Luke-fleet-only ops panel.  
+Stranger cold-open, empty states, and onboarding must work. Multi-provider seats.  
 See [PRODUCT-NARRATIVE.md](./PRODUCT-NARRATIVE.md).
 
+**Luke law:** Studio = **full Grok Bot capability set, specialized for eng**  
+(seats, rooms, routines→board watches, skills→modes, memory, connectors, agent map, Proof gates).
+
 **Layout:** Chat | Board default · **Code on demand** ([LAYOUT-LOCK.md](./LAYOUT-LOCK.md)) · Waiting-home DEAD  
-**Not:** three panes always visible. Code is not automatic.
+**Not:** three panes always visible. Code is not automatic. Not fleet-only.
 
 ---
 
@@ -16,7 +19,7 @@ Run a multi-agent coding studio: talk to seats/rooms, see repos/code **when aske
 Default **Chat | Board** always on. **Code on demand** (not automatic). Never Waiting-table-as-home. Never Code forced open.
 
 ## STORY
-Grok Bot optimized for engineering — seats/rooms, board watches, modes, memory, connectors, CA map, Proof gates. Quiet chrome; code only when a diff matters.
+The AI developer’s homebase: chat with agents, clear gates, open code when a diff matters — any provider, every day. Eng-optimized Grok Bot powers. Quiet chrome.
 
 ---
 
@@ -126,17 +129,19 @@ desktop/   # or studio/ — Eng Lead picks fence; prefer desktop/studio UI under
 ## ACCEPTANCE
 
 1. Cold open: **Chat + Board** visible; Code **not** shown  
-2. Code opens on demand (toolbar “Code”, chat link, open file/diff) and can close  
-3. Chat shows seat/room list + thread + composer  
-4. When open, Code shows repo/tree (fixture OK)  
-5. Board shows gates/P0 + actions  
-6. Connectors tray visible; presence count visible  
-7. Cutover seats show **in-studio-only**  
-8. No Waiting-table-as-sole-home  
-9. No three-panes-always; no code forced open  
+2. Stranger understands “talk to agents” + “what’s blocked on me” in ≤30s — no fleet jargon required  
+3. Connectors empty-state invites GitHub / an agent provider (not a brick wall)  
+4. Code opens on demand (toolbar “Code”, chat link, open file/diff) and can close  
+5. Chat shows seat/room list + thread + composer; seats are multi-provider  
+6. When open, Code shows repo/tree (fixture OK)  
+7. Board shows gates/P0 + actions  
+8. Connectors tray visible; presence count visible  
+9. Cutover seats may show **in-studio-only** (optional, not fleet-mandatory)  
+10. No Waiting-table-as-sole-home  
+11. No three-panes-always; no code forced open; no fleet-only chrome  
 
 ## OUT
-Greyscale Waiting as product home; single-column tab shell; glass HUD theater; Studio launching CAs; Code-always-on / three panes always visible.
+Greyscale Waiting as product home; single-column tab shell; glass HUD theater; Studio launching CAs; Code-always-on / three panes always visible; fleet-only chrome; single-provider lock-in.
 
 ## ARTIFACTS
 - [PRODUCT-NARRATIVE.md](./PRODUCT-NARRATIVE.md)  
