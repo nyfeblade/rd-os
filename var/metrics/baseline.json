@@ -1,17 +1,18 @@
 {
-  "generated_at": "2026-09-18T11:24:04.204Z",
+  "generated_at": "2026-09-18T11:28:35.813Z",
   "packet_completeness": {
     "markdown": 0.5,
     "rdos": 1
   },
   "time_to_falsify_ms": {
     "markdown": null,
-    "rdos": 0.087452,
+    "rdos": 0.086035,
     "note": "proxy: wall time of experiment.open reject on an incomplete packet"
   },
   "cold_repro": {
     "script": "bin/metrics-baseline.js",
     "commands": [
+      "npm ci",
       "node bin/metrics-baseline.js --out var/metrics/baseline.json"
     ]
   },
@@ -28,7 +29,7 @@
       "kill": "board+lock+seat+baseline; clock unarmed",
       "instrument": "bin/metrics-baseline.js",
       "status": "ACTIVE",
-      "updated_at": "2026-09-18T11:24:04.186Z"
+      "updated_at": "2026-09-18T11:28:35.774Z"
     },
     "packets_n": 1,
     "seats_n": 2,

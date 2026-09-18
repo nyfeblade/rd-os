@@ -2,7 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { DatabaseSync } = require("node:sqlite");
+const Database = require("better-sqlite3");
 const { resolveHome } = require("../store");
 
 const SCHEMA_PATH = path.join(__dirname, "schema.sql");
@@ -14,7 +14,7 @@ function dbPath(homeArg) {
 function openDb(homeArg) {
   const abs = dbPath(homeArg);
   fs.mkdirSync(path.dirname(abs), { recursive: true });
-  const db = new DatabaseSync(abs);
+  const db = new Database(abs);
   db.exec(fs.readFileSync(SCHEMA_PATH, "utf8"));
   return db;
 }

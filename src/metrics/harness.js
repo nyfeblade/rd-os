@@ -9,6 +9,7 @@ const { exerciseControlPlane } = require("./exercise");
 const COLD_REPRO = {
   script: "bin/metrics-baseline.js",
   commands: [
+    "npm ci",
     "node bin/metrics-baseline.js --out var/metrics/baseline.json",
   ],
 };
