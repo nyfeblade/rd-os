@@ -10,6 +10,9 @@ const REJECT_CODES = [
   "UNKNOWN_PATH",
   "UNKNOWN_SOURCE",
   "NO_KERNEL",
+  "NEEDS_AUTH",
+  "EMPTY_BODY",
+  "UNKNOWN_EVENT",
 ];
 
 function reject(code, detail, extra) {
@@ -59,6 +62,12 @@ function describeReject(code) {
       return "STUDIO_SOURCE must be fixture or github";
     case "NO_KERNEL":
       return "public rdos CLI not found; studio does not own the kernel";
+    case "NEEDS_AUTH":
+      return "token provider returned no token; live HTTP refused";
+    case "EMPTY_BODY":
+      return "comment or reply body is empty";
+    case "UNKNOWN_EVENT":
+      return "notification cannot map to a Studio ingest event";
     default:
       return assertNeverReject(code);
   }

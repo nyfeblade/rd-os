@@ -3,6 +3,7 @@
 const { reject, ok, assertNeverConnector, assertNeverSource } = require("./errors");
 const { listConnectors, loadRecipe, isConnectorId, describeKnown, surfaceHooks } = require("./connectors");
 const { parseRepo, createGithubClient } = require("./github");
+const { envTokenProvider } = require("./token");
 const { createStore } = require("./store");
 const { createFixtureBrowse, sortEntries } = require("./fixtures");
 const { createRdosClient } = require("./rdos-client");
@@ -29,9 +30,11 @@ function createStudio(options) {
   if (persisted.github.token && !githubEnv.GITHUB_TOKEN) {
     githubEnv.GITHUB_TOKEN = persisted.github.token;
   }
+  const tokenProvider = opts.tokenProvider || envTokenProvider(githubEnv);
   const github = createGithubClient({
     fetch: opts.fetch || globalThis.fetch,
     env: githubEnv,
+    tokenProvider,
   });
   const fixtures = createFixtureBrowse();
   const rdos = createRdosClient({

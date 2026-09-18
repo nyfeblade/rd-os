@@ -1,0 +1,66 @@
+{
+  "mention": {
+    "id": "123456",
+    "unread": true,
+    "reason": "mention",
+    "updated_at": "2026-09-18T12:00:00Z",
+    "subject": {
+      "title": "connectors catalog",
+      "url": "https://api.github.com/repos/nyfeblade/rd-os/issues/18",
+      "latest_comment_url": "https://api.github.com/repos/nyfeblade/rd-os/issues/comments/1",
+      "type": "Issue"
+    },
+    "repository": {
+      "full_name": "nyfeblade/rd-os",
+      "name": "rd-os"
+    }
+  },
+  "review_request": {
+    "id": "123457",
+    "unread": true,
+    "reason": "review_requested",
+    "updated_at": "2026-09-18T12:05:00Z",
+    "subject": {
+      "title": "harden browse",
+      "url": "https://api.github.com/repos/nyfeblade/rd-os/pulls/42",
+      "latest_comment_url": "",
+      "type": "PullRequest"
+    },
+    "repository": {
+      "full_name": "nyfeblade/rd-os",
+      "name": "rd-os"
+    }
+  },
+  "subscribed": {
+    "id": "123458",
+    "unread": false,
+    "reason": "subscribed",
+    "updated_at": "2026-09-18T12:10:00Z",
+    "subject": {
+      "title": "noise",
+      "url": "https://api.github.com/repos/nyfeblade/rd-os/issues/7",
+      "latest_comment_url": "",
+      "type": "Issue"
+    },
+    "repository": {
+      "full_name": "nyfeblade/rd-os",
+      "name": "rd-os"
+    }
+  },
+  "release": {
+    "id": "123459",
+    "unread": true,
+    "reason": "subscribed",
+    "updated_at": "2026-09-18T12:15:00Z",
+    "subject": {
+      "title": "v0.3.0",
+      "url": "https://api.github.com/repos/nyfeblade/rd-os/releases/1",
+      "latest_comment_url": "",
+      "type": "Release"
+    },
+    "repository": {
+      "full_name": "nyfeblade/rd-os",
+      "name": "rd-os"
+    }
+  }
+}

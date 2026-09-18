@@ -12,6 +12,9 @@ const { listConnectors, loadRecipe, CONNECTOR_IDS } = require("../lib/connectors
 const { REJECT_CODES, describeReject } = require("../lib/errors");
 const { CODE_PANE } = require("../lib/pane");
 const { HOMEBASE } = require("../lib/homebase");
+const { envTokenProvider } = require("../lib/token");
+const { comment, reply, mapComment, mapReply } = require("../lib/egress");
+const { mapNotification, ENVELOPE_FIELDS, IDENTITY_FIELDS } = require("../lib/notifications");
 
 const ROOT = path.resolve(__dirname, "..");
 
@@ -21,14 +24,21 @@ function fail(message) {
 }
 
 function countingFetch(handler) {
-  const state = { calls: 0, urls: [] };
-  async function fetchImpl(url) {
+  const state = { calls: 0, urls: [], inits: [] };
+  async function fetchImpl(url, init) {
     state.calls += 1;
     state.urls.push(String(url));
-    return handler(url, state);
+    state.inits.push(init || {});
+    return handler(url, state, init);
   }
   fetchImpl.state = state;
   return fetchImpl;
+}
+
+function bannedFetch() {
+  return countingFetch(async () => {
+    throw new Error("fetch was called without a live token gate");
+  });
 }
 
 function mockResponse(status, body) {
@@ -104,6 +114,11 @@ async function main() {
     "lib/studio.js",
     "lib/pane.js",
     "lib/homebase.js",
+    "lib/token.js",
+    "lib/egress.js",
+    "lib/notifications.js",
+    "INGEST.md",
+    "fixtures/notifications.json",
   ]) {
     if (!fs.existsSync(path.join(ROOT, file))) {
       fail(`missing ${file}`);
@@ -256,6 +271,232 @@ async function main() {
   }
   process.stdout.write("PASS RESOURCE_EXHAUSTED 429 fetch_calls=1 (no retry)\n");
 
+  const secret = "ghp_not_a_real_token_fixture";
+  const leakFetch = countingFetch(async () => mockResponse(404, { message: "Not Found" }));
+  const leakClient = createGithubClient({
+    env: { GITHUB_REPO: "nyfeblade/rd-os", GITHUB_TOKEN: secret },
+    fetch: leakFetch,
+  });
+  const leaked = await leakClient.repo("nyfeblade/rd-os");
+  if (leaked.ok) {
+    fail("404 should reject");
+  }
+  if (JSON.stringify(leaked).includes(secret) || leakFetch.state.urls.join("").includes(secret)) {
+    fail("token leaked in reject or url");
+  }
+  const authHeader = leakFetch.state.inits[0] && leakFetch.state.inits[0].headers
+    ? leakFetch.state.inits[0].headers.Authorization
+    : "";
+  if (authHeader !== `Bearer ${secret}`) {
+    fail(`tokenProvider did not inject Authorization, got ${authHeader}`);
+  }
+  process.stdout.write("PASS token provider inject (no token in errors)\n");
+
+  const injected = countingFetch(async () =>
+    mockResponse(200, {
+      name: "rd-os",
+      full_name: "nyfeblade/rd-os",
+      owner: { login: "nyfeblade" },
+      default_branch: "main",
+    })
+  );
+  const injectClient = createGithubClient({
+    env: { GITHUB_REPO: "nyfeblade/rd-os", GITHUB_TOKEN: "env-should-not-win" },
+    tokenProvider: () => "injected-token",
+    fetch: injected,
+  });
+  const injectedRepo = await injectClient.repo("nyfeblade/rd-os");
+  if (!injectedRepo.ok || injectedRepo.data.full_name !== "nyfeblade/rd-os") {
+    fail(`injected browse failed ${JSON.stringify(injectedRepo)}`);
+  }
+  if (injected.state.inits[0].headers.Authorization !== "Bearer injected-token") {
+    fail("injected tokenProvider lost to env");
+  }
+  process.stdout.write("PASS tokenProvider wins over env\n");
+
+  const traverseFetch = bannedFetch();
+  const traverse = createGithubClient({
+    env: { GITHUB_REPO: "nyfeblade/rd-os" },
+    fetch: traverseFetch,
+  });
+  const badTree = await traverse.tree("../secret", "nyfeblade/rd-os");
+  if (badTree.ok || badTree.code !== "UNKNOWN_PATH" || traverseFetch.state.calls !== 0) {
+    fail(`path traversal reached network: ${JSON.stringify(badTree)} calls=${traverseFetch.state.calls}`);
+  }
+  const badRepo = traverse.parseRepo("nyfeblade/..");
+  if (badRepo) {
+    fail("parseRepo allowed ..");
+  }
+  const badBlob = await traverse.blob("foo/../../etc/passwd", "nyfeblade/rd-os");
+  if (badBlob.ok || traverseFetch.state.calls !== 0) {
+    fail("blob traversal reached network");
+  }
+  process.stdout.write("PASS browse rejects path traversal\n");
+
+  const dryFetch = bannedFetch();
+  const dry = await comment(
+    { repo: "nyfeblade/rd-os", issue_number: 18, body: "looks right" },
+    { live: false, fetch: dryFetch, tokenProvider: () => "should-not-send" }
+  );
+  if (!dry.ok || dry.data.dry !== true || dry.data.http !== null || dryFetch.state.calls !== 0) {
+    fail(`dry comment hit network ${JSON.stringify(dry)} calls=${dryFetch.state.calls}`);
+  }
+  if (dry.data.op !== "create_issue_comment") {
+    fail(`dry comment op ${dry.data.op}`);
+  }
+  if (dry.data.url !== "https://api.github.com/repos/nyfeblade/rd-os/issues/18/comments") {
+    fail(`dry comment url ${dry.data.url}`);
+  }
+  if (dry.data.request.body !== "looks right") {
+    fail(`dry comment body ${JSON.stringify(dry.data.request)}`);
+  }
+  process.stdout.write("PASS egress comment dry-run (no fetch)\n");
+
+  const dryReply = await reply(
+    { repo: "nyfeblade/rd-os", pull_number: 42, in_reply_to: 99, body: "thread reply" },
+    { fetch: bannedFetch() }
+  );
+  if (!dryReply.ok || dryReply.data.dry !== true || dryReply.data.op !== "create_pull_request_review_comment") {
+    fail(`dry reply ${JSON.stringify(dryReply)}`);
+  }
+  if (dryReply.data.url !== "https://api.github.com/repos/nyfeblade/rd-os/pulls/42/comments") {
+    fail(`dry reply url ${dryReply.data.url}`);
+  }
+  if (dryReply.data.request.in_reply_to !== 99) {
+    fail(`dry reply missing in_reply_to ${JSON.stringify(dryReply.data.request)}`);
+  }
+  process.stdout.write("PASS egress reply dry-run\n");
+
+  const empty = mapComment({ repo: "nyfeblade/rd-os", issue_number: 1, body: "   " });
+  if (empty.ok || empty.code !== "EMPTY_BODY") {
+    fail(`empty body ${JSON.stringify(empty)}`);
+  }
+  const missing = mapReply({ issue_number: 1, body: "x" });
+  if (missing.ok || missing.code !== "MISSING_REPO") {
+    fail(`missing repo ${JSON.stringify(missing)}`);
+  }
+  process.stdout.write("PASS egress map rejects empty body and missing repo\n");
+
+  const unauthFetch = bannedFetch();
+  const unauth = await comment(
+    { repo: "nyfeblade/rd-os", issue_number: 18, body: "live without token" },
+    { live: true, fetch: unauthFetch, tokenProvider: () => "" }
+  );
+  if (unauth.ok || unauth.code !== "NEEDS_AUTH" || unauthFetch.state.calls !== 0) {
+    fail(`live without token ${JSON.stringify(unauth)} calls=${unauthFetch.state.calls}`);
+  }
+  const noProvider = await reply(
+    { repo: "nyfeblade/rd-os", issue_number: 18, body: "live without provider" },
+    { live: true, fetch: unauthFetch }
+  );
+  if (noProvider.ok || noProvider.code !== "NEEDS_AUTH" || unauthFetch.state.calls !== 0) {
+    fail(`live without provider called fetch ${JSON.stringify(noProvider)}`);
+  }
+  process.stdout.write("PASS egress live NEEDS_AUTH without token (no fetch)\n");
+
+  const liveFetch = countingFetch(async () =>
+    mockResponse(201, { id: 1, body: "posted", html_url: "https://github.com/nyfeblade/rd-os/issues/18#issuecomment-1" })
+  );
+  const liveComment = await comment(
+    { owner: "nyfeblade", repo: "rd-os", issue_number: 18, body: "posted" },
+    { live: true, fetch: liveFetch, tokenProvider: () => "live-token" }
+  );
+  if (!liveComment.ok || liveComment.data.dry !== false || liveComment.data.comment.body !== "posted") {
+    fail(`live comment ${JSON.stringify(liveComment)}`);
+  }
+  if (liveFetch.state.calls !== 1) {
+    fail(`live comment fetch_calls=${liveFetch.state.calls}`);
+  }
+  if (liveFetch.state.inits[0].method !== "POST") {
+    fail(`live comment method ${liveFetch.state.inits[0].method}`);
+  }
+  if (liveFetch.state.inits[0].headers.Authorization !== "Bearer live-token") {
+    fail("live comment missing injected Authorization");
+  }
+  if (liveFetch.state.inits[0].body !== JSON.stringify({ body: "posted" })) {
+    fail(`live comment payload ${liveFetch.state.inits[0].body}`);
+  }
+  process.stdout.write("PASS egress live mock POST issue comment\n");
+
+  const liveReplyFetch = countingFetch(async () => mockResponse(201, { id: 2, body: "replied" }));
+  const liveReply = await reply(
+    { repo: "nyfeblade/rd-os", pull_number: 42, in_reply_to: 7, body: "replied" },
+    { live: true, fetch: liveReplyFetch, tokenProvider: envTokenProvider({ GITHUB_TOKEN: "env-live" }) }
+  );
+  if (!liveReply.ok || liveReply.data.comment.body !== "replied") {
+    fail(`live reply ${JSON.stringify(liveReply)}`);
+  }
+  if (liveReplyFetch.state.urls[0] !== "https://api.github.com/repos/nyfeblade/rd-os/pulls/42/comments") {
+    fail(`live reply url ${liveReplyFetch.state.urls[0]}`);
+  }
+  if (liveReplyFetch.state.inits[0].body !== JSON.stringify({ body: "replied", in_reply_to: 7 })) {
+    fail(`live reply payload ${liveReplyFetch.state.inits[0].body}`);
+  }
+  if (liveReplyFetch.state.inits[0].headers.Authorization !== "Bearer env-live") {
+    fail("envTokenProvider did not supply live reply token");
+  }
+  process.stdout.write("PASS egress live mock reply in_reply_to\n");
+
+  const notes = JSON.parse(fs.readFileSync(path.join(ROOT, "fixtures", "notifications.json"), "utf8"));
+  const mention = mapNotification(notes.mention, { has_token: true, actor_id: "nyfeblade" });
+  if (!mention.ok) {
+    fail(`mention map ${JSON.stringify(mention)}`);
+  }
+  const envelope = mention.data;
+  if (Object.keys(envelope).sort().join(",") !== ENVELOPE_FIELDS.slice().sort().join(",")) {
+    fail(`envelope keys ${Object.keys(envelope)}`);
+  }
+  if (Object.keys(envelope.identity).sort().join(",") !== IDENTITY_FIELDS.slice().sort().join(",")) {
+    fail(`identity keys ${Object.keys(envelope.identity)}`);
+  }
+  if (envelope.provider !== "github" || envelope.event !== "issue_comment") {
+    fail(`mention event ${envelope.provider} ${envelope.event}`);
+  }
+  if (envelope.received_at !== "2026-09-18T12:00:00Z" || envelope.at_you !== true) {
+    fail(`mention at_you/received_at ${JSON.stringify(envelope)}`);
+  }
+  if (envelope.tray_state !== "live" || envelope.identity.as_user !== true || envelope.identity.actor_id !== "nyfeblade") {
+    fail(`mention identity ${JSON.stringify(envelope.identity)} tray=${envelope.tray_state}`);
+  }
+  if (envelope.payload.repository.full_name !== "nyfeblade/rd-os" || envelope.payload.reason !== "mention") {
+    fail(`mention payload ${JSON.stringify(envelope.payload)}`);
+  }
+  const review = mapNotification(notes.review_request, { has_token: true });
+  if (!review.ok || review.data.event !== "pull_request" || review.data.at_you !== true) {
+    fail(`review_request map ${JSON.stringify(review)}`);
+  }
+  const subscribed = mapNotification(notes.subscribed, { has_token: false });
+  if (!subscribed.ok || subscribed.data.at_you !== false || subscribed.data.tray_state !== "needs_auth") {
+    fail(`subscribed map ${JSON.stringify(subscribed)}`);
+  }
+  const release = mapNotification(notes.release, { has_token: true });
+  if (release.ok || release.code !== "UNKNOWN_EVENT") {
+    fail(`release should be UNKNOWN_EVENT ${JSON.stringify(release)}`);
+  }
+  const ingestDoc = fs.readFileSync(path.join(ROOT, "INGEST.md"), "utf8");
+  if (!ingestDoc.includes("subject.type") || !ingestDoc.includes("issue_comment") || !ingestDoc.includes("ARCHITECTURE.md")) {
+    fail("INGEST.md missing notification → envelope mapping");
+  }
+  process.stdout.write("PASS notifications → ingest envelope\n");
+
+  const ciSet = Boolean(process.env.CI);
+  const liveOpt = String(process.env.GITHUB_LIVE || "").trim() === "1";
+  const liveToken = String(process.env.GITHUB_TOKEN || "").trim();
+  if (ciSet || !liveOpt || !liveToken) {
+    const why = ciSet ? "CI" : !liveOpt ? "GITHUB_LIVE!=1" : "no GITHUB_TOKEN";
+    process.stdout.write(`PASS live integration skipped (${why})\n`);
+  } else {
+    const liveClient = createGithubClient({
+      env: process.env,
+      tokenProvider: envTokenProvider(process.env),
+    });
+    const liveRepo = await liveClient.repo(process.env.GITHUB_REPO || "nyfeblade/rd-os");
+    if (!liveRepo.ok) {
+      fail(`optional live repo ${JSON.stringify(liveRepo)}`);
+    }
+    process.stdout.write("PASS live integration GET repo\n");
+  }
+
   for (const code of REJECT_CODES) {
     if (!describeReject(code)) {
       fail(`describeReject missing ${code}`);
@@ -378,7 +619,7 @@ async function main() {
 
   const wallMs = Date.now() - started;
   process.stdout.write(
-    `PASS studio-github (browse + attach recipe + stubs + surface hooks; wall_ms=${wallMs}; not a 14d verdict)\n`
+    `PASS studio-github (browse + gated egress + ingest map; wall_ms=${wallMs}; not a 14d verdict)\n`
   );
 }
 

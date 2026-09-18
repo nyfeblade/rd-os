@@ -39,8 +39,19 @@ PASS attach github + stub seats
 PASS human+AI surface hooks (file-tree / pr-list / coding-surface)
 PASS RESOURCE_EXHAUSTED rate limit fetch_calls=1 (no retry)
 PASS RESOURCE_EXHAUSTED 429 fetch_calls=1 (no retry)
+PASS token provider inject (no token in errors)
+PASS tokenProvider wins over env
+PASS browse rejects path traversal
+PASS egress comment dry-run (no fetch)
+PASS egress reply dry-run
+PASS egress map rejects empty body and missing repo
+PASS egress live NEEDS_AUTH without token (no fetch)
+PASS egress live mock POST issue comment
+PASS egress live mock reply in_reply_to
+PASS notifications → ingest envelope
+PASS live integration skipped (GITHUB_LIVE!=1)
 PASS http browse + recipe + surface
-PASS studio-github (browse + attach recipe + stubs + surface hooks; wall_ms=…; not a 14d verdict)
+PASS studio-github (browse + gated egress + ingest map; wall_ms=…; not a 14d verdict)
 ```
 
 Then open the UI:
@@ -101,9 +112,28 @@ Seat stubs (`recipes/grok.json`, `recipes/claude.json`, `recipes/cursor.json`) r
 
 ---
 
-## Thin public-API client
+## Browse and egress
 
-`lib/github.js` talks to `api.github.com` (GET repo / contents / pulls). `lib/rdos-client.js` may exec the public `bin/rdos.js` CLI if present (`GET /api/rdos`). Neither imports `src/*`.
+`lib/github.js` talks to `api.github.com` (GET repo / contents / pulls). Writes go through `lib/egress.js`. `lib/rdos-client.js` may exec the public `bin/rdos.js` CLI if present (`GET /api/rdos`). Neither imports `src/*` or `studio/connectors/**`.
+
+Browse and egress take a `tokenProvider` function. The library does not hardcode a token. `envTokenProvider(env)` reads `GITHUB_TOKEN` from the env object you pass in.
+
+Comment and reply default to dry-run. Dry-run returns the official POST URL and JSON body and does not call `fetch`. Live POST runs only when `live: true` and the injected provider returns a non-empty token. Missing token is `NEEDS_AUTH` and does not call `fetch`.
+
+```js
+const { comment, reply } = require("./lib/egress");
+const { envTokenProvider } = require("./lib/token");
+
+await comment({ repo: "nyfeblade/rd-os", issue_number: 18, body: "looks right" });
+await reply(
+  { repo: "nyfeblade/rd-os", pull_number: 42, in_reply_to: 99, body: "thread reply" },
+  { live: true, tokenProvider: envTokenProvider(process.env), fetch }
+);
+```
+
+Optional live GET in `npm test` runs only when `GITHUB_LIVE=1` and `GITHUB_TOKEN` are set and `CI` is unset. Default `npm test` stays offline.
+
+Notifications map to the Studio ingest envelope in [INGEST.md](INGEST.md). The mapper is a function plus fixtures. It does not wire connectors runtime or shell chrome.
 
 ---
 
