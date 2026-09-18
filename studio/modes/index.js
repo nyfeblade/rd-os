@@ -1,11 +1,12 @@
 "use strict";
 
 /**
- * studio/modes — importable mode rails.
+ * studio/modes — importable mode rails plus a selectable registry.
  *
- *   const { evaluateRun } = require("./studio/modes");
- *   const report = evaluateRun(runRecord);
- *   report.ok === true  // no rail violated
+ *   const { evaluateRun, createModeRegistry } = require("./studio/modes");
+ *   evaluateRun(runRecord).ok === true
+ *   const studio = createModeRegistry();
+ *   studio.enableMode("eng-coding");
  *
  * The library never writes a verdict and never arms a clock. It reports violations.
  */
@@ -24,12 +25,20 @@ const {
 } = require("./rails");
 const { composeMode } = require("./recipes");
 const { CADENCES, validateRoutine } = require("./routines");
+const {
+  CATALOG_DIR,
+  REGISTRY_CODES,
+  createModeRegistry,
+  loadCatalog,
+  fencesOverlap,
+} = require("./registry");
 
 const MODES_DIR = path.join(__dirname, "modes");
 const LANES_FILE = path.join(__dirname, "lanes.json");
 const RECIPES_DIR = path.join(__dirname, "recipes");
 const ROUTINES_DIR = path.join(__dirname, "routines");
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
+const defaultRegistry = createModeRegistry();
 
 function readJson(abs) {
   return JSON.parse(fs.readFileSync(abs, "utf8"));
@@ -44,8 +53,24 @@ function listByExt(dir, ext) {
     .sort();
 }
 
-function listModes() {
+function listRailProfiles() {
   return listByExt(MODES_DIR, ".mode.json");
+}
+
+function listModes() {
+  return defaultRegistry.listModes();
+}
+
+function enableMode(id) {
+  return defaultRegistry.enableMode(id);
+}
+
+function activeMode() {
+  return defaultRegistry.activeMode();
+}
+
+function assertFalsifier(id) {
+  return defaultRegistry.assertFalsifier(id);
 }
 
 function listRecipes() {
@@ -59,7 +84,7 @@ function listRoutines() {
 function loadMode(name) {
   const file = path.join(MODES_DIR, `${name}.mode.json`);
   if (!fs.existsSync(file)) {
-    throw new Error(`unknown mode "${name}"; have ${listModes().join(", ")}`);
+    throw new Error(`unknown mode "${name}"; have ${listRailProfiles().join(", ")}`);
   }
   const mode = readJson(file);
   for (const rail of mode.rails || []) {
@@ -214,13 +239,22 @@ function retainedRecord(run) {
 module.exports = {
   RAILS,
   VIOLATION_CODES,
+  REGISTRY_CODES,
   MODES_DIR,
+  CATALOG_DIR,
   LANES_FILE,
   RECIPES_DIR,
   ROUTINES_DIR,
   CADENCES,
   composeMode,
+  createModeRegistry,
+  loadCatalog,
+  fencesOverlap,
+  listRailProfiles,
   listModes,
+  enableMode,
+  activeMode,
+  assertFalsifier,
   listRecipes,
   listRoutines,
   loadMode,

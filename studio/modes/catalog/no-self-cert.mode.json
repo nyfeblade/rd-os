@@ -1,0 +1,11 @@
+{
+  "id": "no-self-cert",
+  "rail": "no-self-cert",
+  "lane": "studio-b-seats",
+  "falsifier": "A run record that writes a verdict trips SELF_CERT_VERDICT.",
+  "fences": ["studio/seats/"],
+  "planted": {
+    "file": "fixtures/planted/self-cert-verdict.json",
+    "expect_code": "SELF_CERT_VERDICT"
+  }
+}

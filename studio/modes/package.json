@@ -1,0 +1,13 @@
+{
+  "name": "@rd-os/studio-modes",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Selectable Studio mode rails with falsifiers. Importable. Not a life-OS.",
+  "main": "./index.js",
+  "scripts": {
+    "test": "node test/run.js && node prove.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

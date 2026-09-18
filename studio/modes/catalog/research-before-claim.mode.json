@@ -1,0 +1,11 @@
+{
+  "id": "research-before-claim",
+  "rail": "research-before-claim",
+  "lane": "studio-design-sot",
+  "falsifier": "A claim that names no evidence trips NO_EVIDENCE.",
+  "fences": ["studio/design/"],
+  "planted": {
+    "file": "fixtures/planted/skip-research.json",
+    "expect_code": "NO_EVIDENCE"
+  }
+}
