@@ -107,11 +107,6 @@ tr[data-id] {
   cursor: pointer;
 }
 
-tr.selected {
-  outline: 2px solid var(--focus);
-  outline-offset: -2px;
-}
-
 .who {
   display: block;
   font-size: 11px;

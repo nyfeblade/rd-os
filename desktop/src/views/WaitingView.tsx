@@ -75,15 +75,26 @@ export function WaitingView({ dump }: WaitingViewProps) {
     setFeedback("Approved on this row. Persist with rdos steer.gate --actor human.");
   }
 
+  function moveSelection(next: number): void {
+    const clamped = Math.max(0, Math.min(items.length - 1, next));
+    setSelected(clamped);
+    const item = items[clamped];
+    if (!item) {
+      return;
+    }
+    const row = document.querySelector<HTMLElement>(`tr[data-id="${CSS.escape(item.id)}"]`);
+    row?.focus();
+  }
+
   function onKeyDown(event: ReactKeyboardEvent<HTMLTableSectionElement>): void {
     if (event.key === "j" || event.key === "ArrowDown") {
       event.preventDefault();
-      setSelected((index) => Math.min(items.length - 1, index + 1));
+      moveSelection(selected + 1);
       return;
     }
     if (event.key === "k" || event.key === "ArrowUp") {
       event.preventDefault();
-      setSelected((index) => Math.max(0, index - 1));
+      moveSelection(selected - 1);
       return;
     }
     if (event.key === "Enter" && event.shiftKey) {
