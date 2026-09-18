@@ -382,6 +382,17 @@ pre {
   font-weight: 600;
 }
 
+.gate pre.payload,
+.gate pre.diff {
+  margin: 6px 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  font-size: 11px;
+  background: var(--wash);
+  white-space: pre-wrap;
+  flex: none;
+}
+
 .gate .actions {
   margin-top: 10px;
 }

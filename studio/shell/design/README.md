@@ -9,9 +9,10 @@ Live chrome follows **quiet-studio** + the reconciled spec: **Chat | Board** def
 | `LAYOUT-LOCK.md` | Chat \| Board default; Code on demand |
 | `STUDIO-SHELL-SPEC.md` | IA, cutover, acceptance (Code not always-on) |
 | `VISIBILITY.md` | Only necessary info by default |
-| `CONNECTORS-TWO-WAY.md` | Bidirectional tray + inbox + gated bot send |
+| `CONNECTORS-TWO-WAY.md` | Two-way + HITL: tray, inbox, bound reply, high-risk pending card |
 | `CONNECTORS-TWOWAY.md` | Luke lock: tray auth + inbox entry; Chat inbox; optional Board cards |
+| `HITL.md` | Ingress vs egress; pending-approval payload+diff |
 | `TOKEN-UX.md` | Token meter on Board + seat/thread; unknown omitted |
-| `quiet-studio.html` | Visual + layout mock (tray live|auth, GitHub inbox, Slack bot gate) |
+| `quiet-studio.html` | Visual + layout mock (GitHub inbox, bound composer, HITL Board card) |
 | `three-pane.html` | Historical denser wire — not the live default |
 | `tokens.css` | Dark tokens from design lane |

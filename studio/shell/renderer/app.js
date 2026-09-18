@@ -67,6 +67,7 @@
     outbox: [],
     boundTo: null,
     pendingBotSend: null,
+    pendingHitl: null,
     selectedSeat: "human",
     selectedFile: "shell",
     dump: null,
@@ -103,6 +104,7 @@
   const boardHandlers = {
     resolveGate,
     resolveBotSend,
+    resolveHitl,
     bindInbox,
     openDiff() {
       Studio.panes.setCodeOpen(els, state, true);
@@ -197,42 +199,29 @@
     state.outbox = [];
     state.boundTo = null;
     state.pendingBotSend = null;
+    state.pendingHitl = null;
     state.tokens = { session: null, board: null };
   }
 
   function bindFirstInbox() {
-    const github = (state.inbox || []).find((item) => item.provider === "github" && item.need_you);
+    const github = (state.inbox || []).find(
+      (item) => item.provider === "github" && item.need_you && item.dest !== "board",
+    );
     const slack = (state.inbox || []).find((item) => item.provider === "slack" && item.need_you);
     state.inboxFilter = github ? "github" : slack ? "slack" : null;
     state.boundTo = github ? github.id : slack ? slack.id : null;
-    if (slack) {
-      state.pendingBotSend = {
-        id: `bot:${slack.id}`,
-        provider: "slack",
-        bound_to: slack.id,
-        kind: Studio.panes.replyKindFor(slack),
-        title: "Bot Slack reply (cutover)",
-        body: "bot follow-up after human gate",
-        thread_ref: slack.thread_ref,
-        status: "pending",
-      };
-      return;
-    }
-    const bound = Studio.panes.boundItem(state);
-    if (bound && connectorStatus(bound.provider) === "live") {
-      state.pendingBotSend = {
-        id: `bot:${bound.id}`,
-        provider: bound.provider,
-        bound_to: bound.id,
-        kind: Studio.panes.replyKindFor(bound),
-        title: `Bot ${bound.provider === "github" ? "GitHub" : "Slack"} reply (cutover)`,
-        body: "bot follow-up after human gate",
-        thread_ref: bound.thread_ref,
-        status: "pending",
-      };
-    } else {
-      state.pendingBotSend = null;
-    }
+    state.pendingBotSend = null;
+    state.pendingHitl = {
+      id: "hitl:deploy:your-repo",
+      kind: "deploy",
+      title: "Deploy to production (Vercel)",
+      destination: "Vercel · production",
+      actor: "bot",
+      seat: "cursor",
+      payload: "project: your-repo\ntarget: production\nactor: Cursor (bot) · in-studio-only",
+      diff: "+ vercel.json prod promote\n- preview-only flag",
+      status: "pending",
+    };
   }
 
   function setView(view) {
@@ -320,6 +309,35 @@
     } else {
       state.flash = result && result.code ? result.code : "BOT_SEND_NO_GATE";
     }
+    renderChrome();
+  }
+
+  function resolveHitl(status) {
+    switch (status) {
+      case "approved":
+      case "rejected":
+        break;
+      default:
+        Studio.assertNever(status);
+    }
+    const pending = state.pendingHitl;
+    if (!pending) {
+      return;
+    }
+    if (status === "rejected") {
+      pending.status = "denied";
+      state.flash = "high-risk send denied";
+      renderChrome();
+      return;
+    }
+    const cutover = cutoverFromSeats();
+    if (pending.actor === "bot" && !(cutover.status === "attached" && cutover.in_studio_only === true)) {
+      state.flash = "BOT_SEND_NO_CUTOVER";
+      renderChrome();
+      return;
+    }
+    pending.status = "sent";
+    state.flash = "high-risk send approved after HITL";
     renderChrome();
   }
 

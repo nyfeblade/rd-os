@@ -76,36 +76,66 @@
     els.boardBody.appendChild(gate);
   }
 
-  function renderBotSendGate(els, state, handlers) {
-    const pending = state.pendingBotSend;
-    if (!pending || pending.status === "sent" || pending.status === "denied") {
+  function hitlKindLabel(kind) {
+    switch (kind) {
+      case "merge":
+        return "Merge";
+      case "deploy":
+        return "Deploy";
+      case "db":
+        return "DB";
+      case "public_post":
+        return "Public post";
+      default:
+        return assertNever(kind);
+    }
+  }
+
+  function hitlPending(state) {
+    const pending = state.pendingHitl;
+    return Boolean(pending && pending.status !== "sent" && pending.status !== "denied");
+  }
+
+  function renderHitlCard(els, state, handlers) {
+    const pending = state.pendingHitl;
+    if (!hitlPending(state)) {
       return;
     }
     const gate = document.createElement("div");
     gate.className = "gate";
-    gate.id = "bot-send-gate";
+    gate.id = "hitl-pending";
+    gate.dataset.hitlKind = pending.kind;
     const label = document.createElement("div");
     label.className = "label";
-    label.textContent = "Needs you · also from inbox";
+    label.textContent = "HITL · high-risk outbound";
     const title = document.createElement("div");
     title.className = "title";
-    title.textContent = pending.title || "Bot reply (cutover)";
-    const sub = document.createElement("div");
-    sub.className = "label";
-    sub.textContent = "Human gate before bot sends out";
+    title.textContent = pending.title || hitlKindLabel(pending.kind);
+    const payloadLabel = document.createElement("div");
+    payloadLabel.className = "label payload-label";
+    payloadLabel.textContent = "Payload";
+    const payload = document.createElement("pre");
+    payload.className = "payload";
+    payload.textContent = pending.payload || "";
+    const diffLabel = document.createElement("div");
+    diffLabel.className = "label";
+    diffLabel.textContent = "Diff";
+    const diff = document.createElement("pre");
+    diff.className = "diff";
+    diff.textContent = pending.diff || "";
     const acts = document.createElement("div");
     acts.className = "actions";
     const allow = document.createElement("button");
     allow.type = "button";
     allow.className = "ok";
-    allow.textContent = "Allow send";
-    allow.addEventListener("click", () => handlers.resolveBotSend("approved"));
+    allow.textContent = "Approve send";
+    allow.addEventListener("click", () => handlers.resolveHitl("approved"));
     const deny = document.createElement("button");
     deny.type = "button";
     deny.textContent = "Deny";
-    deny.addEventListener("click", () => handlers.resolveBotSend("rejected"));
+    deny.addEventListener("click", () => handlers.resolveHitl("rejected"));
     acts.append(allow, deny);
-    gate.append(label, title, sub, acts);
+    gate.append(label, title, payloadLabel, payload, diffLabel, diff, acts);
     els.boardBody.appendChild(gate);
   }
 
@@ -148,20 +178,10 @@
     els.boardBody.replaceChildren();
 
     if (state.view !== "cold") {
-      const pending = state.pendingBotSend;
-      const botPending = pending && pending.status !== "sent" && pending.status !== "denied";
-      for (const item of inboxGates(state)) {
-        if (item.kind === "ci_failure" || item.dest === "board") {
-          renderInboxGate(els, item, handlers);
-        }
-      }
-      if (botPending) {
-        renderBotSendGate(els, state, handlers);
+      if (hitlPending(state)) {
+        renderHitlCard(els, state, handlers);
       } else {
         for (const item of inboxGates(state)) {
-          if (item.kind === "ci_failure" || item.dest === "board") {
-            continue;
-          }
           renderInboxGate(els, item, handlers);
         }
       }
@@ -169,7 +189,7 @@
 
     if (state.dump) {
       renderDumpGate(els, state, handlers);
-    } else if (state.view !== "cold" && !inboxGates(state).length && !state.pendingBotSend) {
+    } else if (state.view !== "cold" && !inboxGates(state).length && !hitlPending(state)) {
       const fail = document.createElement("p");
       fail.className = "quiet";
       fail.textContent = "Can't reach the board stub";
@@ -184,7 +204,7 @@
     } else if (state.flash) {
       quiet.textContent = state.flash;
     } else {
-      quiet.textContent = "Visibility: only need-you + auth problems.";
+      quiet.textContent = "Low-risk GitHub replies send from Chat composer. High-risk needs this card.";
     }
     els.boardBody.appendChild(quiet);
 
@@ -196,6 +216,8 @@
   Studio.panes.waitingLabel = waitingLabel;
   Studio.panes.instrumentFor = instrumentFor;
   Studio.panes.inboxGates = inboxGates;
+  Studio.panes.hitlKindLabel = hitlKindLabel;
+  Studio.panes.hitlPending = hitlPending;
   Studio.panes.renderInstruments = renderInstruments;
   Studio.panes.renderWatches = renderWatches;
   Studio.panes.renderBoard = renderBoard;
