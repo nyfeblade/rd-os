@@ -1,0 +1,23 @@
+{
+  "expect": {
+    "ok": false,
+    "violations": ["NO_RETAIN_BASE", "UNRETAINED_EVIDENCE"],
+    "why": "rerunnable recipe, but the cited command was never retained and no git ref was recorded"
+  },
+  "mode": "eng",
+  "recipe": "eng-rerunnable",
+  "lane": "studio-d-modes",
+  "fence": { "allow": ["studio/modes/"] },
+  "touched_paths": ["studio/modes/index.js"],
+  "commands": [{ "cmd": "node studio/modes/prove.js", "exit_code": 0 }],
+  "claims": [
+    {
+      "id": "c1",
+      "text": "node studio/modes/prove.js exits 0 over the fixtures.",
+      "evidence": [{ "kind": "command", "ref": "node studio/modes/prove.js" }],
+      "kill": "Break a rail and the exit code changes."
+    }
+  ],
+  "verdict": null,
+  "clock_started": false
+}

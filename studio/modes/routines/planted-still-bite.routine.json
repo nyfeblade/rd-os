@@ -1,0 +1,8 @@
+{
+  "routine": "planted-still-bite",
+  "description": "Standing check that every planted violation is still caught; if this ever exits 0 the rails went soft.",
+  "cadence": "on-push",
+  "owner_lane": "studio-d-modes",
+  "target": "studio/modes/fixtures/planted",
+  "expect_exit": 2
+}

@@ -1,0 +1,41 @@
+{
+  "expect": { "ok": true },
+  "mode": "eng",
+  "recipe": "eng-two-source",
+  "lane": "studio-d-modes",
+  "fence": { "allow": ["studio/modes/"] },
+  "touched_paths": ["studio/modes/recipes.js", "studio/modes/routines.js", "studio/modes/index.js"],
+  "commands": [
+    { "cmd": "node studio/modes/prove.js", "exit_code": 0 },
+    { "cmd": "node studio/modes/prove.js --routine planted-still-bite", "exit_code": 0 }
+  ],
+  "retain": {
+    "base": "studio-d/mode-rails",
+    "rerun": [
+      { "cmd": "node studio/modes/prove.js", "exit_code": 0 },
+      { "cmd": "node studio/modes/prove.js --routine planted-still-bite", "exit_code": 0 }
+    ]
+  },
+  "claims": [
+    {
+      "id": "c1",
+      "text": "A recipe that lowers min_evidence below its base mode throws at load time.",
+      "evidence": [
+        { "kind": "command", "ref": "node studio/modes/prove.js" },
+        { "kind": "file", "ref": "studio/modes/recipes.js" }
+      ],
+      "kill": "Remove the min_evidence floor check in recipes.js; prove.js reports the loosening recipe as accepted and exits 1."
+    },
+    {
+      "id": "c2",
+      "text": "The planted-still-bite routine measures a gate exit of 2 over fixtures/planted, matching its expect_exit.",
+      "evidence": [
+        { "kind": "command", "ref": "node studio/modes/prove.js --routine planted-still-bite" },
+        { "kind": "file", "ref": "studio/modes/routines/planted-still-bite.routine.json" }
+      ],
+      "kill": "Add a planted record that clears every rail; the routine's gate exit becomes 0 and the command exits 1."
+    }
+  ],
+  "verdict": null,
+  "clock_started": false
+}

@@ -1,0 +1,7 @@
+{
+  "recipe": "eng-two-source",
+  "base": "eng",
+  "description": "Eng rail pack for load-bearing claims: two pieces of evidence per claim, one of them a measured command, and all of it retained for re-run.",
+  "rails": ["research-before-claim", "multi-lane-awareness", "no-self-cert"],
+  "tighten": { "min_evidence": 2, "require_retained": true }
+}
