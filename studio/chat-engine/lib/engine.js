@@ -11,7 +11,7 @@ const {
   DEFAULT_COMMIT_COUNT,
   shellHints,
 } = require("./codes");
-const { threadId, projectKey } = require("./ids");
+const { threadId } = require("./ids");
 const { defaultExecGit } = require("./git");
 const { createGithubReader } = require("./github");
 const { resolveBind } = require("./bind");
@@ -368,7 +368,11 @@ function createChatEngine(options) {
         if (!id) {
           return ok(listTools(DEFAULT_MODE));
         }
-        return getMode(id);
+        const loaded = load(id);
+        if (!loaded.ok) {
+          return loaded;
+        }
+        return ok(listTools(loaded.data.mode));
       },
       authorize,
       invoke,
@@ -386,7 +390,6 @@ function createChatEngine(options) {
       list: outcomes,
     },
     dump,
-    projectKey,
   };
 }
 

@@ -8,7 +8,7 @@
 
 const { createChatEngine } = require("./lib/engine");
 const { authorizeTool, listTools, normalizeMode } = require("./lib/tools");
-const { parseGithubRemote } = require("./lib/github");
+const { parseGithubRemote, publicRemoteUrl } = require("./lib/remote");
 const { defaultExecGit, resolveGitRoot } = require("./lib/git");
 const {
   SCHEMA,
@@ -44,6 +44,7 @@ module.exports = {
   listTools,
   normalizeMode,
   parseGithubRemote,
+  publicRemoteUrl,
   resolveGitRoot,
   defaultExecGit,
   SCHEMA,

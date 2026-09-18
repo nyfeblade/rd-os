@@ -2,7 +2,7 @@
 
 const { ok, reject, isObject } = require("./result");
 const { captureRoot } = require("./git");
-const { parseGithubRemote } = require("./github");
+const { parseGithubRemote } = require("./remote");
 const { DEFAULT_COMMIT_COUNT } = require("./codes");
 
 function requireBind(thread) {

@@ -304,7 +304,7 @@ export type ChatEngine = {
     set: (id: string, mode: Mode) => Result<{ mode: Mode; tools: ToolList }>;
   };
   tools: {
-    list: (id?: string) => Result<ToolList | { mode: Mode; tools: ToolList }>;
+    list: (id?: string) => Result<ToolList>;
     authorize: (id: string, toolId: string, args?: { asked?: boolean }) => Result<{ tool: string; mode: Mode; family: ToolFamily }>;
     invoke: (id: string, toolId: string, args?: Record<string, unknown>) => Promise<Result<unknown>>;
   };
@@ -321,7 +321,6 @@ export type ChatEngine = {
     list: (id: string) => Result<OutcomeEvent[]>;
   };
   dump: (id: string) => Promise<Result<EngineDump>>;
-  projectKey: (gitRoot: string) => string;
 };
 
 export function createChatEngine(options?: ChatEngineOptions): ChatEngine;
@@ -329,6 +328,7 @@ export function authorizeTool(mode: Mode, toolId: string, args?: { asked?: boole
 export function listTools(mode?: Mode): ToolList;
 export function normalizeMode(mode?: string): Mode | null;
 export function parseGithubRemote(url: string): GithubRemote | null;
+export function publicRemoteUrl(url: string | null | undefined): string | null;
 export function resolveGitRoot(input: string, execGit?: ExecGit): Result<{ git_root: string; requested: string }>;
 export function describeReject(code: RejectCode): string;
 export function describeFamily(family: ToolFamily): string;

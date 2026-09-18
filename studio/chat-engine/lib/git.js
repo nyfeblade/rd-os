@@ -5,6 +5,7 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 const { ok, reject, isNonEmptyString } = require("./result");
 const { DEFAULT_COMMIT_COUNT, DIRTY_FILE_CAP } = require("./codes");
+const { publicRemoteUrl } = require("./remote");
 
 function defaultExecGit(args, options) {
   const cwd = options && options.cwd ? options.cwd : process.cwd();
@@ -153,7 +154,7 @@ function captureRoot(gitRoot, execGit, commitCount) {
     dirty: porcelain.files.length > 0,
     dirty_files: porcelain.files,
     commits: commitsRan.ok ? parseLog(commitsRan.stdout) : [],
-    remote_url: remoteRan.ok ? String(remoteRan.stdout || "").trim() || null : null,
+    remote_url: remoteRan.ok ? publicRemoteUrl(String(remoteRan.stdout || "").trim()) : null,
   };
 }
 

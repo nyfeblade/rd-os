@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const { ok, reject, assertNever, isObject } = require("./result");
-const { TOOLS, TOOL_IDS, CODING_ALLOW, CODING_DENY, DEFAULT_MODE, MODES } = require("./codes");
+const { TOOLS, TOOL_IDS, DEFAULT_MODE, MODES } = require("./codes");
 const { confine } = require("./fsutil");
 const { requireBind } = require("./snapshot");
 
@@ -68,9 +68,9 @@ function listTools(mode) {
   }
   return {
     mode: resolved,
-    allow: resolved === "coding" ? CODING_ALLOW.slice() : allow,
+    allow,
     allow_if_asked: allowIfAsked,
-    deny: resolved === "coding" ? CODING_DENY.slice() : deny,
+    deny,
   };
 }
 

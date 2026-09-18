@@ -11,6 +11,7 @@ const {
   listTools,
   describeReject,
   parseGithubRemote,
+  publicRemoteUrl,
   SCHEMA,
   FENCE,
   PRODUCT_LOCK,
@@ -32,11 +33,18 @@ function tmpHome() {
 }
 
 function git(args, cwd) {
-  const ran = spawnSync("git", ["-c", "safe.directory=*", ...args], {
+  const ran = spawnSync("git", ["-c", "safe.directory=*", "-c", "commit.gpgsign=false", ...args], {
     cwd,
     encoding: "utf8",
     timeout: 15000,
-    env: Object.assign({}, process.env, { GIT_OPTIONAL_LOCKS: "0" }),
+    env: Object.assign({}, process.env, {
+      GIT_OPTIONAL_LOCKS: "0",
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_AUTHOR_NAME: "Chat Engine",
+      GIT_AUTHOR_EMAIL: "engine@example.com",
+      GIT_COMMITTER_NAME: "Chat Engine",
+      GIT_COMMITTER_EMAIL: "engine@example.com",
+    }),
   });
   if (ran.status !== 0) {
     throw new Error(String(ran.stderr || ran.stdout || args.join(" ")).trim());
@@ -53,10 +61,10 @@ function makeRepo() {
   fs.mkdirSync(path.join(dir, "src"));
   fs.writeFileSync(path.join(dir, "src", "app.js"), "module.exports = 1;\n", "utf8");
   git(["add", "."], dir);
-  git(["commit", "-m", "init engine fixture"], dir);
+  git(["commit", "--no-gpg-sign", "-m", "init engine fixture"], dir);
   fs.writeFileSync(path.join(dir, "src", "app.js"), "module.exports = 2;\n", "utf8");
   git(["add", "src/app.js"], dir);
-  git(["commit", "-m", "touch app"], dir);
+  git(["commit", "--no-gpg-sign", "-m", "touch app"], dir);
   return dir;
 }
 
@@ -421,8 +429,9 @@ async function cases() {
           }),
         },
       });
-      git(["remote", "add", "origin", "https://github.com/nyfeblade/rd-os.git"], fixture);
-      const opened = expectOk(engine.threads.open({ repo: fixture }));
+      const repo = makeRepo();
+      git(["remote", "add", "origin", "https://x-access-token:ghs_testtoken@github.com/nyfeblade/rd-os.git"], repo);
+      const opened = expectOk(engine.threads.open({ repo }));
       if (!opened.ok) {
         return opened;
       }
@@ -446,6 +455,13 @@ async function cases() {
       }
       if (!pack.snapshot.checks || pack.snapshot.checks.conclusion !== "failure") {
         return { ok: false, error: "checks missing from pack" };
+      }
+      const remoteUrl = packed.data.snapshot.remote_url || "";
+      if (/x-access-token|ghs_testtoken|@github/i.test(remoteUrl)) {
+        return { ok: false, error: `remote leaked secret ${remoteUrl}` };
+      }
+      if (remoteUrl !== "https://github.com/nyfeblade/rd-os.git") {
+        return { ok: false, error: `public remote ${remoteUrl}` };
       }
       return { ok: true };
     })
@@ -513,9 +529,9 @@ async function cases() {
           }),
         },
       });
-      git(["remote", "remove", "origin"], fixture);
-      git(["remote", "add", "origin", "git@github.com:nyfeblade/rd-os.git"], fixture);
-      const opened = expectOk(engine.threads.open({ repo: fixture }));
+      const repo = makeRepo();
+      git(["remote", "add", "origin", "git@github.com:nyfeblade/rd-os.git"], repo);
+      const opened = expectOk(engine.threads.open({ repo }));
       if (!opened.ok) {
         return opened;
       }
@@ -598,8 +614,15 @@ async function cases() {
       }
       const ssh = parseGithubRemote("git@github.com:nyfeblade/rd-os.git");
       const https = parseGithubRemote("https://github.com/nyfeblade/rd-os");
+      const tokenized = parseGithubRemote("https://x-access-token:ghs_testtoken@github.com/nyfeblade/rd-os.git");
       if (!ssh || ssh.full_name !== "nyfeblade/rd-os" || !https || https.full_name !== "nyfeblade/rd-os") {
         return { ok: false, error: "remote parse" };
+      }
+      if (!tokenized || tokenized.full_name !== "nyfeblade/rd-os") {
+        return { ok: false, error: "tokenized remote parse" };
+      }
+      if (publicRemoteUrl("https://x-access-token:ghs_testtoken@github.com/nyfeblade/rd-os.git") !== "https://github.com/nyfeblade/rd-os.git") {
+        return { ok: false, error: "publicRemoteUrl must drop credentials" };
       }
       if (CODING_DENY.indexOf("life.food") < 0 || CODING_ALLOW.indexOf("git.status") < 0) {
         return { ok: false, error: "allow/deny constants" };
@@ -611,7 +634,7 @@ async function cases() {
   rows.push(
     await runCase("demo.js exists and package fence holds", () => {
       const root = path.resolve(__dirname, "..");
-      for (const file of ["README.md", "package.json", "index.js", "types.d.ts", "bin/demo.js", "lib/engine.js"]) {
+      for (const file of ["README.md", "package.json", "index.js", "types.d.ts", "bin/demo.js", "lib/engine.js", "lib/remote.js"]) {
         if (!fs.existsSync(path.join(root, file))) {
           return { ok: false, error: `missing ${file}` };
         }
