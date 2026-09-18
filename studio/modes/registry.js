@@ -1,10 +1,5 @@
 "use strict";
 
-/**
- * Selectable mode registry. Chat-engine and seats call this later.
- * JSON in catalog/ is loaded and executed; it is not a dead listing.
- */
-
 const fs = require("fs");
 const path = require("path");
 

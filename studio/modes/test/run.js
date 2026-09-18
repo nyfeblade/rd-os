@@ -10,6 +10,7 @@ const {
   assertFalsifier,
   listRailProfiles,
   evaluateRun,
+  evaluateFile,
   REGISTRY_CODES,
   RAILS,
 } = require("..");
@@ -279,12 +280,28 @@ function cases() {
     return expectOk(session.enableMode("github-lane"));
   });
 
-  runCase("assertFalsifier eng-coding trips LANE_COLLISION", () => {
-    const proof = expectOk(createModeRegistry().assertFalsifier("eng-coding"));
+  function assertPlantedBite(id, code, file) {
+    const proof = expectOk(createModeRegistry().assertFalsifier(id));
     if (!proof.ok) return proof;
-    if (proof.data.code !== "LANE_COLLISION") {
+    if (proof.data.code !== code) {
       return { ok: false, error: `code=${proof.data.code}` };
     }
+    if (proof.data.file !== file) {
+      return { ok: false, error: `file=${proof.data.file}` };
+    }
+    const report = evaluateFile(path.join(__dirname, "..", file));
+    const codes = report.violations.map((row) => row.code);
+    if (report.ok || !codes.includes(code)) {
+      return { ok: false, error: `independent grade of ${file} was [${codes.join(",") || "none"}]` };
+    }
+    return { ok: true };
+  }
+
+  runCase("assertFalsifier eng-coding trips LANE_COLLISION", () => {
+    const bite = assertPlantedBite("eng-coding", "LANE_COLLISION", "fixtures/planted/lane-collision.json");
+    if (!bite.ok) return bite;
+    const proof = expectOk(createModeRegistry().assertFalsifier("eng-coding"));
+    if (!proof.ok) return proof;
     if (proof.data.falsifier !== "A coding run that edits studio/shell/ trips LANE_COLLISION.") {
       return { ok: false, error: proof.data.falsifier };
     }
@@ -292,21 +309,15 @@ function cases() {
   });
 
   runCase("assertFalsifier research-before-claim trips NO_EVIDENCE", () => {
-    const proof = expectOk(createModeRegistry().assertFalsifier("research-before-claim"));
-    if (!proof.ok) return proof;
-    if (proof.data.code !== "NO_EVIDENCE") {
-      return { ok: false, error: `code=${proof.data.code}` };
-    }
-    return { ok: true };
+    return assertPlantedBite(
+      "research-before-claim",
+      "NO_EVIDENCE",
+      "fixtures/planted/skip-research.json"
+    );
   });
 
   runCase("assertFalsifier no-self-cert trips SELF_CERT_VERDICT", () => {
-    const proof = expectOk(createModeRegistry().assertFalsifier("no-self-cert"));
-    if (!proof.ok) return proof;
-    if (proof.data.code !== "SELF_CERT_VERDICT") {
-      return { ok: false, error: `code=${proof.data.code}` };
-    }
-    return { ok: true };
+    return assertPlantedBite("no-self-cert", "SELF_CERT_VERDICT", "fixtures/planted/self-cert-verdict.json");
   });
 
   runCase("assertFalsifier misses when the planted record is clean", () => {
@@ -359,9 +370,31 @@ function cases() {
     return { ok: true };
   });
 
+  runCase("life-OS catalog rows throw at parse", () => {
+    try {
+      createModeRegistry({
+        extra: [
+          {
+            id: "life.food",
+            rail: "no-self-cert",
+            falsifier: "Life-OS must not load.",
+            fences: ["studio/github/"],
+            planted: { file: "fixtures/planted/self-cert-verdict.json", expect_code: "SELF_CERT_VERDICT" },
+          },
+        ],
+      });
+    } catch (err) {
+      if (/life-OS/.test(err.message)) return { ok: true };
+      return { ok: false, error: err.message };
+    }
+    return { ok: false, error: "life.food catalog row was accepted" };
+  });
+
   runCase("REGISTRY_CODES is a closed set that includes LANE_COLLISION", () => {
-    if (!REGISTRY_CODES.includes("LANE_COLLISION") || !REGISTRY_CODES.includes("FALSIFIER_MISSED")) {
-      return { ok: false, error: REGISTRY_CODES.join(",") };
+    const need = ["LANE_COLLISION", "FALSIFIER_MISSED", "LIFE_OS_DENIED"];
+    const missing = need.filter((code) => !REGISTRY_CODES.includes(code));
+    if (missing.length) {
+      return { ok: false, error: `missing ${missing.join(",")} in ${REGISTRY_CODES.join(",")}` };
     }
     return { ok: true };
   });

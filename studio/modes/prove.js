@@ -127,7 +127,6 @@ function mustThrow(label, fn, pattern) {
 
 const SHIPPED_MODE_IDS = ["eng-coding", "no-self-cert", "research-before-claim"];
 
-/** Product registry: selectable rails with falsifiers, callable by later seats/chat-engine. */
 function checkRegistry() {
   const session = modes.createModeRegistry();
   const listed = session.listModes();

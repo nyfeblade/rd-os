@@ -1,16 +1,5 @@
 "use strict";
 
-/**
- * studio/modes — importable mode rails plus a selectable registry.
- *
- *   const { evaluateRun, createModeRegistry } = require("./studio/modes");
- *   evaluateRun(runRecord).ok === true
- *   const studio = createModeRegistry();
- *   studio.enableMode("eng-coding");
- *
- * The library never writes a verdict and never arms a clock. It reports violations.
- */
-
 const fs = require("fs");
 const path = require("path");
 
@@ -115,7 +104,6 @@ function loadRoutine(name, lanes) {
   return validateRoutine(readJson(file), lanes || loadLanes());
 }
 
-/** The mode a run record is graded under: its recipe if it names one, else its bare mode. */
 function resolveMode(run) {
   if (!run.recipe) return loadMode(run.mode);
   const mode = loadRecipe(run.recipe);
@@ -125,14 +113,6 @@ function resolveMode(run) {
   return mode;
 }
 
-/**
- * Evaluate a lane run record against its mode's rails.
- * @param {object} run  lane run record (see README for the shape)
- * @param {object} [opts]
- * @param {object} [opts.mode]   preloaded mode object; defaults to loadMode(run.mode)
- * @param {object} [opts.lanes]  preloaded lane registry; defaults to loadLanes()
- * @returns {{ok:boolean, mode:string, lane:string, rails:string[], violations:object[], counts:object, verdict:null, clock_started:false}}
- */
 function evaluateRun(run, opts) {
   const options = opts || {};
   if (!run || typeof run !== "object") throw new Error("evaluateRun needs a run record object");
@@ -157,13 +137,11 @@ function evaluateRun(run, opts) {
     rails: enabled,
     violations,
     counts,
-    // The library grades rails, not work. These stay pinned.
     verdict: null,
     clock_started: false,
   };
 }
 
-/** Convenience for gates: read a run record off disk and evaluate it. */
 function evaluateFile(file, opts) {
   const report = evaluateRun(readJson(file), opts);
   return { ...report, file };
