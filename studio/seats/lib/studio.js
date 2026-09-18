@@ -38,6 +38,7 @@ const {
   highRiskPermissionMatrix,
   permissionsLock,
 } = require("./permissions");
+const roster = require("./roster");
 
 const STATE_FILE = "state.json";
 
@@ -91,6 +92,7 @@ function seedState(clock) {
     rooms: Object.fromEntries(seedRooms(clock).map((room) => [room.id, room])),
     messages: [],
     next_message: 1,
+    imported_ids: [],
   };
 }
 
@@ -172,6 +174,9 @@ function normalizeState(state) {
   }
   if (state.rooms["room:bots"] && state.rooms["room:bots"].title === "Bot sync") {
     state.rooms["room:bots"].title = "Bots";
+  }
+  if (!Array.isArray(state.imported_ids)) {
+    state.imported_ids = [];
   }
   return state;
 }
@@ -736,6 +741,23 @@ function createStudioSeats(options) {
       allow(provider, tool, options) {
         return isToolAllowed(provider, tool, options);
       },
+    },
+    importRoster() {
+      const result = roster.applyImport(registerSeat, state);
+      if (result.ok) {
+        save();
+      }
+      return result;
+    },
+    listImported() {
+      return roster.listImportedFromState(state);
+    },
+    registerImportedSeat(id) {
+      const result = roster.registerImportedSeat(registerSeat, state, id);
+      if (result.ok) {
+        save();
+      }
+      return result;
     },
     dump() {
       return ok(buildDump(state));

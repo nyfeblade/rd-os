@@ -4,6 +4,7 @@ const codes = require("./lib/codes");
 const { classifyDestination, speechChannelOf, channelReject } = require("./lib/classify");
 const { createStudioSeats, buildDemoDump } = require("./lib/studio");
 const permissions = require("./lib/permissions");
+const roster = require("./lib/roster");
 
 module.exports = {
   createStudioSeats,
@@ -49,4 +50,24 @@ module.exports = {
   permissionOf: permissions.permissionOf,
   defaultPermissionMatrix: permissions.defaultPermissionMatrix,
   highRiskPermissionMatrix: permissions.highRiskPermissionMatrix,
+  importRoster: roster.importRoster,
+  listImported: roster.listImported,
+  listImportableSeats: roster.listImportableSeats,
+  registerImportedSeat(studio, id) {
+    if (!roster.isStudio(studio)) {
+      return codes.reject("BAD_STUDIO", "registerImportedSeat(studio, id) needs a createStudioSeats() instance from the UI");
+    }
+    return studio.registerImportedSeat(id);
+  },
+  resolveGrokProvider: roster.resolveGrokProvider,
+  IMPORTABLE_ROSTER: roster.IMPORTABLE_ROSTER,
+  SKIPPED_ROSTER: roster.SKIPPED_ROSTER,
+  IMPORTABLE_IDS: roster.IMPORTABLE_IDS,
+  SKIPPED_IDS: roster.SKIPPED_IDS,
+  GROK_ALIASES: roster.GROK_ALIASES,
+  GROK_PROVIDER: roster.GROK_PROVIDER,
+  ROSTER_SCHEMA: roster.ROSTER_SCHEMA,
+  isImportableId: roster.isImportableId,
+  isSkippedId: roster.isSkippedId,
+  teamOf: roster.teamOf,
 };

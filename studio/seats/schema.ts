@@ -240,3 +240,61 @@ export function assertNeverProvider(id: never): never {
 export function assertNeverTool(id: never): never {
   throw new Error(`unhandled SeatToolId: ${id}`);
 }
+
+/** Opt-in existing-bot import. Not seeded on the stranger dump. */
+export type RosterTeam = "eng" | "design" | "ops";
+
+export type RosterSkipReason = "not_a_studio_seat";
+
+export type ImportableSeatId =
+  | "elon"
+  | "eng-lead"
+  | "eng-proof"
+  | "eng-ops"
+  | "eng-integrator"
+  | "eng-nightly"
+  | "studio-designer"
+  | "critiquito"
+  | "skillwright"
+  | "token-officer"
+  | "sota-software-engineer";
+
+export type SkippedRosterId = "ctm-rater" | "lingxi-engineer" | "eggbot";
+
+export interface RosterCutoverPolicy {
+  protocol: "hard";
+  on_connect: "in_studio_only";
+  legal_channel: "studio_room";
+  hitl: HighRiskToolId[];
+  ack: string;
+}
+
+export interface ImportedSeat {
+  id: ImportableSeatId | string;
+  label: string;
+  kind: "bot";
+  team: RosterTeam;
+  role: string;
+  provider: KnownProviderId | string;
+  seat_id: StudioSeatId;
+  aliased: boolean;
+  cutover: RosterCutoverPolicy;
+}
+
+export interface SkippedRosterSeat {
+  id: SkippedRosterId | string;
+  label: string;
+  reason: RosterSkipReason;
+}
+
+export function assertNeverTeam(team: never): never {
+  throw new Error(`unhandled RosterTeam: ${team}`);
+}
+
+export function assertNeverSkipReason(reason: never): never {
+  throw new Error(`unhandled RosterSkipReason: ${reason}`);
+}
+
+export function assertNeverRosterId(id: never): never {
+  throw new Error(`unhandled ImportableSeatId: ${id}`);
+}

@@ -41,10 +41,24 @@ studio.emit({ from: "gemini", dest: "room:bots", body: "in-studio only" });
 
 Dump: `north_star.audience=any_ai_developer_studio`, `eng.multi_provider=true`, `eng.luke_fleet_only=false`.
 
+## Team roster (opt-in)
+
+Existing bots import as Studio seats. Not new Grok Bots. Default dump stays four seats until UI calls `importRoster()`.
+
+```js
+const { createStudioSeats, listImportableSeats } = require("./");
+const studio = createStudioSeats();
+studio.importRoster();
+studio.listImported();
+listImportableSeats();
+```
+
+Elon aliases to live provider `grok`. Skipped: CTM Rater, Lingxi Engineer, eggbot.
+
 ## Import later
 
 ```ts
-import type { StudioDump, StudioSeat, NorthStar } from "../seats/schema";
+import type { StudioDump, StudioSeat, NorthStar, ImportedSeat } from "../seats/schema";
 ```
 
 ## Default roster
