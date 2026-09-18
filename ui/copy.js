@@ -45,28 +45,36 @@ function whyPlain(why) {
     return "Nothing waiting.";
   }
   if (/merge gate/i.test(text)) {
-    return "Plan ready to approve — merge gate";
+    return "Plan ready — merge gate";
   }
   if (/Eng Proof owns verdict|packet present/i.test(text)) {
     return "Checking claims…";
   }
   if (/fan-out|claim instrument|open packet|fanout/i.test(text)) {
-    return "Agent is still running probes.";
+    return "Running probes…";
   }
   return text || "Something is waiting.";
 }
 
-function waitingRowLabel(who) {
+function waitingOnWho(who) {
   switch (who) {
     case "human":
-      return "Needs you";
+      return "Human";
     case "proof":
-      return "Checking claims…";
+      return "Proof";
     case "agent":
-      return "Agent working…";
+      return "Agent";
     default:
       return assertNeverWaitingOn(who);
   }
+}
+
+function waitingRowLabel(who) {
+  return waitingOnWho(who);
+}
+
+function humanRowDetail() {
+  return "Agents finished probes. Decision required.";
 }
 
 function rejectPlain(code) {
@@ -85,7 +93,12 @@ function formatAge(ageS) {
   if (s < 3600) {
     return `${Math.floor(s / 60)}m`;
   }
-  return `${Math.floor(s / 3600)}h`;
+  const hours = Math.floor(s / 3600);
+  const minutes = Math.floor((s % 3600) / 60);
+  if (!minutes) {
+    return `${hours}h`;
+  }
+  return `${hours}h ${String(minutes).padStart(2, "0")}m`;
 }
 
 function parseGate(entry) {
@@ -103,7 +116,9 @@ if (typeof window !== "undefined") {
     GATE_PLAIN,
     RULES_PLAIN,
     whyPlain,
+    waitingOnWho,
     waitingRowLabel,
+    humanRowDetail,
     rejectPlain,
     gatePlain,
     formatAge,

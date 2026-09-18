@@ -11,7 +11,7 @@ Audience: cold user. HARD LAW lives in the product as behavior + plain labels, n
 
 ## IA / NAV
 
-App shell (desktop, one window). Linear/Raycast density. Left rail 200px or top tabs — pick one; default **top tabs** for cold clarity.
+App shell (desktop, one window). Magic Ink greyscale information graphic. Top tabs for cold clarity.
 
 | Route | Label (UI) | Job |
 | --- | --- | --- |
@@ -24,7 +24,7 @@ App shell (desktop, one window). Linear/Raycast density. Left rail 200px or top 
 First open → **Waiting**. Never land on a JSON dump or empty dashboard of tiles.
 
 Empty / error / loading (whole app):
-- **Empty Waiting:** “Nothing waiting. Open an experiment to start.” + primary CTA → new experiment (eng wires to `experiment.open`).
+- **Empty Waiting:** “Nothing waiting” + “Board is clear. Open an experiment when you want to measure something.” + New experiment (eng wires to `experiment.open`).
 - **Empty Experiments:** same CTA.
 - **Empty History:** “No finished baselines yet.” secondary, no CTA panic.
 - **Dump / board missing:** full-page “Can’t reach the board” + retry. never invent P0.
@@ -34,42 +34,39 @@ Empty / error / loading (whole app):
 
 ## VISUAL SYSTEM
 
-Density: Raycast / Linear. Dark default.
+Density: Magic Ink greyscale Waiting. Light paper, not Raycast dark. No SaaS blue as the primary system. No copper Ink Desk.
 
-| Role | Use | Token start |
+SoT pixels: attached / Studio `waiting-greyscale.html`. Tokens in `ui/app.css`.
+
+| Role | Use | Token |
 | --- | --- | --- |
-| void | outside plate | `#000000` |
-| plate | single window surface | brand dark + ≤12% white tint (glass skill if native vibrancy) |
-| text primary | body / titles | `#ededed` |
-| text secondary | meta / chrome | `#a0a0a0` |
-| hairline | splits | `rgba(255,255,255,0.08)` |
-| accent | one blue — primary CTA + human-waiting | one only |
-| danger | Reject only | quiet red |
-| warning | waiting on proof | muted amber |
+| bg | page paper | `#f4f4f2` |
+| panel | single window surface | `#ffffff` |
+| line | splits | `#d8d8d4` |
+| ink | body / primary fill | `#1a1a1a` |
+| ink-2 | meta / quiet rows | `#5c5c5c` |
+| ink-3 | chrome / captions | `#8a8a8a` |
+| row-human | human-waiting row | `#ececea` |
+| focus | visible ring | `#1a1a1a` |
 
-Type: 13/14 body, 11 meta, 16 section. Spacing 4-base (8/12/16/24). Radius 16 plate; rows r6. One plate — rows not tiles. No cyan frame, no HUD rings.
+Type: 13 body, 11 meta/caption, 18 empty title. Radius 8 panel; 5 buttons. One panel — comparable table rows, not tiles. No cyan frame, no HUD rings, no brand accent until hierarchy reads.
 
-If dark glass plate: run `@raycast-glass-vercel-color-check` (native frost; css blur only if no vibrancy; search not a nested card).
+Human row: grey wash + 3px ink inset on the first cell. Approve is ink fill; Reject/Details are ink outline. Status is the Waiting-on word, not a color.
 
 ---
 
 ## WAITING (home) — layout
 
 ```
-┌─ app chrome: Waiting · Experiments · History · Settings ─┐
-│                                                          │
-│  NEEDS YOU                          age · 12m            │  ← only if waiting_on=human
-│  Plan ready to approve — merge gate                      │
-│  [Approve]  [Reject]  [Details]                          │
-│                                                          │
-│  ─ also in flight ─────────────────────────────────────  │
-│  Eng Proof checking claims …                    4m       │  ← waiting_on=proof
-│  Agent running probes …                         1h       │  ← waiting_on=agent
-│                                                          │
-│  Open gates                                              │
-│  · merge on exp-…                                        │
-│                                                          │
-│  Last similar run: 2.0 CA hours · or “No baseline yet”   │
+┌─ Waiting · Experiments · History · Settings · now ───────┐
+│ Open items · sorted by urgency                           │
+│ What                         Waiting on            Age   │
+│ Plan ready — merge gate…     Human                 12m   │  ← waiting_on=human
+│   Agents finished probes.                                │
+│   [Approve] [Reject] [Details]                           │
+│ Checking claims…             Proof                  4m   │  ← waiting_on=proof
+│ Running probes…              Agent              1h 02m   │  ← waiting_on=agent
+│ Open gates: merge · exp-… · Last similar run: 2.0 CA h   │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -77,16 +74,18 @@ Cold-user mapping from dump (do not show raw field names):
 
 | dump | UI |
 | --- | --- |
-| `p0.waiting_on=human` | hero “NEEDS YOU” + Approve/Reject |
-| `p0.waiting_on=proof` | secondary row “Checking claims…” |
-| `p0.waiting_on=agent` | secondary row “Agent working…” |
-| `p0.why` | one plain sentence under title (rewrite eng strings in UI copy layer) |
-| `p0.age_s` | `12m` / `2h` |
+| `p0.waiting_on=human` | human table row + Approve/Reject/Details |
+| `p0.waiting_on=proof` | comparable row, Waiting on = Proof |
+| `p0.waiting_on=agent` | comparable row, Waiting on = Agent |
+| empty board | “Nothing waiting” + New experiment |
+| open items, no human | “Open items · no human gate” |
+| `p0.why` | What column (rewrite eng strings in UI copy layer) |
+| `p0.age_s` | Age column `12m` / `1h 02m` |
 | `hard_law[]` | **not a chip strip on home.** enforce in rejects + Settings → “Rules” plain list if needed |
-| `open_gates[]` | “Open gates” rows with human labels (`merge`, not `exp:merge` only) |
-| `envelope_hint` | “Last similar run: N CA hours” / “No baseline yet” |
+| `open_gates[]` | footer “Open gates: Merge · exp-…” |
+| `envelope_hint` | footer “Last similar run: N CA hours” / “No baseline yet” |
 
-Primary buttons **only** when NEEDS YOU. Otherwise Details is the only action on secondary rows.
+Primary ink button **only** on the human row (Approve). Reject/Details are outline. In-flight rows have no actions.
 
 ---
 
@@ -107,7 +106,7 @@ Detail sections (scannable):
 ## INTERACTION
 
 - Keyboard: `Enter` Approve when NEEDS YOU focused; `⌘/Ctrl+Enter` same; `Esc` back; `j/k` or arrows move rows; `/` focus filter on lists.
-- Focus: visible 2px accent ring on controls; never plate-only focus.
+- Focus: visible 2px ink ring on controls; never plate-only focus.
 - Reject flow: confirm sheet with reason codes in plain language; optional “add constraint” (physics/human gate) — not a vibe override.
 - Approve: one confirm if merge gate; then waiting row clears on next dump.
 - Reduced motion: instant swaps, no shake.
@@ -120,7 +119,7 @@ Detail sections (scannable):
 | event | motion | sfx |
 | --- | --- | --- |
 | dump refresh | crossfade copy 120ms | — |
-| → NEEDS YOU | accent rim on plate 160ms | soft tick (mute default) |
+| → NEEDS YOU | human row wash 160ms | soft tick (mute default) |
 | Approve | row settle 180ms | soft confirm |
 | Reject | 2px shake 200ms (skip if reduced-motion) | short thud |
 | age tick | number swap, no layout shift | — |
@@ -146,7 +145,7 @@ SFX master mute in Settings. Sparse; task-tied only. none as decoration.
 3. HARD LAW not required as home chrome; product still rejects weight-only / under-scope with plain-language errors.
 4. Missing dump → error empty state; zero fabricated P0.
 5. No week/sprint labels unless a human gate is on screen.
-6. Glass bar: one plate; native frost preferred; pass `@raycast-glass-vercel-color-check` if glass material used.
+6. One white panel on grey paper. No glass theater. No `#4c8dff` / copper as the system.
 7. Keyboard path completes Approve from Waiting without mouse.
 8. Screenshots required for Proof: empty / NEEDS YOU / proof-waiting / agent-waiting / reject sheet / experiments list.
 
@@ -158,6 +157,8 @@ SFX master mute in Settings. Sparse; task-tied only. none as decoration.
 - hero without empty/error/settings
 - motion or SFX as decoration
 - Windows Raycast as reference
+- dark plate + SaaS blue accent as the primary system
+- copper Ink Desk costume
 
 ## OUT
 
