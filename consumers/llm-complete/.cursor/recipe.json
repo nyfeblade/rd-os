@@ -1,0 +1,17 @@
+{
+  "name": "rd-os-llm-complete",
+  "beside": "../cursor-mcp",
+  "provider": "openai",
+  "adapter": "../../src/providers",
+  "cli": "node ./bin/complete.js --in payloads/hello.json",
+  "env": {
+    "LLM_PROVIDER": "openai",
+    "OPENAI_API_KEY": "<set locally; never commit>",
+    "OPENAI_MODEL": "gpt-4o-mini"
+  },
+  "mcp": {
+    "note": "Keep existing rd-os MCP attach. Do not add llm.complete as an MCP tool.",
+    "see": "../cursor-mcp/.cursor/mcp.json"
+  },
+  "resource_exhausted": "STOP, no retry"
+}

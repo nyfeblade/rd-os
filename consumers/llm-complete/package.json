@@ -1,0 +1,15 @@
+{
+  "name": "rd-os-llm-complete",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cursor attach recipe + measured smoke for src/providers llm.complete (OpenAI). Beside MCP, not a second kernel.",
+  "scripts": {
+    "test": "node ./bin/smoke.js",
+    "smoke": "node ./bin/smoke.js",
+    "complete": "node ./bin/complete.js",
+    "attach": "node ./bin/print-recipe.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
