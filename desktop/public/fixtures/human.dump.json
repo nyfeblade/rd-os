@@ -1,0 +1,42 @@
+{
+  "p0": {
+    "id": "exp-2-wedge",
+    "why": "accepted plan waiting on human merge gate",
+    "waiting_on": "human",
+    "age_s": 720,
+    "title": "Exp-2 wedge"
+  },
+  "hard_law": [
+    "machine-time",
+    "multi-lane",
+    "research-before-claim",
+    "envelope",
+    "attention-beside-law"
+  ],
+  "open_gates": ["exp-2-wedge:merge"],
+  "envelope_hint": {
+    "nearest_experiment_id": "exp-1-planted-false",
+    "baseline_ca_hours": 2.0
+  },
+  "items": [
+    {
+      "id": "exp-2-wedge",
+      "why": "accepted plan waiting on human merge gate",
+      "waiting_on": "human",
+      "age_s": 720,
+      "title": "Exp-2 wedge"
+    },
+    {
+      "id": "exp-wait-proof",
+      "why": "packet present; Eng Proof owns verdict",
+      "waiting_on": "proof",
+      "age_s": 240
+    },
+    {
+      "id": "exp-wait-agent",
+      "why": "open packet needs fan-out / claim instrument",
+      "waiting_on": "agent",
+      "age_s": 3720
+    }
+  ]
+}

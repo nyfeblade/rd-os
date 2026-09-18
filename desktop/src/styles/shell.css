@@ -1,0 +1,280 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 720px;
+  margin: 24px auto;
+  padding: 0 16px 48px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+nav.tabs {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+
+nav.tabs a {
+  color: var(--ink-3);
+  text-decoration: none;
+}
+
+nav.tabs a[aria-current="page"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+nav.tabs .meta {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+caption {
+  text-align: left;
+  padding: 12px 14px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-3);
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+th.num,
+td.num {
+  text-align: right;
+}
+
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr.human {
+  background: var(--row-human);
+  font-weight: 500;
+}
+
+tr.human td:first-child {
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+
+tr[data-id] {
+  cursor: pointer;
+}
+
+tr.selected {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.who {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-2);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--ink);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+tr[data-id]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.quiet {
+  color: var(--ink-2);
+  font-weight: 400;
+}
+
+.foot {
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.empty,
+.error,
+.stub {
+  padding: 36px 14px;
+}
+
+.stub a {
+  color: var(--ink);
+}
+
+.empty h1,
+.error h1,
+.stub h1 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.empty .actions,
+.error .actions,
+.stub .actions {
+  margin-top: 12px;
+}
+
+.stub a {
+  color: var(--ink);
+}
+
+.skeleton {
+  height: 36px;
+  margin: 10px 14px;
+  border-radius: 5px;
+  background: var(--row-human);
+}
+
+.row-feedback {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 26, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.sheet-card {
+  width: min(440px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.sheet-card h1 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.settings-block {
+  padding: 8px 14px 16px;
+}
+
+.settings-block h2 {
+  margin: 12px 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.settings-block label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+  color: var(--ink);
+}
+
+.settings-block ol {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  color: var(--ink);
+}
+
+.settings-block li {
+  margin: 6px 0;
+}
+
+.path-hint {
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+.reduce-motion .skeleton,
+.reduce-motion tr.human,
+.reduce-motion .sheet {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  tr.human,
+  .sheet {
+    transition: none;
+  }
+}
