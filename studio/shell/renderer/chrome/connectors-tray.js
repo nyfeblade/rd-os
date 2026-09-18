@@ -62,9 +62,6 @@
 
   function renderConnectors(els, state, onConnector) {
     els.connectors.replaceChildren();
-    if (state.view === "cold") {
-      return;
-    }
     for (const connector of p0TrayRows(state.connectors)) {
       if (connector.status === "disconnected") {
         continue;
@@ -88,6 +85,13 @@
       button.addEventListener("click", () => onConnector(connector.id));
       els.connectors.appendChild(button);
     }
+    const add = document.createElement("button");
+    add.type = "button";
+    add.dataset.connector = "add";
+    add.setAttribute("aria-label", "Marketplace");
+    add.textContent = "+";
+    add.addEventListener("click", () => onConnector("add"));
+    els.connectors.appendChild(add);
   }
 
   Studio.chrome = Studio.chrome || {};

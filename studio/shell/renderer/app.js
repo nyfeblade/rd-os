@@ -56,6 +56,7 @@
     chatOnboard: document.getElementById("chat-onboard"),
     ctaGithub: document.getElementById("cta-github"),
     ctaSeat: document.getElementById("cta-seat"),
+    ctaImport: document.getElementById("cta-import"),
     threadMeter: document.getElementById("thread-meter"),
     boardMeter: document.getElementById("board-meter"),
     seatMeters: document.getElementById("seat-meters"),
@@ -71,17 +72,21 @@
     outbox: [],
     boundTo: null,
     pendingBotSend: null,
-    pendingHitl: null,
+    gates: [],
     selectedSeat: "human",
     selectedFile: "shell",
-    dump: null,
     flash: null,
     pendingCutover: null,
     presenceOpen: false,
     codeOpen: false,
     mode: "eng",
-    view: "cold",
     tokens: { session: null, board: null, mission: null, seats: {} },
+    githubSession: null,
+    lastAuthError: null,
+    market: { entries: [] },
+    modes: { list: [], active: null },
+    mcp: { tools: [], providers: [] },
+    modules: null,
     engine: {
       ok: false,
       code: null,
@@ -92,6 +97,18 @@
       chrome: null,
     },
   };
+
+  function engineBound() {
+    return Boolean(state.engine && state.engine.ok && state.engine.thread);
+  }
+
+  function githubConnected() {
+    return Boolean(state.githubSession && state.githubSession.user);
+  }
+
+  function botAttached() {
+    return (state.seats || []).some((seat) => seat.kind === "bot" && seat.cutover === true);
+  }
 
   function bindInbox(id) {
     state.boundTo = id;
@@ -104,8 +121,14 @@
 
   const chatHandlers = {
     onConnectSeat(seat) {
-      openAddSeat(seat && seat.id ? seat.id : null);
+      const id = seat && seat.id ? seat.id : null;
+      if (!id || id === "import-team") {
+        importTeam();
+        return;
+      }
+      connectSeatClick(id, seat.name);
     },
+    importTeam,
     bindInbox,
   };
 
@@ -132,16 +155,12 @@
 
   function renderWith() {
     const bound = Studio.panes.boundItem(state);
-    if (state.view === "cold") {
-      els.withEl.textContent = "";
-      return;
-    }
     if (bound) {
       els.withEl.textContent = bound.provider === "github" ? "GitHub" : "Slack";
       return;
     }
     const seat = Studio.panes.selectedSeat(state);
-    els.withEl.textContent = seat ? seat.name : "";
+    els.withEl.textContent = seat && botAttached() ? seat.name : "";
   }
 
   function renderBind() {
@@ -165,9 +184,33 @@
     els.bindStatus.textContent = parts.join(" · ");
   }
 
+  function renderColdCtas() {
+    const showGithub = !githubConnected();
+    const showTeam = !botAttached();
+    if (els.ctaGithub) {
+      els.ctaGithub.hidden = !showGithub;
+    }
+    if (els.ctaImport) {
+      els.ctaImport.hidden = !showTeam;
+    }
+    if (els.ctaSeat) {
+      els.ctaSeat.hidden = true;
+    }
+    if (els.chatCold) {
+      els.chatCold.hidden = !showGithub && !showTeam;
+    }
+    if (els.chatLive) {
+      els.chatLive.hidden = false;
+    }
+    if (els.chatOnboard) {
+      els.chatOnboard.hidden = engineBound();
+    }
+  }
+
   function renderChrome() {
     renderWith();
     renderBind();
+    renderColdCtas();
     Studio.chrome.renderMode(els, state, onMode);
     Studio.chrome.renderConnectors(els, state, onConnector);
     Studio.chrome.renderPresence(els, state);
@@ -180,14 +223,22 @@
   }
 
   function ensureWire(rows) {
-    const next = rows.map((row) => ({ ...row }));
+    const next = rows.map((row) => ({ ...row, status: row.status || "needs_auth" }));
     if (!next.some((row) => row.id === "slack")) {
       next.push({ id: "slack", label: "Slack", status: "needs_auth" });
     }
     if (!next.some((row) => row.id === "github")) {
       next.push({ id: "github", label: "GitHub", status: "needs_auth" });
     }
-    return next;
+    return next.map((row) => {
+      if (row.id === "github") {
+        return { ...row, status: githubConnected() ? "live" : "needs_auth" };
+      }
+      if (row.status === "live") {
+        return { ...row, status: "needs_auth" };
+      }
+      return row;
+    });
   }
 
   function connectorStatus(id) {
@@ -196,120 +247,68 @@
   }
 
   function cutoverFromSeats() {
-    const attached = state.seats.some((seat) => seat.kind === "bot" && seat.cutover === true);
+    const attached = botAttached();
     return { status: attached ? "attached" : "unattached", in_studio_only: attached };
   }
 
-  function applyLiveDemo() {
-    state.seats = Studio.panes.coldOpenSeats().map((seat) => {
-      if (seat.id === "human" || seat.id === "cursor" || seat.id === "claude") {
-        return { ...seat, presence: "online", cutover: true };
+  function applyLiveState(snapshot) {
+    if (!snapshot || typeof snapshot !== "object") {
+      return;
+    }
+    state.modules = snapshot.modules || state.modules;
+    if (snapshot.auth) {
+      state.githubSession = snapshot.auth.session || null;
+      state.lastAuthError = snapshot.auth.message || snapshot.lastAuthError || null;
+    }
+    if (Array.isArray(snapshot.seats) && snapshot.seats.length) {
+      state.seats = snapshot.seats;
+      if (botAttached() && state.selectedSeat === "human") {
+        const bot = state.seats.find((seat) => seat.kind === "bot" && seat.cutover === true);
+        if (bot) {
+          state.selectedSeat = bot.id;
+        }
       }
-      return { ...seat };
-    });
-    state.selectedSeat = "cursor";
-    state.connectors = ensureWire(state.catalogRows).map((row) => {
-      const next = { ...row };
-      switch (row.id) {
-        case "slack":
-          next.status = "needs_auth";
-          break;
-        default:
-          next.status = "live";
-      }
-      return next;
-    });
-    state.tokens = {
-      session: 840,
-      board: 210,
-      mission: 210,
-      seats: { cursor: 420, claude: 210 },
-    };
-  }
-
-  function clearTwoWay() {
-    state.inbox = [];
-    state.inboxFilter = null;
-    state.outbox = [];
-    state.boundTo = null;
-    state.pendingBotSend = null;
-    state.pendingHitl = null;
-    state.tokens = { session: null, board: null, mission: null, seats: {} };
-  }
-
-  function bindFirstInbox() {
-    const github = (state.inbox || []).find(
-      (item) =>
-        item.provider === "github" &&
-        item.need_you &&
-        (item.kind === "review_request" || item.kind === "review" || item.kind === "review_comment"),
-    );
-    const slack = (state.inbox || []).find((item) => item.provider === "slack" && item.need_you);
-    state.inboxFilter = null;
-    state.boundTo = github ? github.id : slack ? slack.id : null;
-    state.pendingBotSend = null;
-    state.pendingHitl = {
-      id: "hitl:deploy:your-repo",
-      kind: "deploy",
-      title: "Deploy to production (Vercel)",
-      destination: "Vercel · production",
-      actor: "bot",
-      seat: "cursor",
-      payload: "project: your-repo\ntarget: production\nactor: Cursor (bot) · in-studio-only",
-      diff: "+ vercel.json prod promote\n- preview-only flag",
-      status: "pending",
-    };
-  }
-
-  function setView(view) {
-    switch (view) {
-      case "cold":
-      case "live":
-        break;
-      default:
-        Studio.assertNever(view);
     }
-    state.view = view;
-    if (els.chatCold) {
-      els.chatCold.hidden = view !== "cold";
+    if (Array.isArray(snapshot.gates)) {
+      state.gates = snapshot.gates;
     }
-    if (els.chatLive) {
-      els.chatLive.hidden = false;
+    if (Array.isArray(snapshot.inbox)) {
+      state.inbox = snapshot.inbox;
     }
-    if (els.chatOnboard) {
-      els.chatOnboard.hidden = view === "live";
-    }
-    if (view === "cold") {
-      state.seats = Studio.panes.coldOpenSeats();
-      state.selectedSeat = "human";
-      state.connectors = ensureWire(state.catalogRows).map((row) => ({ ...row, status: "needs_auth" }));
-      clearTwoWay();
-      Studio.panes.setCodeOpen(els, state, false);
+    if (Array.isArray(snapshot.connectors) && snapshot.connectors.length) {
+      state.connectors = ensureWire(snapshot.connectors);
     } else {
-      applyLiveDemo();
+      state.connectors = ensureWire(state.catalogRows);
     }
-    renderChrome();
+    if (snapshot.market) {
+      state.market = snapshot.market;
+    }
+    if (snapshot.modes) {
+      state.modes = snapshot.modes;
+    }
+    if (snapshot.mcp) {
+      state.mcp = snapshot.mcp;
+    }
+    if (snapshot.lastAuthError && snapshot.lastAuthError.message) {
+      state.lastAuthError = snapshot.lastAuthError.message;
+    }
   }
 
-  function resolveGate(action) {
+  async function resolveGate(action) {
     switch (action) {
       case "approve":
-        state.flash = "approved locally (stub)";
-        break;
       case "reject":
-        state.flash = "rejected locally (stub)";
         break;
       default:
         Studio.assertNever(action);
     }
-    if (state.dump && state.dump.p0) {
-      state.dump = {
-        ...state.dump,
-        p0: null,
-        open_gates: [],
-      };
+    const open = (state.gates || []).find((gate) => gate.need_you);
+    if (!open) {
+      state.flash = "no open gate";
+      Studio.panes.renderBoard(els, state, boardHandlers);
+      return;
     }
-    Studio.panes.renderBoard(els, state, boardHandlers);
+    await resolveHitl(action === "approve" ? "approved" : "rejected", open.id);
   }
 
   async function resolveBotSend(status) {
@@ -351,7 +350,7 @@
     renderChrome();
   }
 
-  function resolveHitl(status) {
+  async function resolveHitl(status, gateId) {
     switch (status) {
       case "approved":
       case "rejected":
@@ -359,24 +358,22 @@
       default:
         Studio.assertNever(status);
     }
-    const pending = state.pendingHitl;
-    if (!pending) {
-      return;
-    }
-    if (status === "rejected") {
-      pending.status = "denied";
-      state.flash = "high-risk send denied";
+    const id = gateId || ((state.gates || []).find((gate) => gate.need_you) || {}).id;
+    if (!id) {
+      state.flash = "no HITL gate";
       renderChrome();
       return;
     }
-    const cutover = cutoverFromSeats();
-    if (pending.actor === "bot" && !(cutover.status === "attached" && cutover.in_studio_only === true)) {
-      state.flash = "BOT_SEND_NO_CUTOVER";
-      renderChrome();
-      return;
+    const decision = status === "approved" ? "approve" : "reject";
+    const result = await liveInvoke("hitl.resolve", { id, decision, actor: "human" });
+    if (result && result.state) {
+      applyLiveState(result.state);
     }
-    pending.status = "sent";
-    state.flash = "high-risk send approved after HITL";
+    if (result && result.ok) {
+      state.flash = decision === "approve" ? "approved" : "rejected";
+    } else {
+      state.flash = result && result.code ? `CODE: ${result.code}` : "HITL_RESOLVE_FAILED";
+    }
     renderChrome();
   }
 
@@ -390,7 +387,9 @@
   }
 
   function showSeatError(result) {
-    const copy = Studio.seats.errorCopy(result);
+    const copy = result && result.code
+      ? (result.detail ? `CODE: ${result.code} — ${result.detail}` : `CODE: ${result.code}`)
+      : Studio.seats.errorCopy(result);
     state.flash = copy;
     if (els.cutoverError) {
       els.cutoverError.hidden = false;
@@ -445,11 +444,11 @@
   }
 
   function openAddSeat(provider) {
-    const known = provider && Studio.seats.isKnownProvider(provider) ? provider : null;
-    const label = known ? Studio.seats.providerLabel(known) : null;
+    const resolved = provider && Studio.seats.isKnownProvider(provider) ? provider : null;
+    const label = resolved ? Studio.seats.providerLabel(resolved) : null;
     openCutover({
       kind: "seat",
-      id: known,
+      id: resolved,
       pick: true,
       title: label ? `Connect ${label}` : "Add seat",
       copy: Studio.seats.CONNECT_ACK,
@@ -482,6 +481,8 @@
         return { path: "/seats/presence", verb: "GET" };
       case "providers":
         return { path: "/seats/providers", verb: "GET" };
+      case "import":
+        return { path: "/seats/import", verb: "POST" };
       default:
         return Studio.assertNever(method);
     }
@@ -494,6 +495,7 @@
       case "list":
       case "presence":
       case "providers":
+      case "import":
         return {};
       default:
         return Studio.assertNever(method);
@@ -522,13 +524,58 @@
     }
   }
 
+  async function connectSeatClick(id, name) {
+    els.cutoverConfirm && (els.cutoverConfirm.disabled = true);
+    const result = await seatsInvoke("connect", id);
+    if (els.cutoverConfirm) {
+      els.cutoverConfirm.disabled = false;
+    }
+    if (result && result.state) {
+      applyLiveState(result.state);
+    }
+    if (!result || result.ok !== true) {
+      showSeatError(result || { ok: false, code: "NO_OP", detail: "Connect did nothing" });
+      return false;
+    }
+    if (result.seat) {
+      applySeatConnect(result);
+    } else {
+      showToast(`${name || id} attached · studio/mcp`, "ok");
+      closeCutover();
+      renderChrome();
+    }
+    const live = await liveInvoke("state");
+    if (live && live.ok) {
+      applyLiveState(live);
+      renderChrome();
+    }
+    return true;
+  }
+
+  async function importTeam() {
+    const result = await seatsInvoke("import");
+    if (result && result.state) {
+      applyLiveState(result.state);
+    }
+    if (!result || result.ok !== true) {
+      showSeatError(result || { ok: false, code: "NO_OP", detail: "Import team did nothing" });
+      return;
+    }
+    showToast("Team imported · Connect a seat", "ok");
+    const live = await liveInvoke("state");
+    if (live && live.ok) {
+      applyLiveState(live);
+    }
+    renderChrome();
+  }
+
   function onConnector(id) {
     if (id === "add") {
       openAddSeat();
       return;
     }
     if (Studio.seats.isKnownProvider(id)) {
-      openAddSeat(id);
+      connectSeatClick(id);
       return;
     }
     const connector = state.connectors.find((item) => item.id === id);
@@ -546,6 +593,10 @@
       }
       case "needs_auth":
       case "disconnected":
+        if (id === "github") {
+          startGithubAuth();
+          return;
+        }
         openCutover({
           kind: "connector",
           id: connector.id,
@@ -584,12 +635,11 @@
         code: "BAD_ARGUMENT",
         detail: "Nothing to connect",
       });
-      closeCutover();
       return;
     }
     switch (pending.kind) {
       case "seat": {
-        if (!pending.id || !Studio.seats.isKnownProvider(pending.id)) {
+        if (!pending.id) {
           showSeatError({
             ok: false,
             code: "BAD_ARGUMENT",
@@ -597,38 +647,57 @@
           });
           return;
         }
-        els.cutoverConfirm.disabled = true;
-        const result = await seatsInvoke("connect", pending.id);
-        els.cutoverConfirm.disabled = false;
-        if (!result || result.ok !== true) {
-          showSeatError(result || { ok: false, code: "NO_OP", detail: "Connect did nothing" });
-          return;
-        }
-        applySeatConnect(result);
+        await connectSeatClick(pending.id, pending.title);
         return;
       }
       case "connector": {
+        if (pending.id === "github") {
+          const started = await startGithubAuth();
+          if (started && started.ok) {
+            closeCutover();
+          }
+          return;
+        }
         if (pending.id === "add" || Studio.seats.isKnownProvider(pending.id)) {
           openAddSeat(Studio.seats.isKnownProvider(pending.id) ? pending.id : null);
           return;
         }
-        const connector = state.connectors.find((item) => item.id === pending.id);
-        if (!connector) {
-          showSeatError({
-            ok: false,
-            code: "UNKNOWN_PROVIDER",
-            detail: `Unknown connector: ${pending.id}`,
-          });
-          return;
-        }
-        connector.status = "live";
-        closeCutover();
-        renderChrome();
+        showSeatError({
+          ok: false,
+          code: "NOT_WIRED",
+          detail: `${pending.id} is listed; GitHub is the wired OAuth path`,
+        });
         return;
       }
       default:
         Studio.assertNever(pending.kind);
     }
+  }
+
+  async function startGithubAuth() {
+    const result = await liveInvoke("auth.start");
+    if (result && result.live) {
+      applyLiveState(result.live);
+    } else if (result && result.state) {
+      applyLiveState(result.state);
+    }
+    if (result && result.ok) {
+      state.flash = result.opened ? "GitHub sign-in opened" : "GitHub OAuth started";
+      if (result.url && !window.studioShell) {
+        window.open(result.url, "_blank", "noopener");
+      }
+      renderChrome();
+      return result;
+    }
+    const code = result && result.code ? result.code : "AUTH_FAILED";
+    const message = result && result.message ? result.message : result && result.detail ? result.detail : "auth failed";
+    showSeatError({ ok: false, code, detail: message });
+    const github = state.connectors.find((item) => item.id === "github");
+    if (github) {
+      github.status = "needs_auth";
+    }
+    renderChrome();
+    return result;
   }
 
   function chatRoute(method) {
@@ -699,6 +768,65 @@
     }
   }
 
+  function liveRoute(method, value) {
+    switch (method) {
+      case "state":
+        return { path: "/live/state", verb: "GET" };
+      case "auth.start":
+        return { path: "/auth/start", verb: "POST", body: {} };
+      case "auth.session":
+        return { path: "/auth/session", verb: "GET" };
+      case "seats.connect":
+        return { path: "/seats/connect", verb: "POST", body: { provider: value } };
+      case "hitl.create":
+        return { path: "/hitl/create", verb: "POST", body: value };
+      case "hitl.needYou":
+        return { path: "/hitl/need-you", verb: "GET" };
+      case "hitl.resolve":
+        return { path: "/hitl/resolve", verb: "POST", body: value };
+      case "market.browse":
+        return { path: "/market/browse", verb: "GET" };
+      default:
+        return Studio.assertNever(method);
+    }
+  }
+
+  async function liveInvoke(method, value) {
+    try {
+      if (window.studioShell) {
+        switch (method) {
+          case "state":
+            return await window.studioShell.live.state();
+          case "auth.start":
+            return await window.studioShell.auth.start();
+          case "auth.session":
+            return await window.studioShell.auth.session();
+          case "seats.connect":
+            return await window.studioShell.seats.connect(value);
+          case "hitl.create":
+            return await window.studioShell.hitl.create(value);
+          case "hitl.needYou":
+            return await window.studioShell.hitl.needYou();
+          case "hitl.resolve":
+            return await window.studioShell.hitl.resolve(value);
+          case "market.browse":
+            return await window.studioShell.market.browse(value);
+          default:
+            return Studio.assertNever(method);
+        }
+      }
+      const route = liveRoute(method, value);
+      const response = await fetch(route.path, {
+        method: route.verb,
+        headers: { "Content-Type": "application/json" },
+        body: route.verb === "GET" ? undefined : JSON.stringify(route.body || {}),
+      });
+      return await response.json();
+    } catch (_err) {
+      return { ok: false, code: "BAD_ARGUMENT", detail: "studio live unreachable" };
+    }
+  }
+
   function toggleCode(open) {
     Studio.panes.setCodeOpen(els, state, open);
     Studio.panes.renderBoard(els, state, boardHandlers);
@@ -723,11 +851,18 @@
 
   function wireChrome() {
     if (els.ctaGithub) {
-      els.ctaGithub.addEventListener("click", () => onConnector("github"));
+      els.ctaGithub.addEventListener("click", () => {
+        startGithubAuth();
+      });
     }
     if (els.ctaSeat) {
       els.ctaSeat.addEventListener("click", () => {
         openAddSeat();
+      });
+    }
+    if (els.ctaImport) {
+      els.ctaImport.addEventListener("click", () => {
+        importTeam();
       });
     }
     els.btnCode.addEventListener("click", () => {
@@ -767,19 +902,18 @@
       if (bound) {
         const kind = Studio.panes.replyKindFor(bound);
         if (Studio.panes.needsHitlCard(kind)) {
-          state.pendingHitl = {
-            id: `hitl:${kind}:${bound.id}`,
+          liveInvoke("hitl.create", {
             kind,
             title: bound.title || "High-risk outbound",
-            destination: bound.provider === "github" ? "GitHub" : "Slack",
-            actor: "human",
-            payload: text,
-            diff: "",
-            status: "pending",
-          };
-          state.flash = "high-risk send needs Board HITL";
-          els.composerInput.value = "";
-          renderChrome();
+            payload_summary: text,
+          }).then((result) => {
+            if (result && result.state) {
+              applyLiveState(result.state);
+            }
+            state.flash = result && result.ok ? "high-risk send needs Board HITL" : result && result.code ? `CODE: ${result.code}` : "HITL create failed";
+            els.composerInput.value = "";
+            renderChrome();
+          });
           return;
         }
         postReply({
@@ -797,7 +931,7 @@
           } else if (result && result.code === "UNBOUND_REPLY") {
             state.flash = "UNBOUND_REPLY";
           } else {
-            state.flash = result && result.code ? result.code : "reply failed";
+            state.flash = result && result.code ? `CODE: ${result.code}` : "reply failed";
           }
           els.composerInput.value = "";
           renderChrome();
@@ -809,7 +943,7 @@
         if (result && result.ok) {
           state.flash = "sent through chat engine";
         } else {
-          state.flash = result && result.code ? result.code : "chat send failed";
+          state.flash = result && result.code ? `CODE: ${result.code}` : "chat send failed";
         }
         renderChrome();
       });
@@ -834,76 +968,6 @@
         toggleCode(false);
       }
     });
-  }
-
-  function dumpName() {
-    const query = new URLSearchParams(window.location.search);
-    return query.get("fixture") === "human" || query.get("view") === "live"
-      ? "attention.human.json"
-      : "attention.empty.json";
-  }
-
-  function initialView() {
-    const query = new URLSearchParams(window.location.search);
-    return query.get("fixture") === "human" || query.get("view") === "live" ? "live" : "cold";
-  }
-
-  async function loadNamedDump(name) {
-    try {
-      if (window.studioShell && typeof window.studioShell.loadDump === "function") {
-        state.dump = await window.studioShell.loadDump(name);
-        return;
-      }
-      const response = await fetch(`./fixtures/${name}`);
-      if (!response.ok) {
-        throw new Error(String(response.status));
-      }
-      state.dump = await response.json();
-    } catch (_err) {
-      state.dump = null;
-    }
-  }
-
-  async function loadDump() {
-    await loadNamedDump(dumpName());
-  }
-
-  async function loadInbox() {
-    try {
-      if (window.studioShell && typeof window.studioShell.loadInbox === "function") {
-        const items = await window.studioShell.loadInbox();
-        state.inbox = Array.isArray(items) ? items : [];
-        return;
-      }
-      const response = await fetch("/twoway/inbox.json");
-      if (!response.ok) {
-        state.inbox = [];
-        return;
-      }
-      const items = await response.json();
-      state.inbox = Array.isArray(items) ? items : [];
-    } catch (_err) {
-      state.inbox = [];
-    }
-  }
-
-  async function loadSeats() {
-    const result = await seatsInvoke("list");
-    if (!result || result.ok !== true || !Array.isArray(result.seats)) {
-      return;
-    }
-    for (const seat of result.seats) {
-      if (seat.kind !== "bot") {
-        continue;
-      }
-      if (seat.presence !== "online" && seat.in_studio_only !== true) {
-        continue;
-      }
-      const applied = Studio.seats.applyConnectResult(state.seats, { ok: true, seat });
-      if (applied.ok) {
-        state.seats = applied.seats;
-      }
-    }
   }
 
   async function loadCatalog() {
@@ -949,20 +1013,13 @@
     }
 
     await loadCatalog();
-    await loadDump();
+    const live = await liveInvoke("state");
+    if (live && live.ok) {
+      applyLiveState(live);
+    }
     await chatInvoke("bind");
     Studio.panes.setCodeOpen(els, state, false);
-    if (initialView() === "live") {
-      await loadInbox();
-    }
-    setView(initialView());
-    if (state.view !== "live") {
-      await loadSeats();
-      renderChrome();
-    } else {
-      bindFirstInbox();
-      renderChrome();
-    }
+    renderChrome();
     wireChrome();
   }
 

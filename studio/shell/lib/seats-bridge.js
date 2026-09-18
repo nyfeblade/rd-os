@@ -14,9 +14,24 @@ const {
   seatLabelOf,
   seatKindOf,
   isKnownProvider,
+  isImportableId,
 } = require("../../seats");
 
 const SEATS_REL = "studio/seats";
+const PROVIDER_ALIASES = Object.freeze({
+  elon: "grok",
+  "elon-musk": "grok",
+  grokbot: "grok",
+  "grok-bot": "grok",
+});
+
+function resolveProvider(id) {
+  const raw = typeof id === "string" ? id.trim().toLowerCase() : "";
+  if (!raw) {
+    return "";
+  }
+  return PROVIDER_ALIASES[raw] || raw;
+}
 
 function assertNeverProvider(id) {
   throw new Error(`unhandled KnownProviderId: ${id}`);
@@ -122,29 +137,35 @@ function createSeatsSession(options) {
   });
 
   function connect(provider) {
-    if (!isKnownProvider(provider)) {
+    const id = resolveProvider(provider);
+    if (!isKnownProvider(id) && !isImportableId(id)) {
       return unknownProvider(provider);
     }
-    const secret = missingSecret(provider, env);
-    if (secret) {
-      return secret;
+    /* Product lock: Connect is MCP-attach + seats.register/connect.
+       Provider API keys are not the happy path. Agents attach via studio/mcp. */
+
+    if (isImportableId(id) && !isKnownProvider(id)) {
+      const imported = studio.registerImportedSeat(id);
+      if (!imported.ok) {
+        return reject(imported.code, imported.detail);
+      }
+    } else {
+      const registered = studio.seats.register({
+        id,
+        kind: seatKindOf(id),
+        label: seatLabelOf(id),
+      });
+      if (!registered.ok) {
+        return reject(registered.code, registered.detail);
+      }
     }
 
-    const registered = studio.seats.register({
-      id: provider,
-      kind: seatKindOf(provider),
-      label: seatLabelOf(provider),
-    });
-    if (!registered.ok) {
-      return reject(registered.code, registered.detail);
-    }
-
-    const connected = studio.seats.connect(provider);
+    const connected = studio.seats.connect(id);
     if (!connected.ok) {
       return reject(connected.code, connected.detail);
     }
 
-    const attached = studio.cutover.attach(provider);
+    const attached = studio.cutover.attach(id);
     if (!attached.ok) {
       return reject(attached.code, attached.detail);
     }
@@ -152,7 +173,7 @@ function createSeatsSession(options) {
     const seat = attached.data && attached.data.seat
       ? attached.data.seat
       : connected.data.seat;
-    const presence = studio.presence.get(provider);
+    const presence = studio.presence.get(id);
     const listed = studio.presence.list();
     const roster = listed.ok && listed.data && Array.isArray(listed.data.presence)
       ? listed.data.presence
@@ -160,7 +181,8 @@ function createSeatsSession(options) {
 
     return {
       ok: true,
-      provider,
+      provider: id,
+      mcp_attach: "studio/mcp",
       connected_at: connected.data.connected_at,
       tools_allowed: connected.data.tools_allowed,
       cutover: true,
@@ -197,11 +219,27 @@ function createSeatsSession(options) {
     };
   }
 
+  function importTeam() {
+    const imported = studio.importRoster();
+    if (!imported.ok) {
+      return reject(imported.code, imported.detail);
+    }
+    return {
+      ok: true,
+      seats: imported.data.seats,
+      skipped: imported.data.skipped,
+      count: imported.data.count,
+      mcp_attach: "studio/mcp",
+      engine: SEATS_REL,
+    };
+  }
+
   return {
     connect,
     list,
     presence,
     providers,
+    importTeam,
     studio,
     home,
   };
@@ -217,6 +255,7 @@ module.exports = {
   defaultHome,
   envHasSecret,
   isKnownProvider,
+  resolveProvider,
   missingSecret,
   providers,
   secretKeysFor,

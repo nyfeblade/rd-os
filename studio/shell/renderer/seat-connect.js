@@ -9,7 +9,7 @@
   }
 
   function providerLabel(id) {
-    switch (id) {
+    switch (resolveProvider(id)) {
       case "claude":
         return "Claude";
       case "grok":
@@ -27,8 +27,16 @@
     }
   }
 
+  function resolveProvider(id) {
+    const raw = typeof id === "string" ? id.trim().toLowerCase() : "";
+    if (raw === "elon" || raw === "elon-musk" || raw === "grokbot" || raw === "grok-bot") {
+      return "grok";
+    }
+    return raw;
+  }
+
   function isKnownProvider(id) {
-    return KNOWN_PROVIDERS.includes(id);
+    return KNOWN_PROVIDERS.includes(resolveProvider(id));
   }
 
   function providerRows() {
