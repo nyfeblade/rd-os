@@ -21,6 +21,18 @@
           { "id": "p1", "kind": "fetch", "command_or_url": "https://github.com/nyfeblade/rd-os", "status": "fetched", "evidence_uri": "https://github.com/nyfeblade/rd-os" }
         ]
       }
+    },
+    {
+      "experiment_id": "exp-wait-agent",
+      "title": "Probes still running",
+      "stage": "fanout",
+      "estimate_ca_hours": 3,
+      "estimate_proof_min": 30,
+      "human_gates": [],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null },
+      "opened_n": 3,
+      "instrument": "apl prove",
+      "opened_at": "2026-09-18T02:46:00.000Z"
     }
   ],
   "packets": [
@@ -32,5 +44,13 @@
       "claim": { "experiment_id": "exp-wait-proof", "runner_result": "REJECTED", "verdict": null }
     }
   ],
-  "baselines": []
+  "baselines": [
+    {
+      "experiment_id": "exp-1-planted-false",
+      "title": "Planted-false: tests passed",
+      "actuals_ca_hours": 2,
+      "actuals_proof_min": 1,
+      "runner_result": "REJECTED"
+    }
+  ]
 }

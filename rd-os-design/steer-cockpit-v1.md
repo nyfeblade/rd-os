@@ -1,3 +1,9 @@
+# SUPERSEDED — use Ink Desk v2
+
+**Creative lock:** `rd-os-design/steer-ui-v2.md` + `ink-desk-waiting.html` supersede this file for all customer-facing surface work. Keep this document as the v1 paper trail (Raycast/Linear, then greyscale Magic Ink). Do not implement from it.
+
+---
+
 # R&D OS — customer-facing product design v1
 # Studio Designer → Elon / Eng Lead (feed CA as follow-up; do not parallel-thrash bc-d611b2ff)
 

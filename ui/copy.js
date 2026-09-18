@@ -1,20 +1,20 @@
 "use strict";
 
 const REJECT_PLAIN = {
-  MISSING_MACHINE_TIME: "Rejected: missing time fields",
-  HUMAN_WEEK_WITHOUT_GATE: "Rejected: week estimate without a human gate",
-  MISSING_ACTUALS: "Rejected: missing actual time spent",
-  SINGLE_LANE: "Rejected: only one probe",
-  PROBE_NOT_FETCH_OR_RUN: "Rejected: a probe did not fetch or run",
-  NO_EVIDENCE_RECOMBINE: "Rejected: no evidence to combine",
-  NO_ENVELOPE_QUERY: "Rejected: no past-run check",
-  NOT_FINISHED: "Rejected: experiment is not finished",
-  NO_RESEARCH: "Rejected: no evidence packet",
-  WEIGHT_ONLY: "Rejected: score without evidence",
-  UNDER_SCOPE: "Rejected: plan shrank without a real constraint",
-  SELF_CERT: "Rejected: you can’t certify your own result",
+  MISSING_MACHINE_TIME: "Rejected — missing time fields",
+  HUMAN_WEEK_WITHOUT_GATE: "Rejected — week estimate without a human gate",
+  MISSING_ACTUALS: "Rejected — missing actual time spent",
+  SINGLE_LANE: "Rejected — only one probe",
+  PROBE_NOT_FETCH_OR_RUN: "Rejected — a probe did not fetch or run",
+  NO_EVIDENCE_RECOMBINE: "Rejected — no evidence to combine",
+  NO_ENVELOPE_QUERY: "Rejected — no past-run check",
+  NOT_FINISHED: "Rejected — experiment is not finished",
+  NO_RESEARCH: "Rejected — no evidence packet",
+  WEIGHT_ONLY: "Rejected — score without evidence",
+  UNDER_SCOPE: "Rejected — scope shrunk without a reason",
+  SELF_CERT: "Rejected — you can’t certify your own result",
   NOT_HUMAN: "Only you can do this",
-  UNKNOWN_TOOL: "Rejected: unknown action",
+  UNKNOWN_TOOL: "Rejected — unknown action",
 };
 
 const GATE_PLAIN = {
@@ -42,7 +42,7 @@ function assertNeverWaitingOn(who) {
 function whyPlain(why) {
   const text = String(why || "");
   if (/board empty|no open experiment/i.test(text)) {
-    return "Nothing waiting.";
+    return "Nothing needs you.";
   }
   if (/merge gate/i.test(text)) {
     return "Plan ready — merge gate";
@@ -56,29 +56,46 @@ function whyPlain(why) {
   return text || "Something is waiting.";
 }
 
-function waitingOnWho(who) {
+function waitingRowLabel(who) {
   switch (who) {
     case "human":
-      return "Human";
+      return "Needs you";
     case "proof":
-      return "Proof";
+      return "Checking claims…";
     case "agent":
-      return "Agent";
+      return "Running probes…";
     default:
       return assertNeverWaitingOn(who);
   }
 }
 
-function waitingRowLabel(who) {
-  return waitingOnWho(who);
+function waitingKicker(who) {
+  switch (who) {
+    case "human":
+      return "Needs you";
+    case "proof":
+    case "agent":
+      return "In flight";
+    default:
+      return assertNeverWaitingOn(who);
+  }
 }
 
-function humanRowDetail() {
-  return "Agents finished probes. Decision required.";
+function waitingSub(who) {
+  switch (who) {
+    case "human":
+      return "The agents finished their probes. Your call.";
+    case "proof":
+      return "Eng Proof is running. We’ll pull you back if something needs a decision.";
+    case "agent":
+      return "Work is in flight. We’ll pull you back if something needs a decision.";
+    default:
+      return assertNeverWaitingOn(who);
+  }
 }
 
 function rejectPlain(code) {
-  return REJECT_PLAIN[code] || (code ? `Rejected: ${code}` : "Rejected");
+  return REJECT_PLAIN[code] || (code ? `Rejected — ${code}` : "Rejected");
 }
 
 function gatePlain(kind) {
@@ -98,7 +115,7 @@ function formatAge(ageS) {
   if (!minutes) {
     return `${hours}h`;
   }
-  return `${hours}h ${String(minutes).padStart(2, "0")}m`;
+  return `${hours}h`;
 }
 
 function parseGate(entry) {
@@ -110,18 +127,55 @@ function parseGate(entry) {
   return { experiment_id: text.slice(0, idx), kind: text.slice(idx + 1) };
 }
 
+function agentTime(hours) {
+  return `Agent time · ${hours} hours`;
+}
+
+function proofTime(min) {
+  return `Proof · ${min} min`;
+}
+
+function baselinePlain(hint) {
+  if (hint && typeof hint.baseline_ca_hours === "number") {
+    return `Last similar run · ${hint.baseline_ca_hours} CA hours`;
+  }
+  return "No similar run yet";
+}
+
 if (typeof window !== "undefined") {
   window.RdosCopy = {
     REJECT_PLAIN,
     GATE_PLAIN,
     RULES_PLAIN,
     whyPlain,
-    waitingOnWho,
     waitingRowLabel,
-    humanRowDetail,
+    waitingKicker,
+    waitingSub,
     rejectPlain,
     gatePlain,
     formatAge,
     parseGate,
+    agentTime,
+    proofTime,
+    baselinePlain,
+  };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    REJECT_PLAIN,
+    GATE_PLAIN,
+    RULES_PLAIN,
+    whyPlain,
+    waitingRowLabel,
+    waitingKicker,
+    waitingSub,
+    rejectPlain,
+    gatePlain,
+    formatAge,
+    parseGate,
+    agentTime,
+    proofTime,
+    baselinePlain,
   };
 }

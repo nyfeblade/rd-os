@@ -2,7 +2,7 @@
   "experiments": [
     {
       "experiment_id": "exp-wait-merge",
-      "title": "Approve the probe plan",
+      "title": "Exp-2 wedge",
       "stage": "accepted",
       "estimate_ca_hours": 2,
       "estimate_proof_min": 20,
@@ -13,7 +13,7 @@
       "opened_n": 3,
       "kill": "day-0 armable; do not claim 14d PASS",
       "instrument": "apl prove",
-      "opened_at": "2026-09-18T03:00:00.000Z",
+      "opened_at": "2026-09-18T03:34:00.000Z",
       "fanout": {
         "n": 3,
         "recombine": "evidence_only",
@@ -25,8 +25,63 @@
           { "id": "p2", "kind": "run", "command_or_url": "./scripts/stranger-check.sh", "status": "ran", "evidence_uri": "scripts/stranger-check.sh" }
         ]
       }
+    },
+    {
+      "experiment_id": "exp-wait-proof",
+      "title": "Claims check",
+      "stage": "accepted",
+      "estimate_ca_hours": 1.5,
+      "estimate_proof_min": 15,
+      "human_gates": [],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null },
+      "opened_n": 2,
+      "instrument": "apl prove",
+      "opened_at": "2026-09-18T03:42:00.000Z",
+      "fanout": {
+        "n": 2,
+        "recombine": "evidence_only",
+        "anti_single_lane": "pass",
+        "constraint": null,
+        "probes": [
+          { "id": "p0", "kind": "run", "command_or_url": "npm run demo:reject", "status": "ran", "evidence_uri": "evidence/proof-layer" },
+          { "id": "p1", "kind": "fetch", "command_or_url": "https://github.com/nyfeblade/rd-os", "status": "fetched", "evidence_uri": "https://github.com/nyfeblade/rd-os" }
+        ]
+      }
+    },
+    {
+      "experiment_id": "exp-wait-agent",
+      "title": "Probes still running",
+      "stage": "fanout",
+      "estimate_ca_hours": 3,
+      "estimate_proof_min": 30,
+      "human_gates": [],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null },
+      "opened_n": 3,
+      "instrument": "apl prove",
+      "opened_at": "2026-09-18T02:46:00.000Z",
+      "fanout": {
+        "n": 3,
+        "recombine": "evidence_only",
+        "anti_single_lane": "pass",
+        "constraint": null,
+        "probes": [
+          { "id": "p0", "kind": "run", "command_or_url": "npm run demo:reject", "status": "pending", "evidence_uri": null },
+          { "id": "p1", "kind": "fetch", "command_or_url": "https://github.com/nyfeblade/agent-proof-layer", "status": "pending", "evidence_uri": null },
+          { "id": "p2", "kind": "run", "command_or_url": "./scripts/stranger-check.sh", "status": "pending", "evidence_uri": null }
+        ]
+      }
     }
   ],
   "packets": [],
-  "baselines": []
+  "baselines": [
+    {
+      "experiment_id": "exp-1-planted-false",
+      "title": "Planted-false: tests passed",
+      "instrument": "apl prove",
+      "actuals_ca_hours": 2,
+      "actuals_proof_min": 1,
+      "runner_result": "REJECTED",
+      "finished_at": "2026-09-18T02:48:37Z"
+    }
+  ]
 }
