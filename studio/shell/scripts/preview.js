@@ -4,7 +4,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const { readCatalogP0 } = require("../lib/read-catalog");
+const { tryReadCatalogP0 } = require("../lib/read-catalog");
 
 const ROOT = path.join(__dirname, "..", "renderer");
 const PORT = Number(process.env.PORT || 5173);
@@ -30,14 +30,9 @@ function safeJoin(root, requestPath) {
 const server = http.createServer((req, res) => {
   const urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
   if (urlPath === "/catalog.json") {
-    try {
-      const rows = readCatalogP0();
-      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-      res.end(JSON.stringify(rows));
-    } catch (err) {
-      res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
-      res.end(JSON.stringify({ error: String(err && err.message ? err.message : err) }));
-    }
+    const rows = tryReadCatalogP0();
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify(rows));
     return;
   }
   const file = safeJoin(ROOT, req.url || "/");

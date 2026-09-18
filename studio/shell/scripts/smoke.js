@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.join(__dirname, "..");
-const { readCatalogP0 } = require("../lib/read-catalog");
+const { CATALOG_REL, catalogPath, catalogPresent, tryReadCatalogP0 } = require("../lib/read-catalog");
 const { coldOpenSeats, CONNECT_ACK, DEFAULT_SEAT_IDS, IN_STUDIO_ONLY_LABEL } = require("../lib/cold-open");
 const seats = require("../../seats");
 
@@ -102,7 +102,7 @@ assert.match(main, /DEFAULT_WIDTH = 1440/);
 assert.match(main, /DEFAULT_HEIGHT = 900/);
 assert.match(main, /MIN_WIDTH = 1200/);
 assert.match(main, /MIN_HEIGHT = 720/);
-assert.match(main, /readCatalogP0/);
+assert.match(main, /tryReadCatalogP0/);
 
 assert.match(readme, /npm start/);
 assert.match(readme, /Chat \+ Board/);
@@ -148,15 +148,24 @@ for (const id of ["grok", "claude", "cursor"]) {
 assert.ok(roster.some((item) => item.id === "room:chat"));
 assert.ok(!roster.some((item) => item.id === "luke"));
 
-const p0 = readCatalogP0();
-assert.ok(p0.length >= 5, "catalog P0 should be multi-provider");
-for (const row of p0) {
-  assert.match(js, new RegExp(`id: "${row.id}"`), `fallback missing catalog P0 ${row.id}`);
-  assert.equal(row.status, "needs-auth");
+assert.equal(CATALOG_REL, "studio/connectors/CATALOG.md");
+assert.ok(catalogPath().endsWith(path.join("studio", "connectors", "CATALOG.md")));
+assert.doesNotMatch(read("lib/read-catalog.js"), /writeFile|writeFileSync/);
+assert.doesNotMatch(js, /studio\/connectors\//);
+
+const p0 = tryReadCatalogP0();
+if (catalogPresent()) {
+  assert.ok(p0.length >= 5, "catalog P0 should be multi-provider when present");
+  for (const row of p0) {
+    assert.match(js, new RegExp(`id: "${row.id}"`), `fallback missing catalog P0 ${row.id}`);
+    assert.equal(row.status, "needs-auth");
+  }
+  assert.ok(p0.some((row) => row.id === "github"));
+  assert.ok(p0.some((row) => row.id === "claude"));
+  assert.ok(p0.some((row) => row.id === "grok"));
+  assert.ok(p0.some((row) => row.id === "cursor"));
+} else {
+  assert.deepEqual(p0, []);
 }
-assert.ok(p0.some((row) => row.id === "github"));
-assert.ok(p0.some((row) => row.id === "claude"));
-assert.ok(p0.some((row) => row.id === "grok"));
-assert.ok(p0.some((row) => row.id === "cursor"));
 
 process.stdout.write("studio/shell smoke ok\n");

@@ -3,8 +3,15 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
+/** Read-only SoT. This lane never writes `studio/connectors/**`. */
+const CATALOG_REL = "studio/connectors/CATALOG.md";
+
 function catalogPath() {
   return path.resolve(__dirname, "..", "..", "connectors", "CATALOG.md");
+}
+
+function catalogPresent() {
+  return fs.existsSync(catalogPath());
 }
 
 function assertNever(value) {
@@ -109,12 +116,23 @@ function readCatalogP0() {
   return parseP0(readCatalogMarkdown());
 }
 
+/** Consume CATALOG.md when present. Empty when the connectors lane has not landed. */
+function tryReadCatalogP0() {
+  if (!catalogPresent()) {
+    return [];
+  }
+  return readCatalogP0();
+}
+
 module.exports = {
+  CATALOG_REL,
   catalogPath,
+  catalogPresent,
   parseP0,
   parsePrioritySection,
   readCatalogMarkdown,
   readCatalogP0,
+  tryReadCatalogP0,
   slugFromName,
   trayLabel,
 };
