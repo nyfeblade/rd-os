@@ -1,0 +1,17 @@
+{
+  "op": "accept",
+  "expect": { "ok": false, "code": "INVALID_EVENT" },
+  "request": {
+    "provider": "slack",
+    "headers": {},
+    "tray_state": "live",
+    "body": {
+      "type": "event_callback",
+      "event": {
+        "type": "app_mention",
+        "user": "U123",
+        "text": "<@Ubot> hi"
+      }
+    }
+  }
+}

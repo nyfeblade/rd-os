@@ -1,0 +1,18 @@
+{
+  "op": "accept",
+  "expect": { "ok": true, "dropped": true },
+  "request": {
+    "provider": "github",
+    "headers": { "x-github-event": "ping" },
+    "tray_state": "live",
+    "body": {
+      "zen": "Keep it logically awesome.",
+      "hook_id": 1,
+      "repository": {
+        "name": "rd-os",
+        "full_name": "nyfeblade/rd-os",
+        "owner": { "login": "nyfeblade" }
+      }
+    }
+  }
+}

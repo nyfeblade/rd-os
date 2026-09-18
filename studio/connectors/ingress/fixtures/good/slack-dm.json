@@ -1,0 +1,25 @@
+{
+  "op": "accept",
+  "expect": {
+    "ok": true,
+    "dropped": false,
+    "kind": "dm",
+    "need_you": true,
+    "dest": "chat",
+    "provider": "slack",
+    "at_you": true
+  },
+  "request": {
+    "provider": "slack",
+    "headers": {},
+    "tray_state": "live",
+    "body": {
+      "type": "message",
+      "channel_type": "im",
+      "user": "U123",
+      "text": "<@Ubot> can you reply from studio?",
+      "ts": "1726665660.000200",
+      "channel": "Ddm"
+    }
+  }
+}

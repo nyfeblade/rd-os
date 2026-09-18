@@ -1,0 +1,13 @@
+{
+  "op": "accept",
+  "expect": { "ok": true, "dropped": true, "challenge": "probe-challenge" },
+  "request": {
+    "provider": "slack",
+    "headers": {},
+    "tray_state": "live",
+    "body": {
+      "type": "url_verification",
+      "challenge": "probe-challenge"
+    }
+  }
+}

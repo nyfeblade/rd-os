@@ -1,0 +1,17 @@
+{
+  "op": "accept",
+  "expect": { "ok": false, "code": "UNKNOWN_EVENT" },
+  "request": {
+    "provider": "github",
+    "headers": { "x-github-event": "sponsorship" },
+    "tray_state": "live",
+    "body": {
+      "action": "created",
+      "repository": {
+        "name": "rd-os",
+        "full_name": "nyfeblade/rd-os",
+        "owner": { "login": "nyfeblade" }
+      }
+    }
+  }
+}

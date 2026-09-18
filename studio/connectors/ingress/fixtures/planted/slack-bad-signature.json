@@ -1,0 +1,19 @@
+{
+  "op": "accept",
+  "sign": false,
+  "refresh_timestamp": true,
+  "expect": { "ok": false, "code": "BAD_SIGNATURE" },
+  "request": {
+    "provider": "slack",
+    "secret": "fixture-slack-signing-secret",
+    "headers": {
+      "x-slack-request-timestamp": "now",
+      "x-slack-signature": "v0=0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "tray_state": "live",
+    "body": {
+      "type": "event_callback",
+      "event": { "type": "app_mention", "user": "U123", "text": "hi", "ts": "1", "channel": "Ceng" }
+    }
+  }
+}

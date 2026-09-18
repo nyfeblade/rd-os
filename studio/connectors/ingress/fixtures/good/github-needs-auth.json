@@ -1,0 +1,17 @@
+{
+  "op": "accept",
+  "expect": {
+    "ok": true,
+    "dropped": false,
+    "kind": "auth_failure",
+    "need_you": true,
+    "dest": "chat+board",
+    "provider": "github"
+  },
+  "request": {
+    "provider": "github",
+    "headers": { "x-github-event": "issue_comment" },
+    "tray_state": "needs_auth",
+    "body": { "action": "created", "sender": { "login": "reviewer", "type": "User" } }
+  }
+}
