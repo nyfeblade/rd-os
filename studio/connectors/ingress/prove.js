@@ -71,6 +71,9 @@ function materializeRequest(record) {
     Object.assign(request.headers, signHeaders(provider, request.raw_body, secret));
     request.secret = secret;
   }
+  if (record.refresh_timestamp === true && provider === "slack") {
+    request.headers["x-slack-request-timestamp"] = String(Math.floor(Date.now() / 1000));
+  }
   return request;
 }
 
