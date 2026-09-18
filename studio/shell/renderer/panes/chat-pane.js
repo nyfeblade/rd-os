@@ -131,6 +131,29 @@
     }
   }
 
+  function appendMessage(els, message) {
+    if (!message || !message.body) {
+      return;
+    }
+    const wrap = document.createElement("div");
+    wrap.className = "msg";
+    if (message.kind) {
+      wrap.dataset.kind = message.kind;
+    }
+    const who = document.createElement("div");
+    who.className = "who";
+    who.textContent = message.who;
+    const body = document.createElement("div");
+    body.className = "txt";
+    body.textContent = message.body;
+    wrap.append(who, body);
+    els.messages.appendChild(wrap);
+  }
+
+  function engineMessages(state) {
+    return state.engine && Array.isArray(state.engine.messages) ? state.engine.messages : [];
+  }
+
   function renderThread(els, state, handlers) {
     const seat = selectedSeat(state);
     const bound = boundItem(state);
@@ -158,45 +181,41 @@
         });
         els.messages.appendChild(wrap);
       }
+      for (const message of engineMessages(state)) {
+        if (message.kind === "system") {
+          continue;
+        }
+        appendMessage(els, message);
+      }
       if (state.outbox && state.outbox.length) {
         for (const sent of state.outbox) {
-          const wrap = document.createElement("div");
-          wrap.className = "msg";
-          const who = document.createElement("div");
-          who.className = "who";
-          who.textContent = sent.actor === "bot" ? "Bot" : "You";
-          const body = document.createElement("div");
-          body.className = "txt";
-          body.textContent = sent.body;
-          wrap.append(who, body);
-          els.messages.appendChild(wrap);
+          appendMessage(els, {
+            who: sent.actor === "bot" ? "Bot" : "You",
+            body: sent.body,
+            kind: "outbox",
+          });
         }
       } else if (bound) {
         /* composer is the draft — no essay bubble */
       }
       els.composerInput.placeholder = bound
         ? `${bound.provider === "github" ? "GitHub" : "Slack"}…`
-        : "Select thread…";
-      els.composerInput.disabled = !bound;
+        : `Message ${seat.name}…`;
+      els.composerInput.disabled = false;
       if (els.composeSend) {
         els.composeSend.textContent = "Send";
       }
     } else {
-      const messages = THREADS[seat.id] || [];
-      for (const message of messages) {
-        if (!message.body) {
-          continue;
+      const live = engineMessages(state);
+      if (live.length) {
+        for (const message of live) {
+          appendMessage(els, message);
         }
-        const wrap = document.createElement("div");
-        wrap.className = "msg";
-        const who = document.createElement("div");
-        who.className = "who";
-        who.textContent = message.who;
-        const body = document.createElement("div");
-        body.className = "txt";
-        body.textContent = message.body;
-        wrap.append(who, body);
-        els.messages.appendChild(wrap);
+      } else {
+        const messages = THREADS[seat.id] || [];
+        for (const message of messages) {
+          appendMessage(els, message);
+        }
       }
       els.composerInput.placeholder = `Message ${seat.name}…`;
       els.composerInput.disabled = false;

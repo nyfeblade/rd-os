@@ -4,8 +4,14 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 
+const { createChatSession } = require("../lib/chat-bridge");
 const { tryReadCatalogP0 } = require("../lib/read-catalog");
 const { demoInbox, mergeWireConnectors, sendReply } = require("../lib/two-way");
+
+const chatSession = createChatSession();
+chatSession.bind().catch((err) => {
+  process.stderr.write(`chat bind: ${err && err.message ? err.message : String(err)}\n`);
+});
 
 const ROOT = path.join(__dirname, "..", "renderer");
 const PORT = Number(process.env.PORT || 5173);
@@ -17,6 +23,42 @@ const TYPES = {
   ".json": "application/json; charset=utf-8",
   ".svg": "image/svg+xml",
 };
+
+function sendJson(res, payload, status) {
+  res.writeHead(status || 200, { "Content-Type": "application/json; charset=utf-8" });
+  res.end(JSON.stringify(payload));
+}
+
+function sendChat(res, work) {
+  Promise.resolve()
+    .then(work)
+    .then((result) => {
+      sendJson(res, result);
+    })
+    .catch((err) => {
+      sendJson(res, {
+        ok: false,
+        code: "GIT_EXEC",
+        detail: err && err.message ? err.message : String(err),
+      }, 500);
+    });
+}
+
+function readJson(req, done) {
+  const chunks = [];
+  req.on("data", (chunk) => {
+    chunks.push(chunk);
+  });
+  req.on("end", () => {
+    let body = {};
+    try {
+      body = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+    } catch (_err) {
+      body = {};
+    }
+    done(body);
+  });
+}
 
 function safeJoin(root, requestPath) {
   const decoded = decodeURIComponent(requestPath.split("?")[0]);
@@ -55,6 +97,32 @@ const server = http.createServer((req, res) => {
       }
       res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
       res.end(JSON.stringify(sendReply(draft)));
+    });
+    return;
+  }
+  if (urlPath === "/chat/state" && req.method === "GET") {
+    sendJson(res, { ok: true, state: chatSession.state() });
+    return;
+  }
+  if (urlPath === "/chat/bind" && req.method === "POST") {
+    readJson(req, (body) => {
+      sendChat(res, () => chatSession.bind(body && body.repo));
+    });
+    return;
+  }
+  if (urlPath === "/chat/send" && req.method === "POST") {
+    readJson(req, (body) => {
+      sendChat(res, () => chatSession.send(body && body.text));
+    });
+    return;
+  }
+  if (urlPath === "/chat/refresh" && req.method === "POST") {
+    sendChat(res, () => chatSession.refresh());
+    return;
+  }
+  if (urlPath === "/chat/focus" && req.method === "POST") {
+    readJson(req, (body) => {
+      sendChat(res, () => chatSession.setCodeFocus(Boolean(body && body.open)));
     });
     return;
   }

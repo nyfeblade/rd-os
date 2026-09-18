@@ -27,7 +27,9 @@ A 1440×900 window titled **AI Coding Studio** should open on Chat + Board with 
 | Windows | `npm start` | native window, 1440×900, min 1200×720 |
 | either, browser chrome | `npm run preview` | same renderer at [http://127.0.0.1:5173](http://127.0.0.1:5173) |
 
-`npm test` is a fence/smoke check. It does not launch Electron.
+`npm test` is a fence/smoke check plus a chat-engine prove. It does not launch Electron. The prove **fails** if Chat is still fixture-only (no bind, no `memory.write` persist).
+
+Chat is **engine-backed**. On shell start / Chat pane mount the main process `require`s `studio/chat-engine`, binds the rd-os git toplevel (or a user-picked folder from the bind chip), restores or opens a thread, and paints `repo · branch · dirty` from the live snapshot. Composer send writes thread memory through the engine and survives reopen. Inbox-bound GitHub/Slack replies stay on the two-way path. Code remains a drawer; opening it pushes `focus.source = "code"` into the bound thread.
 
 ## What should be on screen
 
@@ -43,14 +45,15 @@ Code opens from the Code button or Close to put it away.
 
 ```
 studio/shell/
-  electron/                 main + preload
-  lib/                      catalog + seats consume (read-only)
+  electron/                 main + preload (chat-engine IPC)
+  lib/                      catalog + seats consume (read-only) + chat-bridge
   renderer/                 quiet Chat + Board chrome
   renderer/chrome/          ConnectorsTray, ModesRail, PresenceBar
   renderer/panes/           ChatPane, BoardPane, CodeDrawer
-  renderer/fixtures/        attention.dump stubs (no kernel)
-  scripts/preview.js        browser path (+ /catalog.json)
+  renderer/fixtures/        attention.dump stubs (board/inbox only)
+  scripts/preview.js        browser path (+ /catalog.json + /chat/*)
   scripts/smoke.js
+  scripts/prove-chat.js     bind + send must persist; fails on fixture-only Chat
 ```
 
 Reconciled Designer SoT lives in [`design/`](./design/) (`quiet-studio.html`, narrative, spec, layout lock). `studio/design/` and `studio/connectors/**` are consumed read-only — this lane does not write those paths.
