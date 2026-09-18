@@ -20,11 +20,13 @@ npm run mcp-smoke
 echo "exit=$?"
 ```
 
-Expected: **exit 0**. PASS line:
+Expected: **exit 0**. Measured on a cold clone of `4151510` (Node 22.14.0):
 
 ```
 PASS mcp-smoke (initialize + tools/list + attention.dump + steer.gate NOT_HUMAN)
 ```
+
+`wall_ms=113`.
 
 Full stranger lab (board + MCP + Waiting UI + day-0 kill; not a 14d verdict):
 
@@ -34,11 +36,13 @@ npm run dual-gate
 echo "exit=$?"
 ```
 
-Expected last line:
+Measured: **exit 0**, `wall_ms=1485`. Last line:
 
 ```
 PASS dual-gate (stranger + measure + proof-layer + kill14d day0; not a 14d verdict)
 ```
+
+`wedge-measure` JSON: `"beats_markdown": true`, `"verdict": "KEEP_WEDGE"`. Proof Layer hook: `"runner_result": "REJECTED"`, `"measured_exit": 1`, `"expect_exit": 0`, `"verdict": null`. Both `kill14d` arms: `"day": 0`, `"clock_started": false`, `"verdict": null`. rdos arm: `"m1_rejected": 3`, `"m2_illegal_accepts": 0`, `"m3_weight_only_rejected": 5`, `"m4_underscope_rejected": 5`, `"m7_p0_present": true`.
 
 That is not a 14-day verdict. Human merge only.
 
@@ -55,7 +59,7 @@ npm run mcp-smoke
 echo "exit=$?"
 ```
 
-`npm install` fetches the pinned `main` lab into `node_modules/rd-os`. `npm run mcp-smoke` resolves that package and execs **its** `npm run mcp-smoke`. The installed tree is `main` `4151510` (has `consumers/eng-proof` and `consumers/cursor-mcp`; it does not have this `consumers/claude-code/` until this PR merges).
+`npm install` fetches the pinned `main` lab into `node_modules/rd-os` (`git+ssh://git@github.com/nyfeblade/rd-os.git#4151510ad70bf4719b6c5391836348e4db05636b`). `npm run mcp-smoke` resolves that package and execs **its** `npm run mcp-smoke`. Measured here: **exit 0**, `claude-code: mcp-smoke against installed lab …/node_modules/rd-os`, same PASS line, `wall_ms=217`. Cold clone of this branch + `npm install` + `npm run mcp-smoke`: **exit 0**, `wall_ms=573` (install 322 ms). The installed tree is `main` `4151510` (has `consumers/eng-proof` and `consumers/cursor-mcp`; it does not have this `consumers/claude-code/` until this PR merges).
 
 Broader lab check against the same installed tree:
 
@@ -63,6 +67,8 @@ Broader lab check against the same installed tree:
 npm run dual-gate
 echo "exit=$?"
 ```
+
+Measured: **exit 0**, `wall_ms=1881`, same dual-gate PASS line and day-0 fields as the cold clone.
 
 Override the lab root only if you must (still must be an rd-os tree, not this consumer):
 
