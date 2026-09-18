@@ -1,41 +1,33 @@
 import type { WaitingOn } from "./attention";
 
 export const RULES_PLAIN = [
-  "Every experiment needs time in hours and minutes — not weeks — unless a person is gated.",
-  "Plans need more than one probe unless you name a real constraint.",
-  "Claims need evidence, not a score.",
-  "Check how long similar work took before planning more.",
-  "What is waiting on you stays at the top.",
+  "Plan in CA hours and proof minutes — not weeks — unless a human gate is listed.",
+  "Run at least two cheap probes before accepting a plan, unless a real constraint says one is enough.",
+  "Don’t accept scores or vibes as proof — require fetch/run evidence.",
+  "Remember finished CA-hour baselines for the next plan.",
+  "Keep what’s waiting next to these rules — don’t bury them.",
 ] as const;
 
-const GATE_PLAIN: Record<string, string> = {
-  merge: "Merge",
-  proof_accept: "Proof accept",
-  quota_unfreeze: "Quota unfreeze",
-  scope_change: "Scope change",
-  physical_access: "Physical access",
-  legal: "Legal",
-  other: "Other",
-};
+export const REJECT_REASONS = [
+  "Score without evidence",
+  "Scope shrunk without a reason",
+  "Other",
+] as const;
+
+export type RejectReason = (typeof REJECT_REASONS)[number];
+
+export const DEFAULT_REJECT_REASON: RejectReason = "Score without evidence";
 
 export function assertNeverWaitingOn(who: never): never {
   throw new Error(`unhandled WaitingOn: ${who}`);
 }
 
-export function whyPlain(why: string, title?: string): string {
-  const text = String(why || "");
-  if (/board empty|no open experiment/i.test(text)) {
-    return "Nothing waiting.";
-  }
-  if (/merge gate/i.test(text)) {
-    return title ? `Plan ready — merge gate on ${title}` : "Plan ready — merge gate";
-  }
-  if (/Eng Proof owns verdict|packet present/i.test(text)) {
-    return "Checking claims…";
-  }
-  if (/fan-out|claim instrument|open packet|fanout/i.test(text)) {
-    return "Running probes…";
-  }
+export function assertNeverRejectReason(reason: never): never {
+  throw new Error(`unhandled RejectReason: ${reason}`);
+}
+
+export function whyPlain(why: string): string {
+  const text = String(why || "").trim();
   return text || "Something is waiting.";
 }
 
@@ -59,17 +51,20 @@ export function humanRowDetail(): string {
 export function formatAge(ageS: number): string {
   const seconds = Number(ageS) || 0;
   if (seconds < 60) {
-    return `${seconds}s`;
+    return "0m";
   }
   if (seconds < 3600) {
     return `${Math.floor(seconds / 60)}m`;
   }
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  if (!minutes) {
-    return `${hours}h`;
+  if (seconds < 86400) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (!minutes) {
+      return `${hours}h`;
+    }
+    return `${hours}h ${String(minutes).padStart(2, "0")}m`;
   }
-  return `${hours}h ${String(minutes).padStart(2, "0")}m`;
+  return `${Math.floor(seconds / 86400)}d`;
 }
 
 export function parseGate(entry: string): { experiment_id: string; kind: string } {
@@ -81,15 +76,24 @@ export function parseGate(entry: string): { experiment_id: string; kind: string 
   return { experiment_id: text.slice(0, idx), kind: text.slice(idx + 1) };
 }
 
-export function gatePlain(kind: string): string {
-  return GATE_PLAIN[kind] || kind;
+export function experimentPlain(id: string): string {
+  const match = String(id).match(/^exp-(\d+)/i);
+  if (match && match[1]) {
+    return `Exp-${match[1]}`;
+  }
+  return id;
+}
+
+export function gateFootEntry(entry: string): string {
+  const parsed = parseGate(entry);
+  return `${parsed.kind} · ${experimentPlain(parsed.experiment_id)}`;
 }
 
 export function baselinePlain(hint: { baseline_ca_hours: number | null } | null | undefined): string {
   if (hint && typeof hint.baseline_ca_hours === "number") {
     return `Last similar run: ${hint.baseline_ca_hours} CA hours`;
   }
-  return "No baseline yet";
+  return "No similar run yet";
 }
 
 export function formatDumpAge(ageMs: number | null): string {

@@ -52,7 +52,13 @@ export function AppShell() {
             <Route path="/" element={<Navigate to={ROUTES.waiting} replace />} />
             <Route
               path={ROUTES.waiting}
-              element={state.status === "ok" ? <WaitingView dump={state.dump} /> : <Navigate to={ROUTES.waiting} replace />}
+              element={
+                state.status === "ok" ? (
+                  <WaitingView dump={state.dump} onReload={retry} />
+                ) : (
+                  <Navigate to={ROUTES.waiting} replace />
+                )
+              }
             />
             <Route path={ROUTES.experiments} element={<ExperimentsView />} />
             <Route path={`${ROUTES.experiments}/:id`} element={<ExperimentDetailView />} />

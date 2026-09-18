@@ -6,6 +6,7 @@ Design source of truth (copied here, do not restyle from memory):
 
 - [design/TAURI-SHELL-SPEC.md](design/TAURI-SHELL-SPEC.md)
 - [design/SCAFFOLD-PLAN.md](design/SCAFFOLD-PLAN.md)
+- [design/CA4-CLARIFICATIONS.md](design/CA4-CLARIFICATIONS.md) — copy map, Rules, Reject
 - [design/tokens.css](design/tokens.css) — paper `#f4f4f2`, ink greys only
 - [design/waiting-greyscale.html](design/waiting-greyscale.html) — cockpit graphic
 
@@ -23,8 +24,8 @@ Point the shell at a live board (lab default is `var/` at the repo root):
 
 ```bash
 export RDOS_HOME=/absolute/path/to/rd-os/var
-# optional explicit file:
-# export RDOS_DUMP=/absolute/path/to/attention.dump.json
+# UI-only: point at the designer human fixture
+# export RDOS_DUMP="$PWD/fixtures/attention.dump.json"
 npm run tauri dev
 ```
 
@@ -76,9 +77,15 @@ The window reads JSON from, in order:
 2. `$RDOS_HOME/board/attention.dump.json`
 3. `$RDOS_HOME/attention.dump.json`
 
-A kernel dump needs `p0` and `hard_law` as siblings. `p0.id === "idle"` is the empty board. Optional `items[]` is the same row shape as `p0` and is only for richer dump documents / fixtures — the shell will not invent rows when they are absent.
+A dump needs `p0` and `hard_law` as siblings. `p0.why` is the What line. `p0.id` is Details / footnote only. `p0.id === "idle"` is the Empty state. Optional `items[]` is the same row shape as `p0` — the shell will not invent rows when they are absent.
 
-Approve / Reject in this spike stay on the row (feedback). Persist for real with `rdos steer.gate --actor human` from the lab. This shell does not write `board/`.
+Shipped fixtures (see [fixtures/README.md](fixtures/README.md)):
+
+- `fixtures/attention.dump.json` — human-waiting
+- `fixtures/attention.dump.flight.json` — in-flight only
+- `fixtures/attention.dump.empty.json` — idle
+
+Reject opens a sheet (`Score without evidence` / `Scope shrunk without a reason` / `Other`) then Confirm reject / Cancel. The row updates on the next dump read. This shell does not write `board/`.
 
 ## Routes
 

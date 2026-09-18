@@ -1,7 +1,7 @@
 {
   "p0": {
     "id": "exp-wait-proof",
-    "why": "packet present; Eng Proof owns verdict",
+    "why": "Checking claims…",
     "waiting_on": "proof",
     "age_s": 240
   },
@@ -14,19 +14,19 @@
   ],
   "open_gates": [],
   "envelope_hint": {
-    "nearest_experiment_id": "exp-1-planted-false",
+    "nearest_experiment_id": "exp-1-proof",
     "baseline_ca_hours": 2.0
   },
   "items": [
     {
       "id": "exp-wait-proof",
-      "why": "packet present; Eng Proof owns verdict",
+      "why": "Checking claims…",
       "waiting_on": "proof",
       "age_s": 240
     },
     {
       "id": "exp-wait-agent",
-      "why": "open packet needs fan-out / claim instrument",
+      "why": "Running probes…",
       "waiting_on": "agent",
       "age_s": 3720
     }

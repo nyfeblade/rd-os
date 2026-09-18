@@ -7,8 +7,10 @@ export function ExperimentDetailView() {
     <section className="stub" data-testid="experiment-detail-stub">
       <h1>Experiment</h1>
       <p className="quiet">
-        Stub for <code>{id || "unknown"}</code>. Machine-time, gates, and claims stay on the
-        board — this window does not invent them.
+        Machine-time, gates, and claims stay on the board — this window does not invent them.
+      </p>
+      <p className="quiet path-hint">
+        id <code>{id || "unknown"}</code>
       </p>
       <div className="actions">
         <Link to={ROUTES.experiments}>Experiments</Link>

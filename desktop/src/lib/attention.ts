@@ -1,4 +1,4 @@
-import { baselinePlain, gatePlain, parseGate, whyPlain } from "./copy";
+import { baselinePlain, gateFootEntry, whyPlain } from "./copy";
 
 export type WaitingOn = "human" | "agent" | "proof";
 
@@ -144,7 +144,7 @@ export function waitingItems(dump: AttentionDump): WaitingItem[] {
 }
 
 export function whatLabel(item: AttentionP0): string {
-  return whyPlain(item.why, item.title);
+  return whyPlain(item.why);
 }
 
 export function waitingCaption(items: WaitingItem[]): string {
@@ -152,14 +152,11 @@ export function waitingCaption(items: WaitingItem[]): string {
   return human ? "Open items · sorted by urgency" : "Open items · no human gate";
 }
 
-export function waitingFoot(dump: AttentionDump, items: WaitingItem[]): string {
-  const gates = dump.open_gates.map((entry) => parseGate(entry));
-  const gateText = gates.length
-    ? `Open gates: ${gates.map((gate) => `${gatePlain(gate.kind)} · ${gate.experiment_id}`).join(" · ")}`
+export function waitingFoot(dump: AttentionDump): string {
+  const gateText = dump.open_gates.length
+    ? `Open gates: ${dump.open_gates.map((entry) => gateFootEntry(entry)).join(" · ")}`
     : "No open human gates";
-  const human = items.some((item) => item.waiting_on === "human");
-  const prefix = human || gates.length ? gateText : "No open human gates";
-  return `${prefix} · ${baselinePlain(dump.envelope_hint)}`;
+  return `${gateText} · ${baselinePlain(dump.envelope_hint)}`;
 }
 
 export function firstHuman(items: WaitingItem[]): WaitingItem | null {

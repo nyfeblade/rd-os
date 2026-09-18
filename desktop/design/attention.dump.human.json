@@ -1,0 +1,20 @@
+{
+  "p0": {
+    "id": "exp-2-wedge",
+    "why": "Plan ready — merge gate on Exp-2 wedge",
+    "waiting_on": "human",
+    "age_s": 720
+  },
+  "hard_law": [
+    "machine-time",
+    "multi-lane",
+    "research-before-claim",
+    "envelope",
+    "attention-beside-law"
+  ],
+  "open_gates": ["exp-2-wedge:merge"],
+  "envelope_hint": {
+    "nearest_experiment_id": "exp-1-proof",
+    "baseline_ca_hours": 2.0
+  }
+}

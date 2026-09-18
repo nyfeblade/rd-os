@@ -224,6 +224,25 @@ tr[data-id]:focus-visible {
   font-size: 18px;
 }
 
+.sheet-card label {
+  display: block;
+  margin: 12px 0 8px;
+  color: var(--ink-2);
+  font-size: 11px;
+}
+
+.sheet-card select {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 8px;
+}
+
 .settings-block {
   padding: 8px 14px 16px;
 }

@@ -9,18 +9,27 @@ import {
   type AttentionDump,
   type WaitingItem,
 } from "../lib/attention";
-import { humanRowDetail, waitingOnWho, formatAge } from "../lib/copy";
+import {
+  DEFAULT_REJECT_REASON,
+  REJECT_REASONS,
+  formatAge,
+  humanRowDetail,
+  waitingOnWho,
+  type RejectReason,
+} from "../lib/copy";
 import { experimentPath } from "../shell/routes";
 
 type WaitingViewProps = {
   dump: AttentionDump;
+  onReload: () => void;
 };
 
-export function WaitingView({ dump }: WaitingViewProps) {
+export function WaitingView({ dump, onReload }: WaitingViewProps) {
   const navigate = useNavigate();
   const items = waitingItems(dump);
   const [selected, setSelected] = useState(() => Math.max(0, items.findIndex((item) => item.waiting_on === "human")));
   const [sheet, setSheet] = useState<"reject" | null>(null);
+  const [rejectReason, setRejectReason] = useState<RejectReason>(DEFAULT_REJECT_REASON);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   useEffect(() => {
@@ -143,21 +152,35 @@ export function WaitingView({ dump }: WaitingViewProps) {
           ))}
         </tbody>
       </table>
-      <div className="foot">{waitingFoot(dump, items)}</div>
+      <div className="foot">{waitingFoot(dump)}</div>
       {sheet === "reject" ? (
         <div className="sheet" role="dialog" aria-modal="true" aria-label="Reject" data-testid="reject-sheet">
           <div className="sheet-card">
             <h1>Reject</h1>
-            <p className="quiet">Stub confirm. This shell does not write the board.</p>
+            <label>
+              Reason
+              <select
+                value={rejectReason}
+                onChange={(event) => setRejectReason(readRejectReason(event.target.value))}
+              >
+                {REJECT_REASONS.map((reason) => (
+                  <option key={reason} value={reason}>
+                    {reason}
+                  </option>
+                ))}
+              </select>
+            </label>
             <div className="actions">
               <button
                 type="button"
+                data-testid="btn-confirm-reject"
                 onClick={() => {
                   setSheet(null);
-                  setFeedback("Rejected on this row. Persist with rdos steer.gate --actor human.");
+                  setRejectReason(DEFAULT_REJECT_REASON);
+                  onReload();
                 }}
               >
-                Reject
+                Confirm reject
               </button>
               <button type="button" className="secondary" onClick={() => setSheet(null)}>
                 Cancel
@@ -232,6 +255,14 @@ function WaitingRow({
       <td className={`num ${quiet}`.trim()}>{formatAge(item.age_s)}</td>
     </tr>
   );
+}
+
+function readRejectReason(value: string): RejectReason {
+  const found = REJECT_REASONS.find((reason) => reason === value);
+  if (found) {
+    return found;
+  }
+  return DEFAULT_REJECT_REASON;
 }
 
 function testIdFor(who: WaitingItem["waiting_on"]): string {

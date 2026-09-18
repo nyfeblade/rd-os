@@ -1,4 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
+import emptyDump from "../../fixtures/attention.dump.empty.json";
+import flightDump from "../../fixtures/attention.dump.flight.json";
+import humanDump from "../../fixtures/attention.dump.json";
 import { parseAttentionDump, type AttentionDump } from "./attention";
 
 export type DumpRead = {
@@ -16,23 +19,23 @@ export type DumpState =
 
 type FixtureName = "human" | "empty" | "flight";
 
-const FIXTURES: Record<FixtureName, string> = {
-  human: "/fixtures/human.dump.json",
-  empty: "/fixtures/empty.dump.json",
-  flight: "/fixtures/flight.dump.json",
-};
-
-function fixtureUrl(name: string): string | null {
+function fixturePayload(name: string): { json: unknown; path: string } | null {
   switch (name) {
     case "human":
+      return { json: humanDump, path: "desktop/fixtures/attention.dump.json" };
     case "empty":
+      return { json: emptyDump, path: "desktop/fixtures/attention.dump.empty.json" };
     case "flight":
-      return FIXTURES[name];
+      return { json: flightDump, path: "desktop/fixtures/attention.dump.flight.json" };
     case "missing":
       return null;
     default:
       return null;
   }
+}
+
+function isFixtureName(name: string): name is FixtureName | "missing" {
+  return name === "human" || name === "empty" || name === "flight" || name === "missing";
 }
 
 export function isTauriRuntime(): boolean {
@@ -81,8 +84,7 @@ export async function loadDump(): Promise<DumpState> {
   }
 
   if (fixture) {
-    const url = fixtureUrl(fixture);
-    if (!url) {
+    if (!isFixtureName(fixture)) {
       return {
         status: "missing",
         path: `?fixture=${fixture}`,
@@ -90,17 +92,16 @@ export async function loadDump(): Promise<DumpState> {
         detail: "Unknown fixture. Use human, empty, flight, or missing.",
       };
     }
-    try {
-      const json = await fetchJson(url);
-      return parseLoaded(json, url, Date.now());
-    } catch (err) {
+    const payload = fixturePayload(fixture);
+    if (!payload) {
       return {
         status: "missing",
-        path: url,
+        path: `?fixture=${fixture}`,
         home: null,
-        detail: err instanceof Error ? err.message : "fixture missing",
+        detail: "Unknown fixture. Use human, empty, flight, or missing.",
       };
     }
+    return parseLoaded(payload.json, payload.path, Date.now());
   }
 
   if (isTauriRuntime()) {

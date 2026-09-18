@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import emptyDump from "../../fixtures/attention.dump.empty.json";
+import flightDump from "../../fixtures/attention.dump.flight.json";
+import humanDump from "../../fixtures/attention.dump.json";
 import {
   firstHuman,
   isIdleP0,
@@ -9,9 +12,6 @@ import {
   whatLabel,
 } from "./attention";
 import { formatAge, waitingOnWho } from "./copy";
-import emptyDump from "../../public/fixtures/empty.dump.json";
-import flightDump from "../../public/fixtures/flight.dump.json";
-import humanDump from "../../public/fixtures/human.dump.json";
 
 describe("parseAttentionDump", () => {
   it("accepts the human fixture and keeps HARD LAW beside P0", () => {
@@ -43,8 +43,8 @@ describe("waiting table from dump", () => {
     expect(formatAge(items[0]!.age_s)).toBe("12m");
     expect(firstHuman(items)?.id).toBe("exp-2-wedge");
     expect(items.filter((item) => item.waiting_on === "human")).toHaveLength(1);
-    expect(waitingFoot(parsed.dump, items)).toContain("Merge · exp-2-wedge");
-    expect(waitingFoot(parsed.dump, items)).toContain("Last similar run: 2 CA hours");
+    expect(waitingFoot(parsed.dump)).toContain("Open gates: merge · Exp-2");
+    expect(waitingFoot(parsed.dump)).toContain("Last similar run: 2 CA hours");
   });
 
   it("treats idle dump as empty Waiting", () => {
