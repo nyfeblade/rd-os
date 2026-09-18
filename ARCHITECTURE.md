@@ -1,6 +1,6 @@
 # R&D OS wedge — architecture (stack research)
 
-**Status:** usable local-first lab — board/packets + stdio MCP server + `attention.dump` SoT + Ink Desk v2 (dump view) + Proof Layer `demo:reject` hook + day-0 kill harness. No second CA. Harness ≠ 14-day PASS.  
+**Status:** usable local-first lab — board/packets + stdio MCP server + `attention.dump` SoT + greyscale Waiting cockpit (dump view) + Proof Layer `demo:reject` hook + day-0 kill harness. No second CA. Harness ≠ 14-day PASS.  
 **Board:** [Exp-2 R&D OS](https://app.notion.com/p/3dee07d17270817e9d01d8821b3ec2f5)  
 **Vehicle:** this repo (`nyfeblade/rd-os`).  
 **First instrument (merged Exp-1):** [`nyfeblade/agent-proof-layer`](https://github.com/nyfeblade/agent-proof-layer) ([PR #1](https://github.com/nyfeblade/agent-proof-layer/pull/1) merged `de40fcc`).  
@@ -45,7 +45,7 @@ The wedge is a **capability-native research lab OS**: portable contract any agen
                                   ├─ Proof Layer (npm run demo:reject) as first instrument
                                   └─ attention.dump (P0 + HARD LAW adjacent)  ← data SoT
                                          │
- human ── Ink Desk / rdos steer.gate --actor human ─┘
+ human ── Waiting UI / rdos steer.gate --actor human ─┘
          (UI is a view of attention.dump; never a second store)
 ```
 
@@ -57,7 +57,7 @@ A small tool contract, not a host that owns the agent's pipes. Agents remain Cur
 
 ### 2. Human steer desk
 
-Ink Desk is the human control surface. Source of truth is `attention.dump`. The Designer lock (`rd-os-design/steer-ui-v2.md`, mock `ink-desk-waiting.html`) is the product view: Waiting home, Experiments, History, Settings. Warm matte ink + copper only when a human must decide. HARD LAW is behavior + Settings rules, not a home chip strip. `steer-cockpit-v1` is superseded paper trail. Humans also steer with `rdos steer.gate --actor human`.
+The cockpit is the human control surface. Source of truth is `attention.dump`. The product view is Magic Ink greyscale Waiting (`rd-os-design/waiting-greyscale.html`, tokens in `ui/app.css`): Waiting home, Experiments, History, Settings. HARD LAW is behavior + Settings rules, not a home chip strip. No copper Ink Desk. No SaaS blue accent as the primary system. Humans also steer with `rdos steer.gate --actor human`.
 
 ```json
 {
@@ -68,7 +68,7 @@ Ink Desk is the human control surface. Source of truth is `attention.dump`. The 
 }
 ```
 
-If P0 and HARD LAW are not in the same dump, the desk is non-compliant. Ink Desk renders this dump; it may not invent a second source of truth.
+If P0 and HARD LAW are not in the same dump, the cockpit is non-compliant. The Waiting UI renders this dump; it may not invent a second source of truth.
 
 ---
 

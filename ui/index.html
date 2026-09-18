@@ -3,23 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>R&amp;D OS — Ink Desk</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet" />
+    <title>rd-os — Waiting</title>
     <link rel="stylesheet" href="/app.css" />
   </head>
   <body>
-    <div class="page">
-      <div class="window" id="plate" role="application" aria-label="R&D OS">
-        <nav class="nav" aria-label="Primary">
+    <div class="wrap">
+      <div class="panel" id="plate">
+        <nav class="tabs" aria-label="Primary">
           <a href="/" data-nav="waiting" id="nav-waiting">Waiting</a>
           <a href="/experiments" data-nav="experiments" id="nav-experiments">Experiments</a>
           <a href="/history" data-nav="history" id="nav-history">History</a>
           <a href="/settings" data-nav="settings" id="nav-settings">Settings</a>
-          <span class="live" id="live"><i aria-hidden="true"></i> live</span>
+          <span class="meta">now</span>
         </nav>
-        <main class="body" id="view" tabindex="-1">loading</main>
+        <main id="view" tabindex="-1">loading</main>
       </div>
     </div>
     <div id="dialog-root"></div>

@@ -170,7 +170,7 @@ Reject if any required key is missing. Reject if any string/number field looks l
 
 ## Attention (Law 5)
 
-`attention.dump` returns P0 and HARD LAW in one object (see `ARCHITECTURE.md`). Agents may not strip `hard_law`. Humans steer from Ink Desk (a view of the dump) or `rdos steer.gate --actor human`.
+`attention.dump` returns P0 and HARD LAW in one object (see `ARCHITECTURE.md`). Agents may not strip `hard_law`. Humans steer from the Waiting UI (a view of the dump) or `rdos steer.gate --actor human`.
 
 ---
 

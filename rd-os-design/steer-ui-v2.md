@@ -1,3 +1,7 @@
+# REJECTED for customer UI — copper Ink Desk
+
+Product SoT: `waiting-greyscale.html` + `ui/app.css` greyscale tokens. Do not implement this file as the live surface.
+
 # R&D OS — steer UI v2 (Studio Designer call)
 
 ARTIFACT TYPE: app  

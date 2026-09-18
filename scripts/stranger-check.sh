@@ -36,8 +36,6 @@ need_file ui/app.js
 need_file ui/app.css
 need_file ui/copy.js
 need_file rd-os-design/steer-cockpit-v1.md
-need_file rd-os-design/steer-ui-v2.md
-need_file rd-os-design/ink-desk-waiting.html
 need_file fixtures/ui/needs-you.json
 need_file fixtures/lab/seed.json
 need_file scripts/kill14d.sh
@@ -132,4 +130,4 @@ grep -q '"m2_illegal_accepts": 5' "$home/day0-markdown.json" || fail "markdown a
 
 RDOS_HOME="$home/ui" ./scripts/ui-smoke.sh || fail "ui-smoke failed"
 
-echo "PASS stranger-check (board + MCP + Ink Desk + day0 fields; not a 14d verdict)"
+echo "PASS stranger-check (board + MCP + Waiting UI + day0 fields; not a 14d verdict)"

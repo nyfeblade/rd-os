@@ -21,10 +21,10 @@
         mute: true,
         reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
         ...stored,
-        theme: "ink",
+        theme: "grey",
       };
     } catch (_err) {
-      return { mute: true, reducedMotion: false, theme: "ink" };
+      return { mute: true, reducedMotion: false, theme: "grey" };
     }
   }
 
@@ -35,7 +35,7 @@
 
   function applySettings() {
     document.documentElement.classList.toggle("reduce-motion", Boolean(settings.reducedMotion));
-    document.documentElement.dataset.theme = "ink";
+    document.documentElement.dataset.theme = "grey";
   }
 
   function beep(kind) {
@@ -46,12 +46,12 @@
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sine";
-    osc.frequency.value = kind === "reject" ? 140 : kind === "needs" ? 220 : 180;
+    osc.frequency.value = kind === "reject" ? 140 : kind === "needs" ? 520 : 360;
     gain.gain.value = 0.03;
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start();
-    osc.stop(ctx.currentTime + 0.06);
+    osc.stop(ctx.currentTime + 0.07);
   }
 
   function parseRoute() {
@@ -158,7 +158,7 @@
       return;
     }
     if (loadError || !state) {
-      view.innerHTML = `<section class="error" data-testid="board-error"><h1 class="headline">Can’t reach the board</h1><p class="sub">The lab did not return the waiting list. Nothing was invented.</p><div class="actions"><button class="btn-ghost" type="button" id="retry">Retry</button></div></section>`;
+      view.innerHTML = `<section class="error" data-testid="board-error"><h1>Can’t reach the board</h1><p class="quiet">The lab did not return attention.dump. Nothing was invented.</p><div class="actions"><button class="secondary" type="button" id="retry">Retry</button></div></section>`;
       document.getElementById("retry").onclick = refresh;
       return;
     }
@@ -195,7 +195,7 @@
 
   function waitingOnForExp(exp) {
     const mergeOpen = (exp.human_gates || []).some((gate) => gate.kind === "merge" && !gate.resolved);
-    if (mergeOpen && (exp.stage === "accepted" || exp.stage === "open")) {
+    if (exp.stage === "accepted" && mergeOpen) {
       return "human";
     }
     if (exp.stage === "open" || exp.stage === "fanout") {
@@ -213,7 +213,7 @@
       case "proof":
         return "packet present; Eng Proof owns verdict";
       default:
-        return copy.waitingRowLabel(who);
+        return copy.waitingOnWho(who);
     }
   }
 
@@ -274,65 +274,62 @@
     return waitingItems().find((item) => item.who === "human") || null;
   }
 
+  function whatLabel(item) {
+    const base = copy.whyPlain(item.why);
+    if (item.who === "human" && item.title) {
+      return `${base} on ${item.title}`;
+    }
+    return base;
+  }
+
+  function waitingRowHtml(item, bindHuman) {
+    const human = item.who === "human";
+    const quiet = human ? "" : " quiet";
+    const testid =
+      item.who === "human" ? "needs-you" : item.who === "proof" ? "proof-waiting" : "agent-waiting";
+    const actions =
+      human && bindHuman
+        ? `<span class="who">${escapeHtml(copy.humanRowDetail())}</span>
+        <div class="actions">
+          <button type="button" id="btn-approve" data-testid="btn-approve">Approve</button>
+          <button class="secondary" type="button" id="btn-reject" data-testid="btn-reject">Reject</button>
+          <button class="secondary" type="button" id="btn-details">Details</button>
+        </div>`
+        : "";
+    return `<tr class="${human ? "human" : ""}" data-id="${escapeHtml(item.id)}" data-testid="${testid}" tabindex="0">
+      <td class="${quiet.trim()}">${escapeHtml(whatLabel(item))}${actions}</td>
+      <td class="${quiet.trim()}">${escapeHtml(copy.waitingOnWho(item.who))}</td>
+      <td class="num${quiet}">${escapeHtml(copy.formatAge(item.age_s))}</td>
+    </tr>`;
+  }
+
   function waitingView() {
+    plate.classList.remove("needs-you-plate");
     const items = waitingItems();
     const hint = dump().envelope_hint || {};
     const baseline = copy.baselinePlain(hint);
-    const human = humanItem();
-    const gates = (dump().open_gates || []).map((entry) => copy.parseGate(entry));
     if (!items.length) {
-      plate.classList.remove("needs-you-plate");
-      return `<section class="empty" data-testid="empty-waiting">
-        <h1 class="headline">Nothing needs you.</h1>
-        <p class="sub">Open an experiment when you’re ready to measure something.</p>
-        <div class="actions"><button class="btn-ghost" type="button" id="cta-open" data-testid="cta-open">New experiment</button></div>
-      </section>
-      <p class="foot" data-testid="baseline">${escapeHtml(baseline)}</p>`;
+      return `<section class="empty" data-testid="empty-waiting"><h1>Nothing waiting</h1><p class="quiet">Board is clear. Open an experiment when you want to measure something.</p><div class="actions"><button class="secondary" type="button" id="cta-open" data-testid="cta-open">New experiment</button></div></section>`;
     }
-    let hero = "";
-    if (human) {
-      plate.classList.add("needs-you-plate");
-      const title = human.title || human.id;
-      hero = `<section class="hero" data-testid="needs-you">
-        <div class="kicker"><span>Needs you</span><span>${escapeHtml(copy.formatAge(human.age_s))}</span></div>
-        <h1 class="headline">${escapeHtml(copy.whyPlain(human.why))} on ${escapeHtml(title)}</h1>
-        <p class="sub">${escapeHtml(copy.waitingSub("human"))}</p>
-        <div class="actions">
-          <button class="btn-primary" type="button" id="btn-approve" data-testid="btn-approve">Approve plan</button>
-          <button class="btn-danger" type="button" id="btn-reject" data-testid="btn-reject">Reject</button>
-          <button class="linkish" type="button" id="btn-details">Details →</button>
-        </div>
-      </section>`;
-    } else {
-      plate.classList.remove("needs-you-plate");
-      const top = items[0];
-      const cls = top.who === "proof" ? "proof" : "agent";
-      const testid = top.who === "proof" ? "proof-waiting" : "agent-waiting";
-      hero = `<section class="empty in-flight" data-testid="${testid}">
-        <div class="kicker ${cls}"><span>In flight</span><span class="quiet">no human gate</span></div>
-        <h1 class="headline small">${escapeHtml(copy.waitingRowLabel(top.who))}</h1>
-        <p class="sub">${escapeHtml(copy.waitingSub(top.who))}</p>
-        <div class="actions"><button class="linkish" type="button" id="btn-details">Details →</button></div>
-      </section>`;
-    }
-    const others = items.filter((item) => (human ? item.id !== human.id : item.id !== items[0].id));
-    const section = human ? "In flight" : "Also running";
-    const flight = others
-      .map(
-        (item) =>
-          `<button type="button" class="row" data-id="${escapeHtml(item.id)}" tabindex="0"><span>${escapeHtml(copy.waitingRowLabel(item.who))}</span><span class="meta">${escapeHtml(copy.formatAge(item.age_s))}</span><span class="pill ${item.who}">${escapeHtml(item.who)}</span></button>`
-      )
-      .join("");
-    const gateRows = gates
-      .map((gate) => {
-        const named = experimentById(gate.experiment_id);
-        return `<div class="row"><span>${escapeHtml(copy.gatePlain(gate.kind))} · ${escapeHtml(named && named.title ? named.title : gate.experiment_id)}</span><span class="meta"></span><span class="pill">gate</span></div>`;
-      })
-      .join("");
-    return `${hero}
-      ${flight ? `<div class="section-label">${section}</div>${flight}` : ""}
-      ${human ? `<hr class="rule" /><div class="section-label">Open gates</div>${gateRows || `<p class="foot">None</p>`}` : ""}
-      <p class="foot" data-testid="baseline">${escapeHtml(baseline)}</p>`;
+    const human = Boolean(humanItem());
+    const gates = (dump().open_gates || []).map((entry) => copy.parseGate(entry));
+    const caption = human ? "Open items · sorted by urgency" : "Open items · no human gate";
+    const gateText = gates.length
+      ? `Open gates: ${gates.map((gate) => `${copy.gatePlain(gate.kind)} · ${gate.experiment_id}`).join(" · ")}`
+      : "No open human gates";
+    const firstHuman = items.findIndex((item) => item.who === "human");
+    return `<table>
+        <caption>${escapeHtml(caption)}</caption>
+        <thead>
+          <tr>
+            <th scope="col">What</th>
+            <th scope="col">Waiting on</th>
+            <th scope="col" class="num">Age</th>
+          </tr>
+        </thead>
+        <tbody>${items.map((item, index) => waitingRowHtml(item, index === firstHuman)).join("")}</tbody>
+      </table>
+      <div class="foot">${escapeHtml(gateText)} · <span data-testid="baseline">${escapeHtml(baseline)}</span></div>`;
   }
 
   function bindWaiting() {
@@ -354,8 +351,13 @@
     if (reject) {
       reject.onclick = () => openReject();
     }
-    view.querySelectorAll(".row[data-id]").forEach((row) => {
-      row.onclick = () => go(`/experiments/${encodeURIComponent(row.getAttribute("data-id"))}`);
+    view.querySelectorAll("[data-id]").forEach((row) => {
+      row.onclick = (event) => {
+        if (event.target.closest("button")) {
+          return;
+        }
+        go(`/experiments/${encodeURIComponent(row.getAttribute("data-id"))}`);
+      };
     });
   }
 
@@ -368,18 +370,17 @@
       return hay.includes(filter.toLowerCase());
     });
     if (!experiments().length) {
-      return `<section class="empty"><h1 class="headline">No experiments</h1><p class="sub">Nothing waiting. Open an experiment to start.</p><div class="actions"><button class="btn-primary" type="button" id="cta-open">New experiment</button></div></section>`;
+      return `<section class="empty"><h1>No experiments</h1><p class="quiet">Board is clear. Open an experiment when you want to measure something.</p><div class="actions"><button class="secondary" type="button" id="cta-open">New experiment</button></div></section>`;
     }
     const list = rows
       .map((exp, idx) => {
         const gates = (exp.human_gates || []).filter((gate) => !gate.resolved).length;
-        const who = waitingOnForExp(exp);
-        const cls = idx === selected ? "row experiments selected" : "row experiments";
-        return `<a class="${cls}" href="/experiments/${encodeURIComponent(exp.experiment_id)}"><span>${escapeHtml(exp.title || exp.experiment_id)}</span><span class="pill ${who}">${escapeHtml(exp.stage)}</span><span class="meta">${escapeHtml(copy.agentTime(exp.estimate_ca_hours))}</span><span class="meta">${gates} gates</span><span class="meta">${escapeHtml(copy.formatAge(ageSeconds(exp)))}</span></a>`;
+        const cls = idx === selected ? "row selected" : "row";
+        return `<a class="${cls}" href="/experiments/${encodeURIComponent(exp.experiment_id)}"><span>${escapeHtml(exp.title || exp.experiment_id)} · ${escapeHtml(exp.stage)}</span><span class="meta">${escapeHtml(copy.agentTime(exp.estimate_ca_hours))} · ${gates} gates</span></a>`;
       })
       .join("");
-    return `<h1 class="headline small">Experiments</h1><input class="filter" id="filter" placeholder="Filter" value="${escapeHtml(filter)}" />
-      <div data-testid="experiments-list">${list || `<p class="muted">No matches</p>`}</div>`;
+    return `<h2>Experiments</h2><input class="filter" id="filter" placeholder="Filter" value="${escapeHtml(filter)}" />
+      <div data-testid="experiments-list">${list || `<p class="muted page-pad">No matches</p>`}</div>`;
   }
 
   function bindList() {
@@ -410,7 +411,7 @@
   function detailView(id) {
     const exp = experimentById(id);
     if (!exp) {
-      return `<section class="empty"><h1 class="headline">Not on the board</h1><p class="sub">${escapeHtml(id)}</p></section>`;
+      return `<section class="empty"><h1>Not on the board</h1><p class="quiet">${escapeHtml(id)}</p></section>`;
     }
     const wait = dump() && dump().p0 && dump().p0.id === id ? dump().p0 : null;
     const who = wait ? wait.waiting_on : waitingOnForExp(exp);
@@ -428,23 +429,21 @@
       .map((gate) => `<div class="row"><span>${escapeHtml(copy.gatePlain(gate.kind))}${gate.resolved ? " · resolved" : ""}</span><span class="meta">${escapeHtml(gate.reason || "")}</span></div>`)
       .join("");
     const weeksBanned = !(exp.human_gates || []).length;
-    return `<p class="muted"><a class="crumb" href="/experiments" id="back">Experiments</a></p>
-      <h1 class="headline small">${escapeHtml(exp.title)}</h1>
-      <div class="section-label">Status</div>
-      <p>${escapeHtml(wait ? copy.whyPlain(wait.why) : copy.waitingRowLabel(who))}</p>
-      <div class="section-label">Time</div>
-      <p>${escapeHtml(copy.agentTime(exp.estimate_ca_hours))} · ${escapeHtml(copy.proofTime(exp.estimate_proof_min))}${weeksBanned ? "" : ""}</p>
-      <div class="section-label">Evidence</div>
-      ${probes || `<p class="muted">None yet</p>`}
-      <div class="section-label">Claims</div>
-      ${claims || `<p class="muted">No instrument packets</p>`}
-      <div class="section-label">Gates</div>
-      ${gates || `<p class="muted">None</p>`}
-      <div class="section-label">Actions</div>
-      <div class="actions">
-        <button class="btn-primary" type="button" id="btn-approve">Approve plan</button>
-        <button class="btn-danger" type="button" id="btn-reject">Reject</button>
-        <button class="btn-ghost" type="button" id="btn-resolve">Resolve gate</button>
+    return `<p class="muted page-pad"><a class="crumb" href="/experiments" id="back">Experiments</a></p>
+      <div class="page-pad"><h1>${escapeHtml(exp.title)}</h1>
+      <p class="quiet">${escapeHtml(wait ? copy.whyPlain(wait.why) : copy.waitingOnWho(who))}</p></div>
+      <h2>Time</h2>
+      <p class="page-pad">${escapeHtml(copy.agentTime(exp.estimate_ca_hours))} · ${escapeHtml(copy.proofTime(exp.estimate_proof_min))}${weeksBanned ? "" : ""}</p>
+      <h2>Probes</h2>
+      ${probes || `<p class="muted page-pad">None yet</p>`}
+      <h2>Claims</h2>
+      ${claims || `<p class="muted page-pad">No instrument packets</p>`}
+      <h2>Gates</h2>
+      ${gates || `<p class="muted page-pad">None</p>`}
+      <div class="actions page-pad">
+        <button type="button" id="btn-approve">Approve</button>
+        <button class="secondary" type="button" id="btn-reject">Reject</button>
+        <button class="secondary" type="button" id="btn-resolve">Resolve gate</button>
       </div>`;
   }
 
@@ -473,22 +472,20 @@
   function historyView() {
     const rows = (state && state.baselines) || [];
     if (!rows.length) {
-      return `<section class="empty" data-testid="empty-history"><h1 class="headline">Nothing measured yet.</h1><p class="sub">No similar run yet.</p></section>`;
+      return `<section class="empty" data-testid="empty-history"><h1>History</h1><p class="quiet">No finished baselines yet.</p></section>`;
     }
-    return `<h1 class="headline small">History</h1>${rows
+    return `<h2>History</h2>${rows
       .map((row) => `<div class="row"><span>${escapeHtml(row.title || row.experiment_id)}</span><span class="meta">${escapeHtml(String(row.actuals_ca_hours))} CA hours</span></div>`)
       .join("")}`;
   }
 
   function settingsView() {
-    return `<h1 class="headline small">Settings</h1>
-      <label class="choice"><input type="checkbox" id="set-mute" ${settings.mute ? "checked" : ""} /> Mute sounds</label>
-      <label class="choice"><input type="checkbox" id="set-motion" ${settings.reducedMotion ? "checked" : ""} /> Reduced motion</label>
-      <div class="section-label">Appearance</div>
-      <p class="sub">Ink Desk — warm matte ink. Locked.</p>
-      <div class="section-label">Rules</div>
+    return `<h2>Settings</h2>
+      <label><input type="checkbox" id="set-mute" ${settings.mute ? "checked" : ""} /> Mute sounds</label>
+      <label><input type="checkbox" id="set-motion" ${settings.reducedMotion ? "checked" : ""} /> Reduced motion</label>
+      <h2>Rules</h2>
       <ol data-testid="rules">${copy.RULES_PLAIN.map((rule) => `<li>${escapeHtml(rule)}</li>`).join("")}</ol>
-      <p class="foot">This desk is a view of the board. It does not store experiments.</p>`;
+      <p class="muted page-pad">Product UI is a view of attention.dump. It does not store experiments.</p>`;
   }
 
   function bindSettings() {
@@ -505,11 +502,11 @@
   function openSheet() {
     dialogRoot.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="New experiment">
       <form class="sheet-card" id="open-form">
-        <h1 class="headline small">New experiment</h1>
+        <h1>New experiment</h1>
         <label>Name<input name="title" required value="New experiment" /></label>
         <label>CA hours<input name="estimate_ca_hours" type="number" step="0.1" required value="1.5" /></label>
         <label>Proof minutes<input name="estimate_proof_min" type="number" required value="20" /></label>
-        <div class="actions"><button class="btn-primary" type="submit">Open</button><button class="btn-ghost" type="button" id="cancel">Cancel</button></div>
+        <div class="actions"><button type="submit">Open</button><button class="secondary" type="button" id="cancel">Cancel</button></div>
       </form>
     </div>`;
     document.getElementById("cancel").onclick = closeDialog;
@@ -541,11 +538,11 @@
     }
     dialogRoot.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Confirm approve">
       <div class="sheet-card">
-        <h1 class="headline small">Approve merge?</h1>
-        <p class="sub">This clears the merge gate on the current packet.</p>
+        <h1>Approve merge?</h1>
+        <p class="quiet">This clears the merge gate on the current packet.</p>
         <div class="actions">
-          <button class="btn-primary" type="button" id="confirm-approve">Approve plan</button>
-          <button class="btn-ghost" type="button" id="cancel">Cancel</button>
+          <button type="button" id="confirm-approve">Approve</button>
+          <button class="secondary" type="button" id="cancel">Cancel</button>
         </div>
       </div>
     </div>`;
@@ -564,20 +561,12 @@
       .join("");
     dialogRoot.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Reject" data-testid="reject-sheet">
       <form class="sheet-card" id="reject-form">
-        <h1 class="headline small">Reject</h1>
-        <label>Reason<select name="code" id="reject-code">${options}</select></label>
-        <label>Add a real constraint (optional)<input name="constraint" placeholder="Named physics or human constraint" /></label>
-        <p class="code" id="reject-code-note"></p>
-        <div class="actions"><button class="btn-danger" type="submit">Reject</button><button class="btn-ghost" type="button" id="cancel">Cancel</button></div>
+        <h1>Reject</h1>
+        <label>Reason<select name="code">${options}</select></label>
+        <label>Constraint (optional)<input name="constraint" placeholder="Named physics or human constraint" /></label>
+        <div class="actions"><button type="submit">Reject</button><button class="secondary" type="button" id="cancel">Cancel</button></div>
       </form>
     </div>`;
-    const note = document.getElementById("reject-code-note");
-    const select = document.getElementById("reject-code");
-    const syncNote = () => {
-      note.textContent = select.value;
-    };
-    syncNote();
-    select.onchange = syncNote;
     document.getElementById("cancel").onclick = closeDialog;
     document.getElementById("reject-form").onsubmit = (event) => {
       event.preventDefault();
@@ -627,7 +616,7 @@
   }
 
   function listRows() {
-    return Array.from(view.querySelectorAll("a.row, button.row[data-id]"));
+    return Array.from(view.querySelectorAll("a.row, button.row[data-id], tr[data-id]"));
   }
 
   document.addEventListener("keydown", (event) => {
@@ -653,11 +642,7 @@
     }
     if (event.key === "Enter" && !dialog && route.name === "waiting" && humanItem() && document.activeElement.tagName !== "INPUT") {
       event.preventDefault();
-      if (event.shiftKey) {
-        openReject();
-      } else {
-        confirmApprove();
-      }
+      confirmApprove();
     }
     if ((event.key === "j" || event.key === "k" || event.key === "ArrowDown" || event.key === "ArrowUp") && !dialog) {
       const rows = listRows();
@@ -672,7 +657,7 @@
     }
   });
 
-  document.querySelector(".nav").addEventListener("click", (event) => {
+  document.querySelector("nav[aria-label='Primary']").addEventListener("click", (event) => {
     const link = event.target.closest("a[href]");
     if (!link) {
       return;

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# HTTP smoke for Ink Desk v2. Dump remains SoT. No 14d PASS.
+# HTTP smoke for Designer steer cockpit v1. Dump remains SoT. No 14d PASS.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -41,22 +41,15 @@ home_default="$(mktemp -d "${TMPDIR:-/tmp}/rdos-ui.XXXXXX")"
 start_lab "$home_default"
 port="$(cat "$home_default/lab.port")"
 html="$(curl -sf "http://127.0.0.1:${port}/")"
-echo "$html" | grep -q 'R&amp;D OS — Ink Desk\|R&D OS — Ink Desk' || fail "home title must be Ink Desk"
 echo "$html" | grep -q 'data-nav="waiting"' || fail "missing Waiting nav"
 echo "$html" | grep -q 'data-nav="experiments"' || fail "missing Experiments nav"
 echo "$html" | grep -q 'data-nav="history"' || fail "missing History nav"
 echo "$html" | grep -q 'data-nav="settings"' || fail "missing Settings nav"
-echo "$html" | grep -q 'Newsreader' || fail "Ink Desk requires Newsreader display face"
-echo "$html" | grep -qi "HARD LAW" && fail "home chrome must not ship HARD LAW chip strip"
-css="$(curl -sf "http://127.0.0.1:${port}/app.css")"
-echo "$css" | grep -qi "backdrop-filter\|backdrop-blur" && fail "matte ink: no glass blur"
-echo "$css" | grep -qiE '#4c8dff|#2563eb|#3b82f6|saas' && fail "no SaaS blue brand accent"
-echo "$css" | grep -qiE -- '--copper: #c47a4a' || fail "Ink Desk copper token missing"
-copy="$(curl -sf "http://127.0.0.1:${port}/copy.js")"
-echo "$copy" | grep -q 'Nothing needs you' || fail "calm empty copy missing"
-echo "$copy" | grep -q 'Rejected — score without evidence' || fail "WEIGHT_ONLY plain copy missing"
-curl -sf "http://127.0.0.1:${port}/experiments" | grep -q "rd-os\|Ink Desk" || fail "SPA experiments route"
-curl -sf "http://127.0.0.1:${port}/settings" | grep -q "rd-os\|Ink Desk" || fail "SPA settings route"
+if echo "$html" | grep -qi "ink-desk\|steer-ui-v2\|Active thesis\|HARD LAW"; then
+  fail "home chrome must not ship costume / HARD LAW chip strip"
+fi
+curl -sf "http://127.0.0.1:${port}/experiments" | grep -q "rd-os" || fail "SPA experiments route"
+curl -sf "http://127.0.0.1:${port}/settings" | grep -q "rd-os" || fail "SPA settings route"
 
 state="$(curl -sf "http://127.0.0.1:${port}/api/state")"
 echo "$state" | grep -q '"p0"' || fail "state missing p0"
@@ -91,4 +84,4 @@ curl -sf -H 'Content-Type: application/json' \
   || fail "human approve must resolve gate"
 stop_lab "$home_need"
 
-echo "PASS ui-smoke (Ink Desk v2 + dump SoT + empty/needs-you fixtures + API rejects)"
+echo "PASS ui-smoke (Waiting nav + dump SoT + empty/needs-you fixtures + API rejects)"
