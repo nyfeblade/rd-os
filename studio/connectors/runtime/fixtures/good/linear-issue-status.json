@@ -1,0 +1,39 @@
+{
+  "op": "ingest",
+  "expect": {
+    "ok": true,
+    "dropped": false,
+    "kind": "status",
+    "need_you": true,
+    "dest": "chat",
+    "provider": "linear"
+  },
+  "envelope": {
+    "provider": "linear",
+    "event": "Issue",
+    "tray_state": "live",
+    "payload": {
+      "action": "update",
+      "type": "Issue",
+      "url": "https://linear.app/issue/LIN-18/linear-runtime-provider",
+      "createdAt": "2026-09-18T12:12:00.000Z",
+      "actor": {
+        "id": "user-alice",
+        "type": "user",
+        "name": "Alice"
+      },
+      "data": {
+        "id": "539068e2-ae88-4d09-bd75-22eb4a59612f",
+        "identifier": "LIN-18",
+        "title": "Linear runtime provider",
+        "stateId": "state-started",
+        "state": { "id": "state-started", "name": "In Progress", "type": "started" },
+        "assigneeId": "user-luke",
+        "createdAt": "2026-09-18T12:12:00.000Z"
+      },
+      "updatedFrom": {
+        "stateId": "state-backlog"
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "op": "ingest",
+  "expect": { "ok": true, "dropped": true },
+  "envelope": {
+    "provider": "linear",
+    "event": "Comment",
+    "tray_state": "live",
+    "payload": {
+      "action": "remove",
+      "type": "Comment",
+      "url": "https://linear.app/issue/LIN-18/linear-runtime-provider#comment-77217de3",
+      "createdAt": "2026-09-18T12:14:00.000Z",
+      "data": {
+        "id": "2174add1-f7c8-44e3-bbf3-2d60b5ea8bc9",
+        "issueId": "539068e2-ae88-4d09-bd75-22eb4a59612f",
+        "body": "deleted comment"
+      }
+    }
+  }
+}
