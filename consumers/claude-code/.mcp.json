@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "rd-os": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["../../bin/mcp.js"],
+      "env": {
+        "RDOS_HOME": "../../var",
+        "RDOS_ACTOR": "agent"
+      }
+    }
+  }
+}

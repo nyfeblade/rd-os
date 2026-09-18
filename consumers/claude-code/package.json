@@ -1,0 +1,17 @@
+{
+  "name": "rd-os-claude-code",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Claude Code attach consumer: docs + install rd-os from main, run that lab's mcp-smoke. Not the kernel. Not a 14d verdict.",
+  "scripts": {
+    "test": "./bin/run-installed.sh mcp-smoke",
+    "mcp-smoke": "./bin/run-installed.sh mcp-smoke",
+    "dual-gate": "./bin/run-installed.sh dual-gate"
+  },
+  "dependencies": {
+    "rd-os": "github:nyfeblade/rd-os#4151510ad70bf4719b6c5391836348e4db05636b"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
