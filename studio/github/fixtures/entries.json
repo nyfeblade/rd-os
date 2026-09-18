@@ -1,0 +1,208 @@
+{
+  "": [
+    {
+      "name": "ARCHITECTURE.md",
+      "path": "ARCHITECTURE.md",
+      "type": "file",
+      "size": 11147,
+      "message": "HARD LAW + two surfaces",
+      "updated_at": "2026-09-18T04:52:00Z"
+    },
+    {
+      "name": "MCP_CONTRACT.md",
+      "path": "MCP_CONTRACT.md",
+      "type": "file",
+      "size": 9052,
+      "message": "portable tool names + rejects",
+      "updated_at": "2026-09-18T04:52:00Z"
+    },
+    {
+      "name": "README.md",
+      "path": "README.md",
+      "type": "file",
+      "size": 1597,
+      "message": "clone → npm start",
+      "updated_at": "2026-09-18T04:52:00Z"
+    },
+    {
+      "name": "bin",
+      "path": "bin",
+      "type": "dir",
+      "size": 0,
+      "message": "lab + MCP + rdos shims",
+      "updated_at": "2026-09-18T04:52:00Z"
+    },
+    {
+      "name": "consumers",
+      "path": "consumers",
+      "type": "dir",
+      "size": 0,
+      "message": "MCP attach consumers (out of this fence)",
+      "updated_at": "2026-09-18T11:28:00Z"
+    },
+    {
+      "name": "src",
+      "path": "src",
+      "type": "dir",
+      "size": 0,
+      "message": "kernel (do not edit from Studio C)",
+      "updated_at": "2026-09-18T11:28:00Z"
+    },
+    {
+      "name": "studio",
+      "path": "studio",
+      "type": "dir",
+      "size": 0,
+      "message": "Studio C GitHub browse",
+      "updated_at": "2026-09-18T12:00:00Z"
+    },
+    {
+      "name": "ui",
+      "path": "ui",
+      "type": "dir",
+      "size": 0,
+      "message": "Waiting cockpit (out of this fence)",
+      "updated_at": "2026-09-18T04:52:00Z"
+    }
+  ],
+  "bin": [
+    {
+      "name": "lab.js",
+      "path": "bin/lab.js",
+      "type": "file",
+      "size": 2100,
+      "message": "npm start Waiting lab",
+      "updated_at": "2026-09-18T04:52:00Z"
+    },
+    {
+      "name": "mcp.js",
+      "path": "bin/mcp.js",
+      "type": "file",
+      "size": 320,
+      "message": "stdio MCP attach",
+      "updated_at": "2026-09-18T04:52:00Z"
+    },
+    {
+      "name": "rdos.js",
+      "path": "bin/rdos.js",
+      "type": "file",
+      "size": 4800,
+      "message": "CLI shim for public tools",
+      "updated_at": "2026-09-18T04:52:00Z"
+    }
+  ],
+  "src": [
+    {
+      "name": "kernel.js",
+      "path": "src/kernel.js",
+      "type": "file",
+      "size": 18000,
+      "message": "public tools live here — Studio C only calls them",
+      "updated_at": "2026-09-18T04:52:00Z"
+    }
+  ],
+  "studio": [
+    {
+      "name": "github",
+      "path": "studio/github",
+      "type": "dir",
+      "size": 0,
+      "message": "this fence",
+      "updated_at": "2026-09-18T12:00:00Z"
+    }
+  ],
+  "studio/github": [
+    {
+      "name": "README.md",
+      "path": "studio/github/README.md",
+      "type": "file",
+      "size": 4200,
+      "message": "stranger path",
+      "updated_at": "2026-09-18T12:00:00Z"
+    },
+    {
+      "name": "package.json",
+      "path": "studio/github/package.json",
+      "type": "file",
+      "size": 520,
+      "message": "npm start / npm test / npm run attach",
+      "updated_at": "2026-09-18T12:00:00Z"
+    },
+    {
+      "name": "recipes",
+      "path": "studio/github/recipes",
+      "type": "dir",
+      "size": 0,
+      "message": "GitHub attach + seat stubs",
+      "updated_at": "2026-09-18T12:00:00Z"
+    },
+    {
+      "name": "ui",
+      "path": "studio/github/ui",
+      "type": "dir",
+      "size": 0,
+      "message": "repo browse UI",
+      "updated_at": "2026-09-18T12:00:00Z"
+    }
+  ],
+  "studio/github/recipes": [
+    {
+      "name": "github.json",
+      "path": "studio/github/recipes/github.json",
+      "type": "file",
+      "size": 680,
+      "message": "GitHub attach recipe",
+      "updated_at": "2026-09-18T12:00:00Z"
+    },
+    {
+      "name": "claude.json",
+      "path": "studio/github/recipes/claude.json",
+      "type": "file",
+      "size": 280,
+      "message": "Claude seat stub",
+      "updated_at": "2026-09-18T12:00:00Z"
+    },
+    {
+      "name": "cursor.json",
+      "path": "studio/github/recipes/cursor.json",
+      "type": "file",
+      "size": 320,
+      "message": "Cursor seat stub",
+      "updated_at": "2026-09-18T12:00:00Z"
+    },
+    {
+      "name": "grok.json",
+      "path": "studio/github/recipes/grok.json",
+      "type": "file",
+      "size": 260,
+      "message": "Grok seat stub",
+      "updated_at": "2026-09-18T12:00:00Z"
+    }
+  ],
+  "studio/github/ui": [
+    {
+      "name": "app.css",
+      "path": "studio/github/ui/app.css",
+      "type": "file",
+      "size": 8000,
+      "message": "GitHub-like greyscale",
+      "updated_at": "2026-09-18T12:00:00Z"
+    },
+    {
+      "name": "app.js",
+      "path": "studio/github/ui/app.js",
+      "type": "file",
+      "size": 16000,
+      "message": "browse + attach + surface hooks",
+      "updated_at": "2026-09-18T12:00:00Z"
+    },
+    {
+      "name": "index.html",
+      "path": "studio/github/ui/index.html",
+      "type": "file",
+      "size": 900,
+      "message": "Studio C shell",
+      "updated_at": "2026-09-18T12:00:00Z"
+    }
+  ]
+}

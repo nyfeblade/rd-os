@@ -1,0 +1,12 @@
+{
+  "owner": "nyfeblade",
+  "name": "rd-os",
+  "full_name": "nyfeblade/rd-os",
+  "description": "Local-first R&D OS — portable MCP contract + greyscale Waiting cockpit + Proof Layer as first instrument.",
+  "default_branch": "main",
+  "html_url": "https://github.com/nyfeblade/rd-os",
+  "stargazers": 0,
+  "forks": 0,
+  "private": false,
+  "about": ["Local-first lab", "MCP stdio", "Harness ≠ 14d PASS"]
+}

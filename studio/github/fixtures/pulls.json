@@ -1,0 +1,38 @@
+[
+  {
+    "number": 10,
+    "title": "CA4: Tauri greyscale shell (Waiting over attention.dump)",
+    "state": "open",
+    "draft": true,
+    "author": "nyfeblade",
+    "updated_at": "2026-09-18T12:04:07Z",
+    "html_url": "https://github.com/nyfeblade/rd-os/pull/10"
+  },
+  {
+    "number": 7,
+    "title": "CA3: thin llm.complete OpenAI adapter + Cursor attach recipe",
+    "state": "merged",
+    "draft": false,
+    "author": "nyfeblade",
+    "updated_at": "2026-09-18T11:28:38Z",
+    "html_url": "https://github.com/nyfeblade/rd-os/pull/7"
+  },
+  {
+    "number": 5,
+    "title": "Cursor MCP attach consumer: measured stdio smoke + WEIGHT_ONLY",
+    "state": "merged",
+    "draft": false,
+    "author": "nyfeblade",
+    "updated_at": "2026-09-18T05:10:00Z",
+    "html_url": "https://github.com/nyfeblade/rd-os/pull/5"
+  },
+  {
+    "number": 3,
+    "title": "Exp-2: usable lab — greyscale Waiting table, MCP, Proof Layer, day-0 kill",
+    "state": "merged",
+    "draft": false,
+    "author": "nyfeblade",
+    "updated_at": "2026-09-18T04:40:00Z",
+    "html_url": "https://github.com/nyfeblade/rd-os/pull/3"
+  }
+]

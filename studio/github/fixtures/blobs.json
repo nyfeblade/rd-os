@@ -1,0 +1,11 @@
+{
+  "README.md": "# rd-os\n\nLocal-first R&D OS — portable MCP contract + greyscale Waiting cockpit + Proof Layer as first instrument.\n\nThis fixture is the Studio C stranger browse. Live GitHub is opt-in via the attach recipe.\n",
+  "ARCHITECTURE.md": "# R&D OS wedge — architecture\n\nTwo surfaces: stdio MCP (any agent) and the human steer desk over attention.dump.\nStudio C does not own the kernel. It may call public tools through a thin client.\n",
+  "MCP_CONTRACT.md": "# MCP contract\n\nTool names are stable. ResourceExhausted is a stop, not a retry.\n",
+  "bin/lab.js": "#!/usr/bin/env node\n// Public lab entry. Studio C does not edit this file.\n",
+  "bin/mcp.js": "#!/usr/bin/env node\n// Public stdio MCP attach. Studio C does not edit this file.\n",
+  "bin/rdos.js": "#!/usr/bin/env node\n// Public CLI: rdos <tool> --in payload.json --out result.json\n",
+  "src/kernel.js": "// Kernel. Studio C fence forbids edits here. Thin client may exec bin/rdos.js.\n",
+  "studio/github/README.md": "# Studio C — GitHub browse\n\nFence: studio/github only. Clone → cd studio/github → npm test.\n",
+  "studio/github/package.json": "{\n  \"name\": \"rd-os-studio-github\",\n  \"scripts\": { \"start\": \"node ./bin/studio.js\", \"test\": \"node ./bin/smoke.js\" }\n}\n"
+}

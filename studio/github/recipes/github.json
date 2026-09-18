@@ -1,0 +1,23 @@
+{
+  "name": "rd-os-studio-github",
+  "connector": "github",
+  "kind": "repo",
+  "status": "ready",
+  "fence": "studio/github",
+  "cli": "node ./bin/studio.js",
+  "cwd": "studio/github",
+  "env": {
+    "STUDIO_SOURCE": "github",
+    "GITHUB_REPO": "nyfeblade/rd-os",
+    "GITHUB_TOKEN": "<optional for public repos; never commit>"
+  },
+  "fixture": {
+    "STUDIO_SOURCE": "fixture",
+    "note": "Stranger default. No token. No live GitHub."
+  },
+  "resource_exhausted": "STOP, no retry",
+  "later": {
+    "max_connectors": ["github", "grok", "claude", "cursor"],
+    "seats": "studio/seats — stubs only here"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "rd-os-studio-github",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Studio C: GitHub-like repo browse + connector attach. Fence: studio/github only. Not a 14d verdict.",
+  "bin": {
+    "rdos-studio-github": "./bin/studio.js"
+  },
+  "scripts": {
+    "start": "node ./bin/studio.js",
+    "test": "node ./bin/smoke.js",
+    "smoke": "node ./bin/smoke.js",
+    "attach": "node ./bin/attach.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

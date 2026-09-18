@@ -1,0 +1,12 @@
+{
+  "name": "rd-os-studio-grok-seat",
+  "connector": "grok",
+  "kind": "seat",
+  "status": "stub",
+  "fence": "studio/github",
+  "later": "studio/seats",
+  "notes": [
+    "Scaffold only. Do not implement the Grok seat here.",
+    "Human+AI coding surface can later bind this id."
+  ]
+}

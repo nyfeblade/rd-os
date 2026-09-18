@@ -1,0 +1,12 @@
+{
+  "name": "rd-os-studio-claude-seat",
+  "connector": "claude",
+  "kind": "seat",
+  "status": "stub",
+  "fence": "studio/github",
+  "later": "studio/seats",
+  "notes": [
+    "Scaffold only. Do not implement the Claude seat here.",
+    "Human+AI coding surface can later bind this id."
+  ]
+}
