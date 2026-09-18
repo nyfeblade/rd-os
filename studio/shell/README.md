@@ -1,8 +1,8 @@
 # Studio A — desktop shell
 
-Studio is a full Grok Bot **optimized for engineering** — not a life OS. Waiting-table-as-home is dead.
+Studio is a full Grok Bot capability set, **specialized for engineering** — not a thin chat+board toy and not a life OS. Waiting-table-as-home is dead.
 
-Default chrome is **Chat + Board**. **Code is on demand**. The connectors tray stays in the titlebar. The Board always shows **CloudAgent** and **Proof**.
+Default chrome is **Chat + Board**. **Code is on demand**. Titlebar: eng **mode** (build / proof / integrate) + **connectors tray**. Board: **CloudAgent map**, **Proof** gates, and **watches** (routines).
 
 This package is Electron so the same stranger path runs on **macOS and Windows**. Linux can use the same commands.
 

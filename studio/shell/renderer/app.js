@@ -36,6 +36,7 @@
 
   const els = {
     main: document.getElementById("main"),
+    modeChip: document.getElementById("mode-chip"),
     btnCode: document.getElementById("btn-code"),
     hintCode: document.getElementById("hint-code"),
     btnClose: document.getElementById("btn-close"),
@@ -46,6 +47,7 @@
     presenceList: document.getElementById("presence-list"),
     connectors: document.getElementById("connectors-tray"),
     instruments: document.getElementById("instruments"),
+    watches: document.getElementById("watches"),
     seatList: document.getElementById("seat-list"),
     messages: document.getElementById("messages"),
     composer: document.getElementById("composer"),
@@ -76,6 +78,7 @@
     pendingCutover: null,
     presenceOpen: false,
     codeOpen: false,
+    mode: "build",
   };
 
   function assertNever(value) {
@@ -121,21 +124,46 @@
     }
   }
 
+  function modeLabel(mode) {
+    switch (mode) {
+      case "build":
+        return "build";
+      case "proof":
+        return "proof";
+      case "integrate":
+        return "integrate";
+      default:
+        return assertNever(mode);
+    }
+  }
+
+  function nextMode(mode) {
+    switch (mode) {
+      case "build":
+        return "proof";
+      case "proof":
+        return "integrate";
+      case "integrate":
+        return "build";
+      default:
+        return assertNever(mode);
+    }
+  }
+
   function instrumentFor(kind, dump) {
     const who = dump && dump.p0 ? dump.p0.waiting_on : null;
-    const id = dump && dump.p0 ? dump.p0.id : "idle";
     switch (kind) {
       case "ca":
         if (who === "agent") {
-          return { label: "CloudAgent", state: "running", detail: id };
+          return { label: "CloudAgent", state: "running", detail: "nyfeblade/rd-os · PR#11" };
         }
-        return { label: "CloudAgent", state: "idle", detail: who ? "other lane" : "no run" };
+        return { label: "CloudAgent", state: "idle", detail: "nyfeblade/rd-os · no run" };
       case "proof":
         if (who === "proof") {
-          return { label: "Proof", state: "checking", detail: "Eng Proof" };
+          return { label: "Proof", state: "checking", detail: "Eng Proof · dual-gate" };
         }
         if (who === "human") {
-          return { label: "Proof", state: "ready", detail: "checks in" };
+          return { label: "Proof", state: "ready", detail: "checks in · PR#11" };
         }
         return { label: "Proof", state: "idle", detail: "no packet" };
       default:
@@ -234,6 +262,28 @@
       d.textContent = item.detail;
       card.append(k, v, d);
       els.instruments.appendChild(card);
+    }
+  }
+
+  function renderMode() {
+    els.modeChip.textContent = modeLabel(state.mode);
+  }
+
+  function renderWatches() {
+    els.watches.replaceChildren();
+    const head = document.createElement("div");
+    head.className = "k";
+    head.textContent = "Watches";
+    els.watches.appendChild(head);
+    const items = [
+      "nightly proof packet",
+      "merge-gate age on studio-a-shell",
+    ];
+    for (const item of items) {
+      const row = document.createElement("div");
+      row.className = "watch";
+      row.textContent = item;
+      els.watches.appendChild(row);
     }
   }
 
@@ -528,6 +578,10 @@
   }
 
   function wireChrome() {
+    els.modeChip.addEventListener("click", () => {
+      state.mode = nextMode(state.mode);
+      renderMode();
+    });
     els.btnCode.addEventListener("click", () => {
       setCodeOpen(!state.codeOpen);
       renderBoard();
@@ -609,10 +663,12 @@
 
     await loadDump();
     setCodeOpen(false);
+    renderMode();
     renderConnectors();
     renderPresence();
     renderSeats();
     renderThread();
+    renderWatches();
     renderBoard();
     wireChrome();
   }

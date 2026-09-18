@@ -21,6 +21,8 @@ for (const pane of ["chat", "code", "board"]) {
   assert.match(html, new RegExp(`data-pane="${pane}"`), `missing ${pane} pane`);
 }
 
+assert.match(html, /id="mode-chip"/);
+assert.match(html, /id="watches"/);
 assert.match(html, /id="btn-code"/);
 assert.match(html, /id="hint-code"/);
 assert.match(html, /id="btn-close"/);
@@ -40,6 +42,8 @@ assert.match(css, /\.main\.code-open \.code-pane/);
 assert.match(css, /grid-template-columns:\s*1\.35fr 0\.9fr/);
 assert.doesNotMatch(css, /minmax\(280px,\s*1\.05fr\).*minmax\(360px/);
 
+assert.match(js, /nextMode/);
+assert.match(js, /nightly proof packet/);
 assert.match(js, /CloudAgent/);
 assert.match(js, /instrumentFor/);
 assert.match(js, /setCodeOpen/);
@@ -62,6 +66,7 @@ assert.match(readme, /Chat \+ Board/);
 assert.match(readme, /on demand/);
 assert.match(readme, /macOS/);
 assert.match(readme, /Windows/);
+assert.ok(fs.existsSync(path.join(root, "design", "PRODUCT-NARRATIVE.md")));
 
 const shellFiles = fs.readdirSync(root);
 assert.ok(shellFiles.includes("electron"));
