@@ -84,14 +84,18 @@
       <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="cutover-title">
         <h2 id="cutover-title">Connect</h2>
         <p id="cutover-copy"></p>
+        <div id="seat-providers" class="seat-providers" hidden></div>
+        <p id="cutover-error" class="sheet-error" hidden></p>
         <div class="dialog-actions">
           <button type="button" class="no" id="cutover-cancel">Cancel</button>
           <button type="button" class="go" id="cutover-confirm">Connect</button>
         </div>
       </div>
     </div>
+    <div id="shell-toast" class="toast" hidden role="status" aria-live="assertive"></div>
 
     <script src="./assert.js"></script>
+    <script src="./seat-connect.js"></script>
     <script src="./chrome/modes-rail.js"></script>
     <script src="./chrome/presence-bar.js"></script>
     <script src="./chrome/connectors-tray.js"></script>

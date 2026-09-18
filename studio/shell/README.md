@@ -27,9 +27,11 @@ A 1440×900 window titled **AI Coding Studio** should open on Chat + Board with 
 | Windows | `npm start` | native window, 1440×900, min 1200×720 |
 | either, browser chrome | `npm run preview` | same renderer at [http://127.0.0.1:5173](http://127.0.0.1:5173) |
 
-`npm test` is a fence/smoke check plus a chat-engine prove. It does not launch Electron. The prove **fails** if Chat is still fixture-only (no bind, no `memory.write` persist).
+`npm test` is a fence/smoke check plus two proves. It does not launch Electron. `prove-chat` **fails** if Chat is still fixture-only (no bind, no `memory.write` persist). `prove-seat-connect` **fails** if Add seat → Connect is a no-op or still flips local renderer flags instead of `studio/seats` register + connect + cutover.attach.
 
 Chat is **engine-backed**. On shell start / Chat pane mount the main process `require`s `studio/chat-engine`, binds the rd-os git toplevel (or a user-picked folder from the bind chip), restores or opens a thread, and paints `repo · branch · dirty` from the live snapshot. Composer send writes thread memory through the engine and survives reopen. Inbox-bound GitHub/Slack replies stay on the two-way path. Code remains a drawer; opening it pushes `focus.source = "code"` into the bound thread.
+
+**Add seat is seats-backed.** Cold-open **Seat** opens a provider picker (`claude`, `grok`, `cursor`, `codex`, `gemini`, `chatgpt`). **Connect** calls `studio/seats` register → connect → cutover.attach. Success paints presence **online** + **in-studio-only**. Missing provider secrets (`ANTHROPIC_API_KEY`, `XAI_API_KEY`, `CURSOR_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY` / `GOOGLE_API_KEY`) surface a toast and the connect sheet — never a silent no-op. The shell does not invent tokens and does not call vendor APIs without those env keys.
 
 ## What should be on screen
 
@@ -37,7 +39,7 @@ Chat is **engine-backed**. On shell start / Chat pane mount the main process `re
 2. **Board** — human gates only (“Needs you”). Idle CA map and disconnected watches are hidden
 3. Toolbar **Code** (off) · **ConnectorsTray** for P0 GitHub + Slack: `live` / `error` are inbox filters; `needs_auth` opens connect; `disconnected` is hidden. Catalog **P0** is consumed read-only from `studio/connectors/CATALOG.md` when present. Slack is P1 in the catalog table and `p0_wire` yes. Idle catalog stays hidden
 4. **Inbox** — GitHub comments + Slack `app_mention`/DM in Chat. Composer `bound_to` the active item — **low-risk replies skip the HITL card**. Board **pending-approval** card (kind, destination, actor, payload + diff, Approve send / Deny) before high-risk egress. Bot high-risk also needs in-studio-only cutover
-5. Connecting a seat or provider asks once: *This seat works in Studio only while connected.*
+5. Connecting a seat or provider asks once: *This seat works in Studio only while connected.* After a real connect, presence lists the seat as online · in-studio-only. Auth/secret failures stay on screen.
 
 Code opens from the Code button or Close to put it away.
 
@@ -46,14 +48,15 @@ Code opens from the Code button or Close to put it away.
 ```
 studio/shell/
   electron/                 main + preload (chat-engine IPC)
-  lib/                      catalog + seats consume (read-only) + chat-bridge
+  lib/                      catalog + seats consume (read-only) + chat-bridge + seats-bridge
   renderer/                 quiet Chat + Board chrome
   renderer/chrome/          ConnectorsTray, ModesRail, PresenceBar
   renderer/panes/           ChatPane, BoardPane, CodeDrawer
   renderer/fixtures/        attention.dump stubs (board/inbox only)
-  scripts/preview.js        browser path (+ /catalog.json + /chat/*)
+  scripts/preview.js        browser path (+ /catalog.json + /chat/* + /seats/*)
   scripts/smoke.js
   scripts/prove-chat.js     bind + send must persist; fails on fixture-only Chat
+  scripts/prove-seat-connect.js  Add seat → Connect must mutate studio/seats or show an error
 ```
 
 Reconciled Designer SoT lives in [`design/`](./design/) (`quiet-studio.html`, narrative, spec, layout lock). `studio/design/` and `studio/connectors/**` are consumed read-only — this lane does not write those paths.
