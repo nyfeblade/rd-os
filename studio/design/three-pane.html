@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AI Coding Studio — three pane</title>
+<title>AI Coding Studio — three pane (superseded: Code-always-on)</title>
+<!-- SUPERSEDED for Code-always-on. Default chrome is Chat + Board; Code on demand. See LAYOUT-LOCK.md. This file remains the denser wire of all three surfaces when Code is open. -->
 <style>
   :root {
     --bg: #0e0e10;
@@ -24,7 +25,8 @@
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
   }
-  .stage { height: 100%; display: grid; place-items: center; padding: 20px; }
+  body { display: flex; flex-direction: column; }
+  .stage { flex: 1; min-height: 0; display: grid; place-items: center; padding: 12px 20px 20px; }
   .app {
     width: min(1440px, 100%);
     height: min(900px, 100%);
@@ -137,9 +139,17 @@
   .note {
     position: absolute; left: 20px; bottom: 12px; color: #666; font-size: 11px; max-width: 40em;
   }
+  .supersede {
+    flex: none; margin: 10px auto 0; max-width: min(720px, 90vw);
+    background: #1a1e2a; border: 1px solid #3a4570; color: #c8c8d0;
+    font-size: 11px; line-height: 1.45; padding: 6px 10px; border-radius: 6px;
+    text-align: center;
+  }
+  .supersede strong { color: var(--ink); }
 </style>
 </head>
 <body>
+  <p class="supersede"><strong>Superseded for Code-always-on.</strong> Default chrome is Chat + Board; Code opens on demand. See <code>LAYOUT-LOCK.md</code>. This remains the denser wire of all three surfaces when Code is open.</p>
   <div class="stage">
     <div class="app" role="application" aria-label="AI Coding Studio">
       <div class="titlebar">
