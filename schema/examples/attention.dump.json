@@ -1,0 +1,20 @@
+{
+  "p0": {
+    "id": "exp-2-stack-research",
+    "why": "draft PR needs Eng Proof kill-clarity dual-gate; then Luke merge",
+    "waiting_on": "proof",
+    "age_s": 0
+  },
+  "hard_law": [
+    "machine-time",
+    "multi-lane",
+    "research-before-claim",
+    "envelope",
+    "attention-beside-law"
+  ],
+  "open_gates": ["merge"],
+  "envelope_hint": {
+    "nearest_experiment_id": "exp-1-planted-false",
+    "baseline_ca_hours": null
+  }
+}
