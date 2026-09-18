@@ -5,7 +5,7 @@ const path = require("node:path");
 const { createChatSession, defaultRepoPath } = require("../lib/chat-bridge");
 const { tryReadCatalogP0 } = require("../lib/read-catalog");
 const { mergeWireConnectors, sendReply } = require("../lib/two-way");
-const { createStudioLive, TRAFFIC_LIGHT_POSITION } = require("../lib/studio-live");
+const { createStudioLive } = require("../lib/studio-live");
 const { createSeatsSession } = require("../lib/seats-bridge");
 const { runSeatConnectClick } = require("../lib/seat-connect");
 
@@ -53,7 +53,7 @@ function createWindow() {
     backgroundColor: "#ffffff",
     show: false,
     titleBarStyle: isMac ? "hiddenInset" : "default",
-    ...(isMac ? { trafficLightPosition: TRAFFIC_LIGHT_POSITION } : {}),
+    ...(isMac ? { trafficLightPosition: { x: 16, y: 18 } } : {}),
     ...(isWin
       ? {
           titleBarOverlay: {
