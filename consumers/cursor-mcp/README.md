@@ -21,13 +21,16 @@ echo "exit=$?"
 
 Expected: **exit 0**. `npm test` spawns `../../bin/mcp.js` over stdio, lists tools, and submits a weight-only claim.
 
-Printed evidence (shape):
+Measured on a cold clone of this branch (Node 22.14.0, no `npm install`): **exit 0**, `wall_ms=26`.
 
 ```
 cursor-mcp: attach stdio …/bin/mcp.js
+cursor-mcp: initialize ok serverInfo=rd-os@0.3.0
+cursor-mcp: tools/list (10) experiment.open experiment.record_actuals envelope.query envelope.record plan.fanout plan.accept claim.submit claim.verdict_draft attention.dump steer.gate
 PASS tools/list includes MCP_CONTRACT tools
+cursor-mcp: claim.submit weight-only => {"ok":false,"code":"WEIGHT_ONLY","detail":"claim is only confidence/Δ/LGTM with no instrument packet"}
 PASS WEIGHT_ONLY reject code=WEIGHT_ONLY
-PASS cursor-mcp (measured MCP attach + WEIGHT_ONLY; wall_ms=…; not a 14d verdict)
+PASS cursor-mcp (measured MCP attach + WEIGHT_ONLY; wall_ms=26; not a 14d verdict)
 ```
 
 `npm install` is optional. It links the parent via `file:../..`. The smoke already falls back to `../../bin/mcp.js` on a clone.
