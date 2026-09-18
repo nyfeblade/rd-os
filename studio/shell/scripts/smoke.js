@@ -183,6 +183,10 @@ if (catalogPresent()) {
   assert.ok(p0.some((row) => row.id === "claude"));
   assert.ok(p0.some((row) => row.id === "grok"));
   assert.ok(p0.some((row) => row.id === "cursor"));
+  assert.ok(
+    !p0.some((row) => row.id === "slack"),
+    "Slack is P1 / p0_wire, not a catalog P0 tray row",
+  );
 } else {
   assert.deepEqual(p0, []);
 }

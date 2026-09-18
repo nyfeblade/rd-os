@@ -31,7 +31,7 @@ A 1440×900 window titled **AI Coding Studio** should open on Chat + Board with 
 
 1. **Chat** — You plus unconnected Grok / Claude / Cursor seats and an Agents room; **in-studio-only** on cutover seats; thread; composer
 2. **Board** — Agent map + Proof instruments, empty gates until a dump, Approve and Reject when a human gate exists (not a Waiting home)
-3. Toolbar **Code** (off) · **connectors tray** (catalog P0 from `studio/connectors/CATALOG.md` when that file is present, all needs-auth; fallback P0 if not) · presence (“N here”)
+3. Toolbar **Code** (off) · **connectors tray** (catalog **P0** only from `studio/connectors/CATALOG.md` when present — GitHub, Cursor, Claude, Grok, Linear, Sentry, Vercel; Slack is P1/`p0_wire`, not a P0 tray row) · presence
 4. Connecting a seat or provider asks once: *This seat works in Studio only while connected.*
 
 Code opens from the Code button, the chat hint, or Close to put it away.
