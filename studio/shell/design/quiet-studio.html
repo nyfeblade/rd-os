@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Studio</title>
+<style>
+  :root {
+    --bg: #fff; --ink: #111; --mute: #666; --line: #e8e8e8; --wash: #fafafa;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #eee; color: var(--ink);
+  }
+  .app {
+    height: 100%; max-width: 960px; margin: 0 auto; background: var(--bg);
+    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+    display: flex; flex-direction: column;
+  }
+  .bar {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 12px;
+  }
+  .bar b { font-size: 13px; font-weight: 600; }
+  .tray { display: flex; gap: 8px; align-items: center; color: var(--mute); }
+  .tray button {
+    font: inherit; font-size: 12px; padding: 2px 0; border: 0; background: 0;
+    color: var(--mute); cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+  }
+  .tray .live { color: var(--ink); text-decoration: none; font-weight: 600; }
+  .tray .auth { color: #886600; }
+  .grow { flex: 1; }
+  .bar .tool {
+    font: inherit; font-size: 12px; padding: 3px 8px;
+    border: 1px solid var(--line); background: #fff; cursor: pointer;
+  }
+  .bar .tool.on { background: #111; color: #fff; border-color: #111; }
+
+  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 280px; }
+  .body.code-open { grid-template-columns: 1fr 340px 260px; }
+  .col {
+    min-width: 0; min-height: 0; display: flex; flex-direction: column;
+    border-right: 1px solid var(--line);
+  }
+  .col:last-child { border-right: 0; }
+  .code { display: none; background: var(--wash); }
+  .body.code-open .code { display: flex; }
+
+  .ctx {
+    padding: 8px 14px; border-bottom: 1px solid var(--line);
+    font-size: 12px; color: var(--mute); background: var(--wash);
+  }
+  .ctx b { color: var(--ink); font-weight: 600; }
+  .msgs { flex: 1; overflow: auto; padding: 16px; }
+  .msg { margin-bottom: 14px; max-width: 34em; }
+  .msg .who { font-size: 11px; color: #888; margin-bottom: 3px; }
+  .msg .txt { font-size: 14px; line-height: 1.5; }
+  .msg.inbound { padding: 10px; border: 1px solid var(--line); background: #fffef5; }
+  .compose {
+    border-top: 1px solid var(--line); padding: 10px; display: flex; gap: 8px;
+  }
+  .compose textarea {
+    flex: 1; border: 1px solid var(--line); padding: 8px; font: inherit; font-size: 13px;
+    resize: none; min-height: 52px;
+  }
+  .compose button {
+    font: inherit; font-size: 12px; padding: 0 12px;
+    border: 1px solid #111; background: #111; color: #fff; cursor: pointer;
+  }
+  .hint { font-size: 11px; color: #888; padding: 0 10px 8px; }
+
+  .board { background: var(--wash); }
+  .gate {
+    background: #fff; border-bottom: 1px solid var(--line); padding: 14px;
+  }
+  .gate .label { font-size: 11px; color: #888; margin-bottom: 4px; }
+  .gate .title { font-size: 14px; font-weight: 600; }
+  .gate .actions { margin-top: 10px; }
+  .gate button {
+    font: inherit; font-size: 12px; margin-right: 6px; padding: 5px 10px;
+    border: 1px solid var(--line); background: #fff; cursor: pointer;
+  }
+  .gate button.ok { background: #111; color: #fff; border-color: #111; }
+  .quiet { padding: 12px 14px; font-size: 12px; color: #888; }
+
+  .code-h {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+    border-bottom: 1px solid var(--line); background: #fff; font-size: 12px;
+  }
+  .code-h button {
+    margin-left: auto; font: inherit; font-size: 12px;
+    border: 1px solid var(--line); background: #fff; padding: 2px 8px; cursor: pointer;
+  }
+  pre {
+    margin: 0; flex: 1; overflow: auto; padding: 12px;
+    font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; background: #fff;
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header class="bar">
+      <b>Studio</b>
+      <!-- tray: live | needs_auth — not read-only -->
+      <div class="tray" aria-label="Connectors">
+        <button type="button" class="live" title="live">GitHub</button>
+        <button type="button" class="auth" title="needs_auth">Slack</button>
+        <button type="button" class="live" title="live">Cursor</button>
+      </div>
+      <span class="grow"></span>
+      <button type="button" class="tool" id="codeBtn">Code</button>
+    </header>
+
+    <div class="body" id="body">
+      <section class="col" aria-label="Chat">
+        <!-- notification inbox thread — composer bound to it -->
+        <div class="ctx">Replying on <b>GitHub</b> · nyfeblade/rd-os#14 review request</div>
+        <div class="msgs">
+          <div class="msg inbound">
+            <div class="who">GitHub → inbox</div>
+            <div class="txt">@you requested on PR#14 modes — “please confirm Proof gate wording.”</div>
+          </div>
+          <div class="msg">
+            <div class="who">You (draft out)</div>
+            <div class="txt" style="color:#666">Composer below sends the reply to GitHub on this thread.</div>
+          </div>
+        </div>
+        <div class="hint">Outbound bound to this notification · Slack needs sign-in in tray</div>
+        <div class="compose">
+          <textarea placeholder="Reply on GitHub…" aria-label="Reply composer"></textarea>
+          <button type="button">Send to GitHub</button>
+        </div>
+      </section>
+
+      <aside class="col code" aria-label="Code">
+        <div class="code-h">
+          <b>rd-os</b>
+          <button type="button" id="codeClose">Close</button>
+        </div>
+        <pre>// code on demand only</pre>
+      </aside>
+
+      <aside class="col board" aria-label="Board">
+        <div class="gate">
+          <div class="label">HITL · high-risk outbound</div>
+          <div class="title">Deploy to production (Vercel)</div>
+          <div class="label" style="margin-top:8px">Payload</div>
+          <pre style="margin:6px 0;padding:8px;border:1px solid #e8e8e8;font-size:11px;background:#fafafa;white-space:pre-wrap">project: rd-os
+target: production
+commit: 5265a25
+actor: Cursor (bot) · in-studio-only</pre>
+          <div class="label">Diff</div>
+          <pre style="margin:6px 0;padding:8px;border:1px solid #e8e8e8;font-size:11px;background:#fafafa">+ vercel.json prod promote
+- preview-only flag</pre>
+          <div class="actions">
+            <button class="ok" type="button">Approve send</button>
+            <button type="button">Deny</button>
+          </div>
+        </div>
+        <div class="quiet">Low-risk GitHub replies send from Chat composer. High-risk needs this card.</div>
+      </aside>
+    </div>
+  </div>
+  <script>
+    const body = document.getElementById('body');
+    const codeBtn = document.getElementById('codeBtn');
+    function setCode(on) {
+      body.classList.toggle('code-open', on);
+      codeBtn.classList.toggle('on', on);
+    }
+    codeBtn.onclick = () => setCode(!body.classList.contains('code-open'));
+    document.getElementById('codeClose').onclick = () => setCode(false);
+  </script>
+</body>
+</html>

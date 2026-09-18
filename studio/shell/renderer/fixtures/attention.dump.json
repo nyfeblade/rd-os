@@ -1,0 +1,20 @@
+{
+  "p0": {
+    "id": "studio-a-shell",
+    "why": "three-pane Studio shell is open; board is a stub until attention.dump / MCP is wired",
+    "waiting_on": "agent",
+    "age_s": 96
+  },
+  "hard_law": [
+    "machine-time",
+    "multi-lane",
+    "research-before-claim",
+    "envelope",
+    "attention-beside-law"
+  ],
+  "open_gates": ["merge"],
+  "envelope_hint": {
+    "nearest_experiment_id": null,
+    "baseline_ca_hours": null
+  }
+}

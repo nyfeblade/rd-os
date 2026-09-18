@@ -1,0 +1,19 @@
+{
+  "name": "studio-shell",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Studio A desktop shell — Chat + Board default, Code on demand. Mac + Windows.",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "preview": "node ./scripts/preview.js",
+    "smoke": "node ./scripts/smoke.js",
+    "test": "node ./scripts/smoke.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "electron": "^37.3.1"
+  }
+}
