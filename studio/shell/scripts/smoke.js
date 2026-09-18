@@ -244,7 +244,9 @@ assert.match(main, /studio:auth.start/);
 assert.match(main, /runSeatConnectClick/);
 assert.doesNotMatch(main, /demoInbox\(\)/);
 assert.match(main, /backgroundColor: "#ffffff"/);
-assert.match(main, /trafficLightPosition:\s*\{\s*x:\s*16,\s*y:\s*18\s*\}/);
+assert.match(main, /trafficLightPosition/);
+assert.match(main, /hiddenInset/);
+assert.match(read("lib/studio-live.js"), /x:\s*16,\s*y:\s*18/);
 assert.doesNotMatch(main, /#0c0c0e|#141416/);
 
 assert.match(readme, /npm start/);
