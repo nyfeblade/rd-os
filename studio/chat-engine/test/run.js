@@ -271,6 +271,27 @@ async function cases() {
       if (snap.data.thread.focus.source !== "last_touched") {
         return { ok: false, error: `source ${snap.data.thread.focus.source}` };
       }
+      git(["checkout", "--", "src/app.js"], repo);
+      fs.writeFileSync(path.join(repo, "OTHER.txt"), "next\n", "utf8");
+      const again = expectOk(await engine.snapshot.refresh(opened.data.thread.id));
+      if (!again.ok) {
+        return again;
+      }
+      if (!again.data.thread.focus || again.data.thread.focus.path !== "OTHER.txt") {
+        return { ok: false, error: `stale last_touched ${JSON.stringify(again.data.thread.focus)}` };
+      }
+      const pinned = expectOk(engine.focus.set(opened.data.thread.id, { path: "README.md", source: "code" }));
+      if (!pinned.ok) {
+        return pinned;
+      }
+      fs.writeFileSync(path.join(repo, "THIRD.txt"), "ignored\n", "utf8");
+      const held = expectOk(await engine.snapshot.refresh(opened.data.thread.id));
+      if (!held.ok) {
+        return held;
+      }
+      if (!held.data.thread.focus || held.data.thread.focus.path !== "README.md" || held.data.thread.focus.source !== "code") {
+        return { ok: false, error: "code focus must not be overwritten by last_touched" };
+      }
       return { ok: true };
     })
   );

@@ -1,6 +1,6 @@
 "use strict";
 
-const { ok, reject, isObject, isNonEmptyString } = require("./result");
+const { ok, reject, isNonEmptyString } = require("./result");
 const { OUTCOME_SOURCES, OUTCOME_STATUSES, OUTCOME_SCHEMA } = require("./codes");
 const { eventId } = require("./ids");
 const { appendEvent, loadEvents } = require("./store");
@@ -93,14 +93,9 @@ async function pollOutcomes(home, thread, snapshot, nowIso) {
   });
 }
 
-function isOutcomeEvent(value) {
-  return isObject(value) && (value.kind === "outcome" || value.kind === "handoff");
-}
-
 module.exports = {
   ingestOutcome,
   listOutcomes,
   pollOutcomes,
   fingerprintOf,
-  isOutcomeEvent,
 };

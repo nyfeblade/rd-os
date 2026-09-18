@@ -22,7 +22,7 @@ const { normalizeMode, authorizeTool, listTools, invokeTool } = require("./tools
 const { buildContextPack } = require("./context");
 const { playHandoff } = require("./handoff");
 const { ingestOutcome, listOutcomes, pollOutcomes } = require("./outcomes");
-const { ensureHome, saveThread, loadThread, listThreadIds, saveProject } = require("./store");
+const { ensureHome, saveThread, loadThread, listThreadIds, saveProject, loadProject } = require("./store");
 
 function resolveHome(options) {
   if (options && isNonEmptyString(options.home)) {
@@ -65,12 +65,13 @@ function createChatEngine(options) {
   }
 
   function rememberProject(bind, createdAt) {
+    const existing = loadProject(home, bind.project_id);
     return saveProject(home, {
       id: bind.project_id,
       git_root: bind.git_root,
       repo_path: bind.repo_path,
       roots: bind.roots.slice(),
-      created_at: createdAt,
+      created_at: existing.ok && existing.data.created_at ? existing.data.created_at : createdAt,
       updated_at: createdAt,
     });
   }
@@ -146,7 +147,8 @@ function createChatEngine(options) {
     if (!snapshot.ok) {
       return snapshot;
     }
-    if (!loaded.data.focus) {
+    const stale = !loaded.data.focus || loaded.data.focus.source === "last_touched";
+    if (stale) {
       const inferred = inferFocus(loaded.data, snapshot.data, execGit, nowIso);
       if (inferred.ok && inferred.data) {
         loaded.data.focus = inferred.data;
@@ -395,5 +397,4 @@ function createChatEngine(options) {
 
 module.exports = {
   createChatEngine,
-  resolveHome,
 };

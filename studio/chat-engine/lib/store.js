@@ -143,6 +143,20 @@ function saveProject(home, project) {
   return ok(project);
 }
 
+function loadProject(home, hash) {
+  if (!isProjectKey(hash)) {
+    return reject("BAD_ARGUMENT", "invalid project key");
+  }
+  const loaded = readJson(layout(home).project(hash));
+  if (!loaded.ok) {
+    if (loaded.missing) {
+      return { ok: false, missing: true };
+    }
+    return loaded;
+  }
+  return ok(loaded.data);
+}
+
 function loadEvents(home, id) {
   if (!isThreadId(id)) {
     return reject("BAD_ARGUMENT", "invalid thread id");
@@ -181,6 +195,7 @@ module.exports = {
   loadProjectMemory,
   saveProjectMemory,
   saveProject,
+  loadProject,
   loadEvents,
   appendEvent,
 };

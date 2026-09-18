@@ -181,6 +181,4 @@ module.exports = {
   resolveGitRoot,
   captureRoot,
   inferLastTouched,
-  parsePorcelain,
-  parseLog,
 };
