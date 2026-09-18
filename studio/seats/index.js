@@ -10,6 +10,8 @@ module.exports = {
   classifyDestination,
   speechChannelOf,
   channelReject,
+  DEFAULT_SEAT_IDS: codes.DEFAULT_SEAT_IDS,
+  DEFAULT_BOT_SEAT_IDS: codes.DEFAULT_BOT_SEAT_IDS,
   SEAT_IDS: codes.SEAT_IDS,
   BOT_SEAT_IDS: codes.BOT_SEAT_IDS,
   ROOM_KINDS: codes.ROOM_KINDS,

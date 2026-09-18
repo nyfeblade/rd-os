@@ -134,10 +134,10 @@ function cases() {
   );
 
   rows.push(
-    runCase("connected bot → luke_1to1 is LUKE_1TO1_FORBIDDEN and does not store", () => {
+    runCase("connected bot → luke_1to1 is OPERATOR_1TO1_FORBIDDEN and does not store", () => {
       const studio = fresh();
       studio.seats.connect("grok");
-      const blocked = expectReject(studio.emit({ from: "grok", dest: "luke_1to1", body: "status ping Luke" }), "LUKE_1TO1_FORBIDDEN");
+      const blocked = expectReject(studio.emit({ from: "grok", dest: "luke_1to1", body: "status ping Luke" }), "OPERATOR_1TO1_FORBIDDEN");
       if (!blocked.ok) {
         return blocked;
       }
@@ -148,24 +148,24 @@ function cases() {
       if (messages.data.messages.length !== 0) {
         return { ok: false, error: "luke path leaked a room message" };
       }
-      return { ok: true, extra: { luke_1to1_attempts: 1, luke_1to1_rejects: 1, luke_1to1_leaks: 0 } };
+      return { ok: true, extra: { operator_1to1_attempts: 1, operator_1to1_rejects: 1, operator_1to1_leaks: 0 } };
     })
   );
 
   rows.push(
-    runCase("luke aliases all reject", () => {
+    runCase("operator/1:1 aliases all reject", () => {
       const studio = fresh();
       studio.seats.connect("claude");
-      const dests = ["luke", "1:1", "dm:luke", "grok:luke", "external:luke"];
+      const dests = ["operator", "owner", "1:1", "dm:human", "luke", "dm:luke"];
       let rejects = 0;
       for (const dest of dests) {
         const result = studio.emit({ from: "claude", dest, body: "ack" });
-        if (!result || result.ok !== false || result.code !== "LUKE_1TO1_FORBIDDEN") {
+        if (!result || result.ok !== false || result.code !== "OPERATOR_1TO1_FORBIDDEN") {
           return { ok: false, error: `${dest} → ${result && result.code}` };
         }
         rejects += 1;
       }
-      return { ok: true, extra: { luke_1to1_attempts: dests.length, luke_1to1_rejects: rejects, luke_1to1_leaks: 0 } };
+      return { ok: true, extra: { operator_1to1_attempts: dests.length, operator_1to1_rejects: rejects, operator_1to1_leaks: 0 } };
     })
   );
 
@@ -192,12 +192,12 @@ function cases() {
       studio.seats.connect("cursor");
       const blocked = expectReject(
         studio.connectors.speak({ connector: "github", from: "cursor", dest: "luke", body: "PR opened" }),
-        "LUKE_1TO1_FORBIDDEN"
+        "OPERATOR_1TO1_FORBIDDEN"
       );
       if (!blocked.ok) {
         return blocked;
       }
-      return { ok: true, extra: { luke_1to1_attempts: 1, luke_1to1_rejects: 1, luke_1to1_leaks: 0 } };
+      return { ok: true, extra: { operator_1to1_attempts: 1, operator_1to1_rejects: 1, operator_1to1_leaks: 0 } };
     })
   );
 
@@ -209,11 +209,11 @@ function cases() {
       if (!sent.ok) {
         return sent;
       }
-      const blocked = expectReject(studio.emit({ from: "human", dest: "luke_1to1", body: "self ping" }), "LUKE_1TO1_FORBIDDEN");
+      const blocked = expectReject(studio.emit({ from: "human", dest: "luke_1to1", body: "self ping" }), "OPERATOR_1TO1_FORBIDDEN");
       if (!blocked.ok) {
         return blocked;
       }
-      return { ok: true, extra: { studio_room_delivers: 1, luke_1to1_attempts: 1, luke_1to1_rejects: 1, luke_1to1_leaks: 0 } };
+      return { ok: true, extra: { studio_room_delivers: 1, operator_1to1_attempts: 1, operator_1to1_rejects: 1, operator_1to1_leaks: 0 } };
     })
   );
 
@@ -265,7 +265,7 @@ function cases() {
   rows.push(
     runCase("cannot create a Luke-alias room", () => {
       const studio = fresh();
-      return expectReject(studio.rooms.create({ id: "luke-dm", title: "Luke 1:1", kind: "human_bot" }), "LUKE_1TO1_FORBIDDEN");
+      return expectReject(studio.rooms.create({ id: "luke-dm", title: "Luke 1:1", kind: "human_bot" }), "OPERATOR_1TO1_FORBIDDEN");
     })
   );
 
@@ -286,8 +286,12 @@ function cases() {
       if (room.channel !== "studio_room" || room.room_id !== "room:bots") {
         return { ok: false, error: JSON.stringify(room) };
       }
-      if (luke.channel !== "luke_1to1") {
+      if (luke.channel !== "operator_1to1") {
         return { ok: false, error: JSON.stringify(luke) };
+      }
+      const owner = classifyDestination("dm:operator");
+      if (owner.channel !== "operator_1to1") {
+        return { ok: false, error: JSON.stringify(owner) };
       }
       return { ok: true };
     })
@@ -336,9 +340,20 @@ function cases() {
         !dumped.data.eng ||
         dumped.data.eng.domain !== "eng" ||
         dumped.data.eng.life_os !== false ||
-        dumped.data.eng.purpose !== "coding_agent_bot_bot"
+        dumped.data.eng.purpose !== "coding_agent_bot_bot" ||
+        dumped.data.eng.multi_provider !== true ||
+        dumped.data.eng.luke_fleet_only !== false
       ) {
         return { ok: false, error: "dump eng surface" };
+      }
+      if (
+        !dumped.data.north_star ||
+        dumped.data.north_star.audience !== "any_ai_developer_studio" ||
+        dumped.data.north_star.providers !== "multi" ||
+        dumped.data.north_star.stranger_usable !== true ||
+        dumped.data.north_star.luke_fleet_only !== false
+      ) {
+        return { ok: false, error: "dump north star" };
       }
       const grok = dumped.data.seats.find((seat) => seat.id === "grok");
       if (!grok || grok.surface !== "eng" || grok.agent !== "coding_agent") {
@@ -384,6 +399,35 @@ function cases() {
   rows.push(
     runCase("unknown seat rejects", () => {
       return expectReject(fresh().seats.connect("elon"), "UNKNOWN_SEAT");
+    })
+  );
+
+  rows.push(
+    runCase("stranger can register another provider and emit in-studio", () => {
+      const studio = fresh();
+      const registered = expectOk(studio.seats.register({ id: "gemini", kind: "bot", label: "Gemini" }));
+      if (!registered.ok) {
+        return registered;
+      }
+      if (registered.data.seat.agent !== "coding_agent" || registered.data.seat.surface !== "eng") {
+        return { ok: false, error: JSON.stringify(registered.data.seat) };
+      }
+      studio.seats.connect("gemini");
+      const sent = expectOk(studio.emit({ from: "gemini", dest: "room:bots", body: "multi-provider bot↔bot" }));
+      if (!sent.ok) {
+        return sent;
+      }
+      const blocked = expectReject(studio.emit({ from: "gemini", dest: "owner", body: "ping" }), "OPERATOR_1TO1_FORBIDDEN");
+      if (!blocked.ok) {
+        return blocked;
+      }
+      return { ok: true, extra: { studio_room_delivers: 1, operator_1to1_attempts: 1, operator_1to1_rejects: 1, operator_1to1_leaks: 0 } };
+    })
+  );
+
+  rows.push(
+    runCase("cannot register an operator-alias seat", () => {
+      return expectReject(fresh().seats.register({ id: "luke", kind: "bot" }), "OPERATOR_1TO1_FORBIDDEN");
     })
   );
 
@@ -465,9 +509,9 @@ function main() {
   const passed = rows.filter((row) => row.ok).length;
   const failed = rows.filter((row) => !row.ok);
   const wallMs = Date.now() - started;
-  const lukeAttempts = sumExtra(rows, "luke_1to1_attempts");
-  const lukeRejects = sumExtra(rows, "luke_1to1_rejects");
-  const lukeLeaks = sumExtra(rows, "luke_1to1_leaks");
+  const lukeAttempts = sumExtra(rows, "operator_1to1_attempts");
+  const lukeRejects = sumExtra(rows, "operator_1to1_rejects");
+  const lukeLeaks = sumExtra(rows, "operator_1to1_leaks");
   const packet = {
     ok: failed.length === 0 && lukeLeaks === 0 && lukeAttempts === lukeRejects,
     module: "studio/seats",
@@ -478,9 +522,9 @@ function main() {
     cases: rows.length,
     passed,
     failed: failed.length,
-    luke_1to1_attempts: lukeAttempts,
-    luke_1to1_rejects: lukeRejects,
-    luke_1to1_leaks: lukeLeaks,
+    operator_1to1_attempts: lukeAttempts,
+    operator_1to1_rejects: lukeRejects,
+    operator_1to1_leaks: lukeLeaks,
     external_attempts: sumExtra(rows, "external_attempts"),
     external_rejects: sumExtra(rows, "external_rejects"),
     studio_room_delivers: sumExtra(rows, "studio_room_delivers"),
@@ -495,12 +539,12 @@ function main() {
       process.stderr.write(`FAIL ${row.name}: ${row.detail}\n`);
     }
     process.stderr.write(
-      `FAIL studio/seats cutover (measured; cases=${packet.cases} passed=${passed} failed=${failed.length}; luke_1to1_leaks=${lukeLeaks}; wall_ms=${wallMs})\n`
+      `FAIL studio/seats cutover (measured; cases=${packet.cases} passed=${passed} failed=${failed.length}; operator_1to1_leaks=${lukeLeaks}; wall_ms=${wallMs})\n`
     );
     process.exit(1);
   }
   process.stdout.write(
-    `PASS studio/seats cutover (measured; cases=${packet.cases} passed=${passed} failed=0; luke_1to1_leaks=0; wall_ms=${wallMs})\n`
+    `PASS studio/seats cutover (measured; cases=${packet.cases} passed=${passed} failed=0; operator_1to1_leaks=0; wall_ms=${wallMs})\n`
   );
 }
 

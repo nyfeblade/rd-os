@@ -1,10 +1,13 @@
 /**
- * Eng surfaces: seats, rooms, hard cutover.
- * Bot↔bot in-studio for coding agents. Not a life-OS. Not CA1 packet seats.
- * Feeds Chat | Board default chrome. Code is on-demand. Three-pane-always is wrong.
+ * Eng surfaces for any AI developer studio (multi-provider).
+ * Default roster is grok/claude/cursor/human; register more. Not a Luke-fleet.
+ * Bot↔bot in-studio. Not a life-OS. Not CA1 packet seats.
  */
 
-export type StudioSeatId = "grok" | "claude" | "cursor" | "human";
+export type BuiltinSeatId = "grok" | "claude" | "cursor" | "human";
+
+/** Builtin ids plus any registered provider slug. */
+export type StudioSeatId = BuiltinSeatId | string;
 
 export type StudioSeatKind = "bot" | "human";
 
@@ -34,7 +37,7 @@ export type DefaultChrome = ["Chat", "Board"];
  */
 export type SpeechChannel =
   | "studio_room"
-  | "luke_1to1"
+  | "operator_1to1"
   | "external_group"
   | "external_dm"
   | "external_connector";
@@ -43,7 +46,7 @@ export type CutoverRejectCode =
   | "CUTOVER_REQUIRED"
   | "CUTOVER_LOCKED"
   | "EXTERNAL_CHANNEL_FORBIDDEN"
-  | "LUKE_1TO1_FORBIDDEN"
+  | "OPERATOR_1TO1_FORBIDDEN"
   | "SEAT_DISCONNECTED"
   | "ROOM_NOT_FOUND"
   | "SEAT_NOT_MEMBER"
@@ -106,6 +109,15 @@ export interface EngSurfaceLock {
   life_os: false;
   purpose: "coding_agent_bot_bot";
   surfaces: EngSurfaceName[];
+  multi_provider: true;
+  luke_fleet_only: false;
+}
+
+export interface NorthStar {
+  audience: "any_ai_developer_studio";
+  providers: "multi";
+  luke_fleet_only: false;
+  stranger_usable: true;
 }
 
 /**
@@ -133,6 +145,7 @@ export interface StudioDump {
   cutover: CutoverLock;
   layout: LayoutLock;
   eng: EngSurfaceLock;
+  north_star: NorthStar;
   chat: ChatPaneHints;
   online_count: number;
 }

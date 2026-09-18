@@ -2,7 +2,7 @@
   "name": "@rd-os/studio-seats",
   "version": "0.1.0",
   "private": true,
-  "description": "Eng surfaces: seats, rooms, hard cutover. Coding-agent bot↔bot in-studio. Not a life-OS.",
+  "description": "Multi-provider seats/rooms/cutover for any AI developer studio. Stranger-usable. Not a Luke-fleet.",
   "main": "./index.js",
   "types": "./schema.ts",
   "bin": {

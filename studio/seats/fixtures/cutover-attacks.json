@@ -2,7 +2,7 @@
   "schema": "studio.seats.attacks/v1",
   "product_lock": "connected_bots_speak_only_in_studio",
   "note": "Destinations a studio connector must never deliver. Enforced in lib/classify.js + emit.",
-  "luke_1to1": ["luke", "luke_1to1", "1:1", "1to1", "dm:luke", "grok:luke", "external:luke"],
+  "operator_1to1": ["operator", "owner", "operator_1to1", "1:1", "1to1", "dm:human", "dm:operator", "luke", "luke_1to1", "dm:luke"],
   "external": ["group", "hq", "factory", "eng-hq", "eng-factory", "slack:eng", "discord:ops", "dm:elon", "connector:github:notify"],
   "life_os": ["life", "life-os", "life_os", "journal", "personal", "family", "calendar"]
 }

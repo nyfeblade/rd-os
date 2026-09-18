@@ -5,13 +5,24 @@ const {
   reject,
 } = require("./codes");
 
-const LUKE_ALIASES = new Set([
+const OPERATOR_ALIASES = new Set([
+  "operator",
+  "owner",
+  "operator_1to1",
+  "owner_1to1",
+  "human_1to1",
+  "1:1",
+  "1to1",
+  "dm:human",
+  "dm/human",
+  "dm:operator",
+  "dm/operator",
+  "dm:owner",
+  "dm/owner",
   "luke",
   "luke_1to1",
   "luke-1-1",
   "luke-dm",
-  "1:1",
-  "1to1",
   "dm:luke",
   "dm/luke",
   "grok:luke",
@@ -72,8 +83,15 @@ function speechChannelOf(dest) {
     const roomId = raw.startsWith("studio:") ? `room:${raw.slice("studio:".length)}` : raw;
     return { channel: "studio_room", dest: raw, room_id: roomId };
   }
-  if (LUKE_ALIASES.has(raw) || raw.startsWith("luke:") || raw.startsWith("luke/") || raw.endsWith(":luke")) {
-    return { channel: "luke_1to1", dest: raw, room_id: null };
+  if (
+    OPERATOR_ALIASES.has(raw) ||
+    raw.startsWith("luke:") ||
+    raw.startsWith("luke/") ||
+    raw.endsWith(":luke") ||
+    raw.startsWith("operator:") ||
+    raw.startsWith("owner:")
+  ) {
+    return { channel: "operator_1to1", dest: raw, room_id: null };
   }
   if (
     LIFE_OS_ALIASES.has(raw) ||
@@ -103,10 +121,10 @@ function channelReject(classified) {
   switch (classified.channel) {
     case "studio_room":
       return null;
-    case "luke_1to1":
+    case "operator_1to1":
       return reject(
-        "LUKE_1TO1_FORBIDDEN",
-        `hard cutover: studio connectors have no Luke/1:1 path (dest=${classified.dest || "<empty>"})`
+        "OPERATOR_1TO1_FORBIDDEN",
+        `hard cutover: studio connectors have no operator/1:1 path (dest=${classified.dest || "<empty>"})`
       );
     case "external_group":
     case "external_dm":

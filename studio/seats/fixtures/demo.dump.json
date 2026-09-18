@@ -117,18 +117,19 @@
     ],
     "legal_channel": "studio_room",
     "forbidden_destinations": [
-      "luke",
-      "luke_1to1",
+      "operator",
+      "owner",
+      "operator_1to1",
       "1:1",
       "1to1",
+      "dm:human",
+      "dm:operator",
+      "luke",
+      "luke_1to1",
       "dm:luke",
-      "grok:luke",
-      "external:luke",
       "group",
       "hq",
-      "factory",
-      "eng-hq",
-      "eng-factory"
+      "factory"
     ],
     "connect_ack": "This seat works in Studio only while connected.",
     "in_studio_only_label": "in-studio-only"
@@ -149,7 +150,15 @@
       "seat",
       "room",
       "cutover"
-    ]
+    ],
+    "multi_provider": true,
+    "luke_fleet_only": false
+  },
+  "north_star": {
+    "audience": "any_ai_developer_studio",
+    "providers": "multi",
+    "luke_fleet_only": false,
+    "stranger_usable": true
   },
   "chat": {
     "pane": "Chat",
