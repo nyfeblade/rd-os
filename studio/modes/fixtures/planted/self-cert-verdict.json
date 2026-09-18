@@ -1,0 +1,40 @@
+{
+  "expect": {
+    "ok": false,
+    "violations": [
+      "SELF_CERT_VERDICT"
+    ],
+    "why": "lane writes its own verdict"
+  },
+  "mode": "eng",
+  "lane": "studio-d-modes",
+  "fence": {
+    "allow": [
+      "studio/modes/"
+    ]
+  },
+  "touched_paths": [
+    "studio/modes/index.js"
+  ],
+  "commands": [
+    {
+      "cmd": "node studio/modes/prove.js",
+      "exit_code": 0
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "text": "node studio/modes/prove.js exits 0 over the fixtures in studio/modes/fixtures.",
+      "evidence": [
+        {
+          "kind": "command",
+          "ref": "node studio/modes/prove.js"
+        }
+      ],
+      "kill": "Break a rail and the exit code changes."
+    }
+  ],
+  "verdict": "PASS",
+  "clock_started": false
+}

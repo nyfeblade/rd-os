@@ -1,0 +1,35 @@
+{
+  "expect": {
+    "ok": false,
+    "violations": [
+      "UNMEASURED_EVIDENCE"
+    ],
+    "why": "claim cites a command nobody recorded an exit code for"
+  },
+  "mode": "eng",
+  "lane": "studio-d-modes",
+  "fence": {
+    "allow": [
+      "studio/modes/"
+    ]
+  },
+  "touched_paths": [
+    "studio/modes/index.js"
+  ],
+  "commands": [],
+  "claims": [
+    {
+      "id": "c1",
+      "text": "node studio/modes/prove.js exits 0 over the fixtures.",
+      "evidence": [
+        {
+          "kind": "command",
+          "ref": "node studio/modes/prove.js"
+        }
+      ],
+      "kill": "Break a rail and the exit code changes."
+    }
+  ],
+  "verdict": null,
+  "clock_started": false
+}

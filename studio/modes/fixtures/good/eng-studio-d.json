@@ -1,0 +1,44 @@
+{
+  "expect": { "ok": true },
+  "mode": "eng",
+  "lane": "studio-d-modes",
+  "fence": { "allow": ["studio/modes/"] },
+  "touched_paths": [
+    "studio/modes/index.js",
+    "studio/modes/rails.js",
+    "studio/modes/lanes.json",
+    "studio/modes/prove.js"
+  ],
+  "commands": [
+    { "cmd": "node studio/modes/prove.js", "exit_code": 0 },
+    { "cmd": "node studio/modes/prove.js --gate studio/modes/fixtures/planted", "exit_code": 2 }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "text": "node studio/modes/prove.js exits 0 over the fixtures in studio/modes/fixtures.",
+      "evidence": [{ "kind": "command", "ref": "node studio/modes/prove.js" }],
+      "kill": "Add a fixture whose expect block disagrees with the rails; the exit code becomes 2."
+    },
+    {
+      "id": "c2",
+      "text": "The planted fixture directory drives the gate to a non-zero exit.",
+      "evidence": [
+        { "kind": "command", "ref": "node studio/modes/prove.js --gate studio/modes/fixtures/planted" },
+        { "kind": "file", "ref": "studio/modes/fixtures/planted/self-cert-verdict.json" }
+      ],
+      "kill": "Delete the planted records and the gate exits 0 with nothing to catch."
+    },
+    {
+      "id": "c3",
+      "text": "studio/shell/ belongs to lane studio-a-shell in the registry, so this lane's touched paths stay inside studio/modes/.",
+      "evidence": [
+        { "kind": "file", "ref": "studio/modes/lanes.json" },
+        { "kind": "command", "ref": "node studio/modes/prove.js" }
+      ],
+      "kill": "Move studio/shell/ under studio-d-modes in the registry and the collision rail stops firing."
+    }
+  ],
+  "verdict": null,
+  "clock_started": false
+}

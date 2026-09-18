@@ -1,0 +1,14 @@
+{
+  "registry": "studio-lanes-v1",
+  "clock_started": false,
+  "note": "Path ownership for the Studio lanes. A lane's fence is read from here, never from the lane's own run record. Prefixes are repo-relative and match on segment boundaries.",
+  "lanes": {
+    "studio-a-shell": { "owns": ["studio/shell/"] },
+    "studio-b-seats": { "owns": ["studio/seats/"] },
+    "studio-c-github": { "owns": ["studio/github/"] },
+    "studio-d-modes": { "owns": ["studio/modes/"] },
+    "kernel": { "owns": ["src/db/", "src/lock/", "src/board/", "src/metrics/", "src/mcp/", "src/providers/"] },
+    "consumers": { "owns": ["consumers/"] },
+    "waiting-ui": { "owns": ["ui/"] }
+  }
+}

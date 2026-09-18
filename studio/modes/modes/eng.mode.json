@@ -1,0 +1,25 @@
+{
+  "mode": "eng",
+  "description": "Engineering lane rails: claims must name evidence a stranger can re-run, the fence is registry-owned, and the verdict is not the lane's to write.",
+  "rails": ["research-before-claim", "multi-lane-awareness", "no-self-cert"],
+  "min_evidence": 1,
+  "evidence_kinds": ["command", "file", "url"],
+  "require_measured_evidence": true,
+  "require_kill_line": true,
+  "verdict_words": [
+    "pass",
+    "passes",
+    "passed",
+    "verified",
+    "proven",
+    "confirmed",
+    "works",
+    "working",
+    "done",
+    "complete",
+    "shipped",
+    "production-ready",
+    "fully",
+    "successfully"
+  ]
+}
