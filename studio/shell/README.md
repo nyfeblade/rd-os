@@ -4,7 +4,7 @@ Homebase for any AI developer: Grok Bot caps **optimized for engineering**, mult
 
 Default chrome is **Chat + Board**. **Code is on demand**. **Visibility law:** only necessary info — current conversation, human gates, connector problems, Code entry. Full roster, full connector catalog, idle CA map, disconnected watches, and the mode parade stay hidden until needed.
 
-**Connectors are two-way.** Tray is auth + inbox entry (`live` | `needs_auth`) for P0 **GitHub + Slack** — not display-only. Ingest lands in a Chat inbox thread and, optionally, a Board need-you card. The same composer replies **bound to** that notification. Bots send only with in-studio-only cutover **and** a human gate — no free-fire. Shell consumes `studio/connectors/runtime/**` and ingress read-only; it does not implement those contracts. Quiet default: `need_you=false` (GitHub ping) never pings the tray. Token meter stub on Board + thread when known; omitted when unknown. Preview can toggle first-open vs working.
+**Connectors are two-way.** Tray states come from `studio/connectors/runtime` (`live` | `needs_auth` | `error` | `disconnected`). P0 **GitHub + Slack**: live/error are inbox entry; `needs_auth` opens connect; disconnected stays hidden. Ingest lands in Chat (PR/issue comments, Slack `app_mention` / DM) and Board when it needs a gate (review request, **CI@you**). The same composer replies **bound to** that notification. Bots send only with in-studio-only cutover **and** a human gate — no free-fire. Shell consumes runtime + ingress read-only; it does not implement those contracts. Quiet default: `need_you=false` (GitHub ping) never pings the tray. Token meter stub on Board + thread when known; omitted when unknown. Preview can toggle first-open vs working.
 
 This package is Electron so the same stranger path runs on **macOS and Windows**. Linux can use the same commands.
 
@@ -33,8 +33,8 @@ A 1440×900 window titled **AI Coding Studio** should open on Chat + Board with 
 
 1. **Chat** — current conversation (who + thread + composer). Full seat roster is hidden
 2. **Board** — human gates only (“Needs you”). Idle CA map and disconnected watches are hidden
-3. Toolbar **Code** (off) · **ConnectorsTray** for P0 GitHub + Slack: `needs_auth` opens connect; `live` is the inbox filter. Catalog **P0** is consumed read-only from `studio/connectors/CATALOG.md` when present. Slack is P1 in the catalog table and `p0_wire` yes. Idle catalog / disconnected P1 stay hidden
-4. **Inbox** — GitHub/Slack need-you items in Chat; Board optionally if `needs_gate`. Composer `bound_to` the active item. Outbound `reply` is delegated to `studio/connectors/runtime` when present. Bot **Allow send** requires cutover + approved gate
+3. Toolbar **Code** (off) · **ConnectorsTray** for P0 GitHub + Slack: `live` / `error` are inbox filters; `needs_auth` opens connect; `disconnected` is hidden. Catalog **P0** is consumed read-only from `studio/connectors/CATALOG.md` when present. Slack is P1 in the catalog table and `p0_wire` yes. Idle catalog stays hidden
+4. **Inbox** — GitHub comments + Slack `app_mention`/DM in Chat; Board for review-request / **CI@you**. Composer `bound_to` the active item. Outbound `reply` is delegated to `studio/connectors/runtime` when present. Bot **Allow send** requires cutover + approved gate
 5. Connecting a seat or provider asks once: *This seat works in Studio only while connected.*
 
 Code opens from the Code button or Close to put it away.

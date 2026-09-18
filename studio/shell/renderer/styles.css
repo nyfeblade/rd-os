@@ -136,6 +136,10 @@ body[data-host="electron"][data-platform="mac"] .bar {
   color: var(--warn);
 }
 
+.tray button.error {
+  color: var(--err);
+}
+
 .ctx {
   padding: 8px 14px;
   border-bottom: 1px solid var(--line);

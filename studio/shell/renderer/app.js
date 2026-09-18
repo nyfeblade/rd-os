@@ -338,7 +338,8 @@
       return;
     }
     switch (connector.status) {
-      case "live": {
+      case "live":
+      case "error": {
         state.inboxFilter = id;
         const match = (state.inbox || []).find((item) => item.provider === id && item.need_you);
         state.boundTo = match ? match.id : null;
@@ -347,7 +348,6 @@
       }
       case "needs_auth":
       case "disconnected":
-      case "error":
         openCutover({
           kind: "connector",
           id: connector.id,

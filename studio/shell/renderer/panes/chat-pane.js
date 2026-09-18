@@ -69,7 +69,14 @@
             return "issue_comment";
         }
       case "slack":
-        return "message";
+        switch (item.kind) {
+          case "mention":
+          case "dm":
+          case "auth_failure":
+            return "message";
+          default:
+            return "message";
+        }
       default:
         return Studio.assertNever(item.provider);
     }

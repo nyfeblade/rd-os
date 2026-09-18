@@ -11,9 +11,9 @@
       case "needs_auth":
         return "auth";
       case "error":
-        return "auth";
+        return "error";
       case "disconnected":
-        return "auth";
+        return "off";
       default:
         return assertNever(status);
     }
@@ -48,12 +48,13 @@
   function trayLabel(connector) {
     switch (connector.status) {
       case "needs_auth":
-      case "error":
         return `${connector.label} needs sign-in`;
+      case "error":
+        return `${connector.label} error`;
       case "live":
         return connector.label;
       case "disconnected":
-        return connector.label;
+        return `${connector.label} disconnected`;
       default:
         return assertNever(connector.status);
     }
@@ -76,7 +77,7 @@
       button.className = connectorClass(connector.status);
       button.dataset.connector = connector.id;
       button.dataset.status = connector.status;
-      button.dataset.inboxEntry = connector.status === "live" ? "true" : "false";
+      button.dataset.inboxEntry = connector.status === "live" || connector.status === "error" ? "true" : "false";
       button.title = connector.status;
       button.setAttribute("aria-label", trayLabel(connector));
       button.setAttribute("aria-pressed", String(state.inboxFilter === connector.id));

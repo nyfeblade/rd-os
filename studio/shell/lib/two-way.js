@@ -11,11 +11,14 @@ const { tryReadTwoWayWire } = require("./read-catalog");
 const { ingressPresent, readIngressFixture, tryLoadIngress } = require("./read-ingress");
 
 const P0_WIRE = ["github", "slack"];
+const TRAY_STATES = ["live", "needs_auth", "error", "disconnected"];
 const TRAY_DEFAULT = ["live", "needs_auth"];
 const DEMO_INGEST = [
   "github-review-request.json",
   "github-issue-comment.json",
+  "github-ci-failure.json",
   "slack-mention.json",
+  "slack-dm.json",
 ];
 const DEMO_QUIET = ["github-ping-dropped.json"];
 
@@ -75,15 +78,21 @@ function mergeWireConnectors(catalogRows) {
   return rows;
 }
 
+function trayStates() {
+  const runtime = tryLoadRuntime();
+  if (runtime && Array.isArray(runtime.TRAY_STATES) && runtime.TRAY_STATES.length) {
+    return runtime.TRAY_STATES.slice();
+  }
+  return TRAY_STATES.slice();
+}
+
 function trayStatus(status) {
   switch (status) {
     case "live":
     case "needs_auth":
-      return status;
     case "error":
-      return "needs_auth";
     case "disconnected":
-      return "needs_auth";
+      return status;
     default:
       return assertNever(status);
   }
@@ -161,6 +170,34 @@ function stubInbox() {
       thread_ref: { team: "T1", channel: "Ceng", ts: "1726665600.000100" },
       title: "mentioned in #eng",
       body: "<@Ubot> status on the runtime?",
+      actor: { login: "U123" },
+      created_at: "2026-09-18T12:00:00Z",
+      tray_state: "live",
+    },
+    {
+      id: "github:ci_failure:your-repo:check_suite:deadbeef",
+      provider: "github",
+      kind: "ci_failure",
+      need_you: true,
+      needs_gate: true,
+      dest: "board",
+      thread_ref: { owner: "you", repo: "your-repo" },
+      title: "CI failed on your-repo",
+      body: "check_suite conclusion=failure",
+      actor: { login: "github-actions" },
+      created_at: "2026-09-18T12:03:00Z",
+      tray_state: "error",
+    },
+    {
+      id: "slack:dm:Ddm:1726665660.000200",
+      provider: "slack",
+      kind: "dm",
+      need_you: true,
+      needs_gate: false,
+      dest: "chat",
+      thread_ref: { channel: "Ddm", ts: "1726665660.000200" },
+      title: "DM mention",
+      body: "<@Ubot> can you reply from studio?",
       actor: { login: "U123" },
       created_at: "2026-09-18T12:00:00Z",
       tray_state: "live",
@@ -250,6 +287,7 @@ function sendReply(draft) {
 module.exports = {
   P0_WIRE,
   TRAY_DEFAULT,
+  TRAY_STATES,
   boardInbox,
   chatInbox,
   cutoverFromSeats,
@@ -261,6 +299,7 @@ module.exports = {
   replyKindFor,
   runtimePresent,
   sendReply,
+  trayStates,
   trayStatus,
   tryLoadRuntime,
   visibleInbox,

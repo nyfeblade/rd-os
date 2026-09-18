@@ -150,10 +150,18 @@
     if (state.view !== "cold") {
       const pending = state.pendingBotSend;
       const botPending = pending && pending.status !== "sent" && pending.status !== "denied";
+      for (const item of inboxGates(state)) {
+        if (item.kind === "ci_failure" || item.dest === "board") {
+          renderInboxGate(els, item, handlers);
+        }
+      }
       if (botPending) {
         renderBotSendGate(els, state, handlers);
       } else {
         for (const item of inboxGates(state)) {
+          if (item.kind === "ci_failure" || item.dest === "board") {
+            continue;
+          }
           renderInboxGate(els, item, handlers);
         }
       }
