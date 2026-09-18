@@ -1,0 +1,18 @@
+{
+  "name": "@rd-os/studio-chat-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Studio chat engine: project bind, live workspace snapshot, focus, memory, coding-mode toolbelt, handoff bus, outcome ingest. Chat is the engine; Board/dashboard is shell later.",
+  "main": "./index.js",
+  "types": "./types.d.ts",
+  "bin": {
+    "studio-chat-engine-demo": "./bin/demo.js"
+  },
+  "scripts": {
+    "test": "node test/run.js",
+    "demo": "node bin/demo.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
