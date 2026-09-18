@@ -1,0 +1,60 @@
+[
+  {
+    "id": "m5-complete",
+    "expect": "ok",
+    "open": {
+      "experiment_id": "m5-complete",
+      "title": "complete machine-time",
+      "estimate_ca_hours": 1.5,
+      "estimate_proof_min": 20,
+      "human_gates": [{ "kind": "merge", "reason": "playbook: human-owned merges" }],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null }
+    }
+  },
+  {
+    "id": "m5-missing-proof",
+    "expect": "MISSING_MACHINE_TIME",
+    "open": {
+      "experiment_id": "m5-missing-proof",
+      "title": "missing proof minutes",
+      "estimate_ca_hours": 1.5,
+      "human_gates": [{ "kind": "merge", "reason": "playbook" }],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null }
+    }
+  },
+  {
+    "id": "m5-missing-gates",
+    "expect": "MISSING_MACHINE_TIME",
+    "open": {
+      "experiment_id": "m5-missing-gates",
+      "title": "missing gates",
+      "estimate_ca_hours": 1.5,
+      "estimate_proof_min": 20,
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null }
+    }
+  },
+  {
+    "id": "m5-missing-actuals",
+    "expect": "MISSING_MACHINE_TIME",
+    "open": {
+      "experiment_id": "m5-missing-actuals",
+      "title": "missing actuals",
+      "estimate_ca_hours": 1.5,
+      "estimate_proof_min": 20,
+      "human_gates": []
+    }
+  },
+  {
+    "id": "m5-weeks",
+    "expect": "HUMAN_WEEK_WITHOUT_GATE",
+    "open": {
+      "experiment_id": "m5-weeks",
+      "title": "banned weeks",
+      "estimate_ca_hours": 1.5,
+      "estimate_proof_min": 20,
+      "estimate_weeks": 2,
+      "human_gates": [],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null }
+    }
+  }
+]

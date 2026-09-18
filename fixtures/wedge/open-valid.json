@@ -1,0 +1,25 @@
+{
+  "experiment_id": "exp-2-wedge-build",
+  "title": "Smallest runnable R&D OS wedge",
+  "estimate_ca_hours": 2,
+  "estimate_proof_min": 25,
+  "human_gates": [
+    {
+      "kind": "merge",
+      "reason": "playbook: human-owned merges; bots never merge"
+    },
+    {
+      "kind": "proof_accept",
+      "reason": "Eng Proof dual-gate on harness stubs + packet path"
+    }
+  ],
+  "actuals": {
+    "ca_hours": null,
+    "proof_min": null,
+    "human_hours": null,
+    "finished_at": null
+  },
+  "opened_n": 3,
+  "kill": "cold clone exercises board + attention + packet; Eng Proof can run 14d stubs",
+  "instrument": "apl prove"
+}

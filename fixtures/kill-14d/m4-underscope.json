@@ -1,0 +1,124 @@
+[
+  {
+    "id": "m4-1",
+    "open": {
+      "experiment_id": "m4-1",
+      "title": "drop probes",
+      "estimate_ca_hours": 4,
+      "estimate_proof_min": 20,
+      "human_gates": [{ "kind": "merge", "reason": "playbook: human-owned merges" }],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null },
+      "opened_n": 3,
+      "kill": "Δ≥+1.5 vs strong same-tools",
+      "instrument": "apl prove"
+    },
+    "accept": {
+      "experiment_id": "m4-1",
+      "n": 1,
+      "constraint": null,
+      "kill": "Δ≥+1.5 vs strong same-tools",
+      "instrument": "apl prove"
+    }
+  },
+  {
+    "id": "m4-2",
+    "open": {
+      "experiment_id": "m4-2",
+      "title": "soften kill",
+      "estimate_ca_hours": 4,
+      "estimate_proof_min": 20,
+      "human_gates": [{ "kind": "merge", "reason": "playbook: human-owned merges" }],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null },
+      "opened_n": 3,
+      "kill": "Δ≥+1.5 vs strong same-tools",
+      "instrument": "apl prove"
+    },
+    "accept": {
+      "experiment_id": "m4-2",
+      "n": 3,
+      "constraint": null,
+      "kill": "positive Δ",
+      "instrument": "apl prove",
+      "no_baseline": true,
+      "probes": [
+        { "id": "p0", "kind": "run", "command_or_url": "true", "status": "ran", "evidence_uri": "p0" },
+        { "id": "p1", "kind": "fetch", "command_or_url": "https://example.com", "status": "fetched", "evidence_uri": "p1" },
+        { "id": "p2", "kind": "run", "command_or_url": "true", "status": "ran", "evidence_uri": "p2" }
+      ]
+    }
+  },
+  {
+    "id": "m4-3",
+    "open": {
+      "experiment_id": "m4-3",
+      "title": "swap instrument",
+      "estimate_ca_hours": 4,
+      "estimate_proof_min": 20,
+      "human_gates": [{ "kind": "merge", "reason": "playbook: human-owned merges" }],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null },
+      "opened_n": 3,
+      "kill": "Δ≥+1.5 vs strong same-tools",
+      "instrument": "apl prove"
+    },
+    "accept": {
+      "experiment_id": "m4-3",
+      "n": 3,
+      "kill": "Δ≥+1.5 vs strong same-tools",
+      "instrument": "README says it works",
+      "no_baseline": true,
+      "probes": [
+        { "id": "p0", "kind": "run", "command_or_url": "true", "status": "ran", "evidence_uri": "p0" },
+        { "id": "p1", "kind": "fetch", "command_or_url": "https://example.com", "status": "fetched", "evidence_uri": "p1" },
+        { "id": "p2", "kind": "run", "command_or_url": "true", "status": "ran", "evidence_uri": "p2" }
+      ]
+    }
+  },
+  {
+    "id": "m4-4",
+    "open": {
+      "experiment_id": "m4-4",
+      "title": "silent CA-hour cut",
+      "estimate_ca_hours": 4,
+      "estimate_proof_min": 20,
+      "human_gates": [{ "kind": "merge", "reason": "playbook: human-owned merges" }],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null },
+      "opened_n": 3,
+      "kill": "Δ≥+1.5 vs strong same-tools",
+      "instrument": "apl prove"
+    },
+    "accept": {
+      "experiment_id": "m4-4",
+      "n": 3,
+      "estimate_ca_hours": 0.5,
+      "kill": "Δ≥+1.5 vs strong same-tools",
+      "instrument": "apl prove",
+      "no_baseline": true,
+      "probes": [
+        { "id": "p0", "kind": "run", "command_or_url": "true", "status": "ran", "evidence_uri": "p0" },
+        { "id": "p1", "kind": "fetch", "command_or_url": "https://example.com", "status": "fetched", "evidence_uri": "p1" },
+        { "id": "p2", "kind": "run", "command_or_url": "true", "status": "ran", "evidence_uri": "p2" }
+      ]
+    }
+  },
+  {
+    "id": "m4-5",
+    "open": {
+      "experiment_id": "m4-5",
+      "title": "fast path shrink",
+      "estimate_ca_hours": 4,
+      "estimate_proof_min": 20,
+      "human_gates": [{ "kind": "merge", "reason": "playbook: human-owned merges" }],
+      "actuals": { "ca_hours": null, "proof_min": null, "human_hours": null, "finished_at": null },
+      "opened_n": 3,
+      "kill": "Δ≥+1.5 vs strong same-tools",
+      "instrument": "apl prove"
+    },
+    "accept": {
+      "experiment_id": "m4-5",
+      "n": 1,
+      "constraint": null,
+      "kill": "positive Δ",
+      "instrument": "README says it works"
+    }
+  }
+]

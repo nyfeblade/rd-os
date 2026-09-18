@@ -34,6 +34,14 @@ Packet path: `evidence/runs/<experiment_id>/<timestamp>/packet.json` plus `cmd-N
 
 R&D OS does **not** fork Proof Layer. It **calls** it as a `run` probe.
 
+Hook in this wedge (script, not a glass UI):
+
+```bash
+./scripts/proof-layer.sh
+```
+
+That clones `nyfeblade/agent-proof-layer` (or uses `$APL_DIR`) and runs `npm run demo:reject`. On REJECTED it may `claim.submit` the packet into the local board. `verdict` stays null.
+
 ---
 
 ## Plug-in: multi-lane fan-out (Law 2)

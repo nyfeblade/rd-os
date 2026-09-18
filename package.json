@@ -1,0 +1,19 @@
+{
+  "name": "rd-os",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Smallest runnable R&D OS wedge: local board/packets, attention.dump, Proof Layer hook, 14d harness stubs. No glass UI. No MCP server process.",
+  "bin": {
+    "rdos": "./bin/rdos.js"
+  },
+  "scripts": {
+    "rdos": "node ./bin/rdos.js",
+    "stranger": "./scripts/stranger-check.sh",
+    "kill14d": "./scripts/kill14d.sh",
+    "proof-layer": "./scripts/proof-layer.sh",
+    "wedge-measure": "./scripts/wedge-measure.sh"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

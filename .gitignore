@@ -1,0 +1,7 @@
+var/
+.tmp/
+node_modules/
+evidence/kill-14d/*.json
+!evidence/kill-14d/.gitkeep
+evidence/runs/
+evidence/proof-layer/
