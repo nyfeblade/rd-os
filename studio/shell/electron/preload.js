@@ -16,4 +16,10 @@ contextBridge.exposeInMainWorld("studioShell", {
     selectRepo: () => ipcRenderer.invoke("studio:chat.selectRepo"),
     setCodeFocus: (open) => ipcRenderer.invoke("studio:chat.focus", open),
   },
+  seats: {
+    connect: (provider) => ipcRenderer.invoke("studio:seats.connect", provider),
+    list: () => ipcRenderer.invoke("studio:seats.list"),
+    presence: () => ipcRenderer.invoke("studio:seats.presence"),
+    providers: () => ipcRenderer.invoke("studio:seats.providers"),
+  },
 });

@@ -6,9 +6,12 @@ const path = require("node:path");
 
 const { createChatSession } = require("../lib/chat-bridge");
 const { tryReadCatalogP0 } = require("../lib/read-catalog");
+const { createSeatsSession } = require("../lib/seats-bridge");
+const { runSeatConnectClick } = require("../lib/seat-connect");
 const { demoInbox, mergeWireConnectors, sendReply } = require("../lib/two-way");
 
 const chatSession = createChatSession();
+const seatsSession = createSeatsSession({ env: process.env });
 chatSession.bind().catch((err) => {
   process.stderr.write(`chat bind: ${err && err.message ? err.message : String(err)}\n`);
 });
@@ -123,6 +126,27 @@ const server = http.createServer((req, res) => {
   if (urlPath === "/chat/focus" && req.method === "POST") {
     readJson(req, (body) => {
       sendChat(res, () => chatSession.setCodeFocus(Boolean(body && body.open)));
+    });
+    return;
+  }
+  if (urlPath === "/seats/providers" && req.method === "GET") {
+    sendJson(res, { ok: true, providers: seatsSession.providers() });
+    return;
+  }
+  if (urlPath === "/seats/list" && req.method === "GET") {
+    sendJson(res, seatsSession.list());
+    return;
+  }
+  if (urlPath === "/seats/presence" && req.method === "GET") {
+    sendJson(res, seatsSession.presence());
+    return;
+  }
+  if (urlPath === "/seats/connect" && req.method === "POST") {
+    readJson(req, (body) => {
+      sendJson(res, runSeatConnectClick({
+        session: seatsSession,
+        provider: body && body.provider,
+      }));
     });
     return;
   }

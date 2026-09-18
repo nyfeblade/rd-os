@@ -48,6 +48,9 @@
     cutoverCopy: document.getElementById("cutover-copy"),
     cutoverCancel: document.getElementById("cutover-cancel"),
     cutoverConfirm: document.getElementById("cutover-confirm"),
+    cutoverError: document.getElementById("cutover-error"),
+    seatProviders: document.getElementById("seat-providers"),
+    toast: document.getElementById("shell-toast"),
     chatLive: document.getElementById("chat-live"),
     chatCold: document.getElementById("chat-cold"),
     chatOnboard: document.getElementById("chat-onboard"),
@@ -101,12 +104,7 @@
 
   const chatHandlers = {
     onConnectSeat(seat) {
-      openCutover({
-        kind: "seat",
-        id: seat.id,
-        title: `Connect ${seat.name}`,
-        copy: "This seat works in Studio only while connected.",
-      });
+      openAddSeat(seat && seat.id ? seat.id : null);
     },
     bindInbox,
   };
@@ -382,14 +380,155 @@
     renderChrome();
   }
 
+  function showToast(message, kind) {
+    if (!els.toast) {
+      return;
+    }
+    els.toast.hidden = !message;
+    els.toast.dataset.kind = kind || "info";
+    els.toast.textContent = message || "";
+  }
+
+  function showSeatError(result) {
+    const copy = Studio.seats.errorCopy(result);
+    state.flash = copy;
+    if (els.cutoverError) {
+      els.cutoverError.hidden = false;
+      els.cutoverError.textContent = copy;
+    }
+    showToast(copy, "error");
+    renderChrome();
+  }
+
+  function clearSeatError() {
+    if (els.cutoverError) {
+      els.cutoverError.hidden = true;
+      els.cutoverError.textContent = "";
+    }
+  }
+
+  function renderProviderPicker(show) {
+    if (!els.seatProviders) {
+      return;
+    }
+    els.seatProviders.hidden = !show;
+    els.seatProviders.replaceChildren();
+    if (!show) {
+      return;
+    }
+    for (const row of Studio.seats.providerRows()) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.provider = row.id;
+      button.textContent = row.label;
+      if (state.pendingCutover && state.pendingCutover.id === row.id) {
+        button.classList.add("on");
+      }
+      button.addEventListener("click", () => {
+        if (!state.pendingCutover) {
+          state.pendingCutover = {
+            kind: "seat",
+            pick: true,
+            copy: Studio.seats.CONNECT_ACK,
+          };
+        }
+        state.pendingCutover.kind = "seat";
+        state.pendingCutover.pick = true;
+        state.pendingCutover.id = row.id;
+        state.pendingCutover.title = `Connect ${row.label}`;
+        els.cutoverTitle.textContent = state.pendingCutover.title;
+        clearSeatError();
+        renderProviderPicker(true);
+      });
+      els.seatProviders.appendChild(button);
+    }
+  }
+
+  function openAddSeat(provider) {
+    const known = provider && Studio.seats.isKnownProvider(provider) ? provider : null;
+    const label = known ? Studio.seats.providerLabel(known) : null;
+    openCutover({
+      kind: "seat",
+      id: known,
+      pick: true,
+      title: label ? `Connect ${label}` : "Add seat",
+      copy: Studio.seats.CONNECT_ACK,
+    });
+  }
+
+  function applySeatConnect(result) {
+    const applied = Studio.seats.applyConnectResult(state.seats, result);
+    if (!applied.ok) {
+      showSeatError(applied);
+      return false;
+    }
+    state.seats = applied.seats;
+    state.selectedSeat = applied.seat.id;
+    clearSeatError();
+    showToast(`${applied.seat.name} online · in-studio-only`, "ok");
+    setPresenceOpen(true);
+    closeCutover();
+    renderChrome();
+    return true;
+  }
+
+  function seatsRoute(method) {
+    switch (method) {
+      case "connect":
+        return { path: "/seats/connect", verb: "POST" };
+      case "list":
+        return { path: "/seats/list", verb: "GET" };
+      case "presence":
+        return { path: "/seats/presence", verb: "GET" };
+      case "providers":
+        return { path: "/seats/providers", verb: "GET" };
+      default:
+        return Studio.assertNever(method);
+    }
+  }
+
+  function seatsPayload(method, value) {
+    switch (method) {
+      case "connect":
+        return { provider: value };
+      case "list":
+      case "presence":
+      case "providers":
+        return {};
+      default:
+        return Studio.assertNever(method);
+    }
+  }
+
+  async function seatsInvoke(method, value) {
+    try {
+      if (window.studioShell && window.studioShell.seats && typeof window.studioShell.seats[method] === "function") {
+        return await window.studioShell.seats[method](value);
+      }
+      const route = seatsRoute(method);
+      const response = await fetch(route.path, {
+        method: route.verb,
+        headers: { "Content-Type": "application/json" },
+        body: route.verb === "GET" ? undefined : JSON.stringify(seatsPayload(method, value)),
+      });
+      return await response.json();
+    } catch (_err) {
+      return {
+        ok: false,
+        code: "SEATS_UNREACHABLE",
+        detail: "Seats API unreachable",
+        visible_error: true,
+      };
+    }
+  }
+
   function onConnector(id) {
     if (id === "add") {
-      openCutover({
-        kind: "connector",
-        id: "add",
-        title: "Connect a provider",
-        copy: "Connect GitHub / an agent provider. This seat works in Studio only while connected.",
-      });
+      openAddSeat();
+      return;
+    }
+    if (Studio.seats.isKnownProvider(id)) {
+      openAddSeat(id);
       return;
     }
     const connector = state.connectors.find((item) => item.id === id);
@@ -423,6 +562,8 @@
     state.pendingCutover = pending;
     els.cutoverTitle.textContent = pending.title;
     els.cutoverCopy.textContent = pending.copy;
+    clearSeatError();
+    renderProviderPicker(pending.kind === "seat" && pending.pick === true);
     els.cutoverSheet.hidden = false;
     setPresenceOpen(false);
     els.cutoverConfirm.focus();
@@ -430,39 +571,64 @@
 
   function closeCutover() {
     state.pendingCutover = null;
+    renderProviderPicker(false);
+    clearSeatError();
     els.cutoverSheet.hidden = true;
   }
 
-  function confirmCutover() {
+  async function confirmCutover() {
     const pending = state.pendingCutover;
     if (!pending) {
+      showSeatError({
+        ok: false,
+        code: "BAD_ARGUMENT",
+        detail: "Nothing to connect",
+      });
       closeCutover();
       return;
     }
     switch (pending.kind) {
-      case "connector": {
-        if (pending.id !== "add") {
-          const connector = state.connectors.find((item) => item.id === pending.id);
-          if (connector) {
-            connector.status = "live";
-          }
-        }
-        break;
-      }
       case "seat": {
-        const seat = state.seats.find((item) => item.id === pending.id);
-        if (seat) {
-          seat.presence = "online";
-          seat.cutover = true;
-          state.selectedSeat = seat.id;
+        if (!pending.id || !Studio.seats.isKnownProvider(pending.id)) {
+          showSeatError({
+            ok: false,
+            code: "BAD_ARGUMENT",
+            detail: "Pick a provider: claude, grok, cursor, codex, gemini, or chatgpt.",
+          });
+          return;
         }
-        break;
+        els.cutoverConfirm.disabled = true;
+        const result = await seatsInvoke("connect", pending.id);
+        els.cutoverConfirm.disabled = false;
+        if (!result || result.ok !== true) {
+          showSeatError(result || { ok: false, code: "NO_OP", detail: "Connect did nothing" });
+          return;
+        }
+        applySeatConnect(result);
+        return;
+      }
+      case "connector": {
+        if (pending.id === "add" || Studio.seats.isKnownProvider(pending.id)) {
+          openAddSeat(Studio.seats.isKnownProvider(pending.id) ? pending.id : null);
+          return;
+        }
+        const connector = state.connectors.find((item) => item.id === pending.id);
+        if (!connector) {
+          showSeatError({
+            ok: false,
+            code: "UNKNOWN_PROVIDER",
+            detail: `Unknown connector: ${pending.id}`,
+          });
+          return;
+        }
+        connector.status = "live";
+        closeCutover();
+        renderChrome();
+        return;
       }
       default:
         Studio.assertNever(pending.kind);
     }
-    closeCutover();
-    renderChrome();
   }
 
   function chatRoute(method) {
@@ -561,10 +727,7 @@
     }
     if (els.ctaSeat) {
       els.ctaSeat.addEventListener("click", () => {
-        const bot = state.seats.find((seat) => seat.kind === "bot" && !seat.cutover);
-        if (bot) {
-          chatHandlers.onConnectSeat(bot);
-        }
+        openAddSeat();
       });
     }
     els.btnCode.addEventListener("click", () => {
@@ -724,6 +887,25 @@
     }
   }
 
+  async function loadSeats() {
+    const result = await seatsInvoke("list");
+    if (!result || result.ok !== true || !Array.isArray(result.seats)) {
+      return;
+    }
+    for (const seat of result.seats) {
+      if (seat.kind !== "bot") {
+        continue;
+      }
+      if (seat.presence !== "online" && seat.in_studio_only !== true) {
+        continue;
+      }
+      const applied = Studio.seats.applyConnectResult(state.seats, { ok: true, seat });
+      if (applied.ok) {
+        state.seats = applied.seats;
+      }
+    }
+  }
+
   async function loadCatalog() {
     try {
       if (window.studioShell && typeof window.studioShell.loadCatalog === "function") {
@@ -774,7 +956,10 @@
       await loadInbox();
     }
     setView(initialView());
-    if (state.view === "live") {
+    if (state.view !== "live") {
+      await loadSeats();
+      renderChrome();
+    } else {
       bindFirstInbox();
       renderChrome();
     }

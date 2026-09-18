@@ -5,6 +5,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { createChatSession, defaultRepoPath } = require("../lib/chat-bridge");
 const { tryReadCatalogP0 } = require("../lib/read-catalog");
+const { createSeatsSession } = require("../lib/seats-bridge");
+const { runSeatConnectClick } = require("../lib/seat-connect");
 const { demoInbox, mergeWireConnectors, sendReply } = require("../lib/two-way");
 
 const MIN_WIDTH = 1200;
@@ -137,10 +139,40 @@ ipcMain.handle("studio:chat.selectRepo", async (event) => {
   return chat().bind(picked.filePaths[0]);
 });
 
+let seatsSession = null;
+
+function seats() {
+  if (!seatsSession) {
+    throw new Error("seats session not started");
+  }
+  return seatsSession;
+}
+
+ipcMain.handle("studio:seats.connect", (_event, provider) => {
+  return runSeatConnectClick({ session: seats(), provider });
+});
+
+ipcMain.handle("studio:seats.list", () => {
+  return seats().list();
+});
+
+ipcMain.handle("studio:seats.presence", () => {
+  return seats().presence();
+});
+
+ipcMain.handle("studio:seats.providers", () => {
+  return seats().providers();
+});
+
 app.whenReady().then(() => {
+  const studioHome = path.join(app.getPath("userData"), "studio");
   chatSession = createChatSession({
-    varDir: path.join(app.getPath("userData"), "studio"),
+    varDir: studioHome,
     repo: defaultRepoPath(),
+  });
+  seatsSession = createSeatsSession({
+    home: path.join(studioHome, "seats"),
+    env: process.env,
   });
   chatSession.bind().catch((err) => {
     process.stderr.write(`chat bind: ${err && err.message ? err.message : String(err)}\n`);
