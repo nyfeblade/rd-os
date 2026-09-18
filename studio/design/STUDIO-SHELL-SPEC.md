@@ -8,6 +8,7 @@ See [PRODUCT-NARRATIVE.md](./PRODUCT-NARRATIVE.md).
 (seats, rooms, routines→board watches, skills→modes, memory, connectors, agent map, Proof gates).
 
 **Layout:** Chat | Board default · **Code on demand** ([LAYOUT-LOCK.md](./LAYOUT-LOCK.md)) · Waiting-home DEAD  
+**Chrome fences:** [SHELL-IA.md](./SHELL-IA.md) is authoritative (connectors tray + Code drawer).  
 **Not:** three panes always visible. Code is not automatic. Not fleet-only.
 
 ---
