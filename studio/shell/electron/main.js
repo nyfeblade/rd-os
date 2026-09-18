@@ -1,8 +1,9 @@
 "use strict";
 
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
+const { createChatSession, defaultRepoPath } = require("../lib/chat-bridge");
 const { tryReadCatalogP0 } = require("../lib/read-catalog");
 const { demoInbox, mergeWireConnectors, sendReply } = require("../lib/two-way");
 
@@ -94,7 +95,55 @@ ipcMain.handle("studio:loadDump", (_event, name) => {
   return readFixture(name);
 });
 
+let chatSession = null;
+
+function chat() {
+  if (!chatSession) {
+    throw new Error("chat session not started");
+  }
+  return chatSession;
+}
+
+ipcMain.handle("studio:chat.bind", (_event, repo) => {
+  return chat().bind(repo);
+});
+
+ipcMain.handle("studio:chat.state", () => {
+  return { ok: true, state: chat().state() };
+});
+
+ipcMain.handle("studio:chat.send", (_event, text) => {
+  return chat().send(text);
+});
+
+ipcMain.handle("studio:chat.refresh", () => {
+  return chat().refresh();
+});
+
+ipcMain.handle("studio:chat.focus", (_event, open) => {
+  return chat().setCodeFocus(open);
+});
+
+ipcMain.handle("studio:chat.selectRepo", async (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  const picked = await dialog.showOpenDialog(win, {
+    title: "Bind repo",
+    properties: ["openDirectory"],
+  });
+  if (picked.canceled || !picked.filePaths[0]) {
+    return { ok: true, state: chat().state() };
+  }
+  return chat().bind(picked.filePaths[0]);
+});
+
 app.whenReady().then(() => {
+  chatSession = createChatSession({
+    varDir: path.join(app.getPath("userData"), "studio"),
+    repo: defaultRepoPath(),
+  });
+  chatSession.bind().catch((err) => {
+    process.stderr.write(`chat bind: ${err && err.message ? err.message : String(err)}\n`);
+  });
   createWindow();
 
   app.on("activate", () => {

@@ -20,6 +20,7 @@
     main: document.getElementById("main"),
     modeChip: document.getElementById("mode-chip"),
     withEl: document.getElementById("with"),
+    bindStatus: document.getElementById("bind-status"),
     btnCode: document.getElementById("btn-code"),
     hintCode: document.getElementById("hint-code"),
     btnClose: document.getElementById("btn-close"),
@@ -80,6 +81,15 @@
     mode: "eng",
     view: "cold",
     tokens: { session: null, board: null, mission: null, seats: {} },
+    engine: {
+      ok: false,
+      code: null,
+      detail: null,
+      thread: null,
+      snapshot: null,
+      messages: [],
+      chrome: null,
+    },
   };
 
   function bindInbox(id) {
@@ -109,8 +119,7 @@
     resolveHitl,
     bindInbox,
     openDiff() {
-      Studio.panes.setCodeOpen(els, state, true);
-      Studio.panes.renderBoard(els, state, boardHandlers);
+      toggleCode(true);
     },
   };
 
@@ -139,8 +148,30 @@
     els.withEl.textContent = seat ? seat.name : "";
   }
 
+  function renderBind() {
+    if (!els.bindStatus) {
+      return;
+    }
+    const chrome = state.engine && state.engine.chrome;
+    if (!chrome || !chrome.repo) {
+      els.bindStatus.hidden = true;
+      els.bindStatus.textContent = "";
+      return;
+    }
+    const parts = [chrome.repo];
+    if (chrome.branch) {
+      parts.push(chrome.branch);
+    }
+    if (chrome.dirty) {
+      parts.push(chrome.dirty);
+    }
+    els.bindStatus.hidden = false;
+    els.bindStatus.textContent = parts.join(" · ");
+  }
+
   function renderChrome() {
     renderWith();
+    renderBind();
     Studio.chrome.renderMode(els, state, onMode);
     Studio.chrome.renderConnectors(els, state, onConnector);
     Studio.chrome.renderPresence(els, state);
@@ -246,7 +277,7 @@
     els.viewCold.classList.toggle("on", view === "cold");
     els.viewLive.classList.toggle("on", view === "live");
     els.chatCold.hidden = view !== "cold";
-    els.chatLive.hidden = view === "cold";
+    els.chatLive.hidden = false;
     if (els.chatOnboard) {
       els.chatOnboard.hidden = view === "live";
     }
@@ -434,6 +465,80 @@
     renderChrome();
   }
 
+  function chatRoute(method) {
+    switch (method) {
+      case "bind":
+        return { path: "/chat/bind", verb: "POST" };
+      case "state":
+        return { path: "/chat/state", verb: "GET" };
+      case "send":
+        return { path: "/chat/send", verb: "POST" };
+      case "refresh":
+        return { path: "/chat/refresh", verb: "POST" };
+      case "selectRepo":
+        return { path: "/chat/bind", verb: "POST" };
+      case "setCodeFocus":
+        return { path: "/chat/focus", verb: "POST" };
+      default:
+        return Studio.assertNever(method);
+    }
+  }
+
+  function chatPayload(method, value) {
+    switch (method) {
+      case "bind":
+      case "selectRepo":
+        return value ? { repo: value } : {};
+      case "send":
+        return { text: value };
+      case "setCodeFocus":
+        return { open: value === true };
+      case "state":
+      case "refresh":
+        return {};
+      default:
+        return Studio.assertNever(method);
+    }
+  }
+
+  function applyEngineResult(result) {
+    if (result && result.state) {
+      state.engine = result.state;
+    } else if (result && result.ok === false) {
+      state.engine = {
+        ...state.engine,
+        ok: false,
+        code: result.code || "BAD_ARGUMENT",
+        detail: result.detail || "chat engine rejected",
+      };
+    }
+    renderChrome();
+    return result;
+  }
+
+  async function chatInvoke(method, value) {
+    try {
+      if (window.studioShell && window.studioShell.chat && typeof window.studioShell.chat[method] === "function") {
+        return applyEngineResult(await window.studioShell.chat[method](value));
+      }
+      const route = chatRoute(method);
+      const response = await fetch(route.path, {
+        method: route.verb,
+        headers: { "Content-Type": "application/json" },
+        body: route.verb === "GET" ? undefined : JSON.stringify(chatPayload(method, value)),
+      });
+      return applyEngineResult(await response.json());
+    } catch (_err) {
+      return applyEngineResult({ ok: false, code: "BAD_ARGUMENT", detail: "chat engine unreachable" });
+    }
+  }
+
+  function toggleCode(open) {
+    Studio.panes.setCodeOpen(els, state, open);
+    Studio.panes.renderBoard(els, state, boardHandlers);
+    chatInvoke("setCodeFocus", open);
+  }
+
   async function postReply(draft) {
     try {
       if (window.studioShell && typeof window.studioShell.reply === "function") {
@@ -470,19 +575,21 @@
       }
     });
     els.btnCode.addEventListener("click", () => {
-      Studio.panes.setCodeOpen(els, state, !state.codeOpen);
-      Studio.panes.renderBoard(els, state, boardHandlers);
+      toggleCode(!state.codeOpen);
     });
     if (els.hintCode) {
       els.hintCode.addEventListener("click", () => {
-        Studio.panes.setCodeOpen(els, state, true);
-        Studio.panes.renderBoard(els, state, boardHandlers);
+        toggleCode(true);
       });
     }
     els.btnClose.addEventListener("click", () => {
-      Studio.panes.setCodeOpen(els, state, false);
-      Studio.panes.renderBoard(els, state, boardHandlers);
+      toggleCode(false);
     });
+    if (els.bindStatus) {
+      els.bindStatus.addEventListener("click", () => {
+        chatInvoke("selectRepo");
+      });
+    }
     els.presenceBtn.addEventListener("click", (event) => {
       event.stopPropagation();
       setPresenceOpen(!state.presenceOpen);
@@ -541,10 +648,15 @@
         });
         return;
       }
-      const seat = Studio.panes.selectedSeat(state);
-      Studio.panes.pushLocal(seat.id, { who: "You", body: text, me: true });
       els.composerInput.value = "";
-      Studio.panes.renderThread(els, state, chatHandlers);
+      chatInvoke("send", text).then((result) => {
+        if (result && result.ok) {
+          state.flash = "sent through chat engine";
+        } else {
+          state.flash = result && result.code ? result.code : "chat send failed";
+        }
+        renderChrome();
+      });
     });
     els.composerInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
@@ -563,8 +675,7 @@
         return;
       }
       if (state.codeOpen) {
-        Studio.panes.setCodeOpen(els, state, false);
-        Studio.panes.renderBoard(els, state, boardHandlers);
+        toggleCode(false);
       }
     });
   }
@@ -664,6 +775,7 @@
 
     await loadCatalog();
     await loadDump();
+    await chatInvoke("bind");
     Studio.panes.setCodeOpen(els, state, false);
     if (initialView() === "live") {
       await loadInbox();

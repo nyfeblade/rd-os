@@ -8,7 +8,8 @@
     "start": "electron .",
     "preview": "node ./scripts/preview.js",
     "smoke": "node ./scripts/smoke.js",
-    "test": "node ./scripts/smoke.js"
+    "prove": "node ./scripts/prove-chat.js",
+    "test": "node ./scripts/smoke.js && node ./scripts/prove-chat.js"
   },
   "engines": {
     "node": ">=18"
