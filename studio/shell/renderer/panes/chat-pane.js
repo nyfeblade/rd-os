@@ -15,6 +15,14 @@
     "room:chat": [{ who: "Agents", body: "A project room. Connect to cut over — any provider.", me: false }],
   };
 
+  const LIVE_THREADS = {
+    cursor: [
+      { who: "Cursor", body: "Diff is ready. Use Code if you want it. Proof gate is on the board.", me: false },
+      { who: "You", body: "@Proof take the gate when CI is green.", me: true },
+    ],
+    claude: [{ who: "Claude", body: "In studio. Proof gate is on the board.", me: false }],
+  };
+
   function coldOpenSeats() {
     return [
       { id: "human", name: "You", kind: "human", presence: "online", cutover: true },
@@ -37,23 +45,41 @@
     return state.seats.some((seat) => seat.kind === "bot" && seat.cutover);
   }
 
+  function seatMeta(seat) {
+    if (seat.kind === "room") {
+      return "room";
+    }
+    if (seat.cutover) {
+      return "in studio";
+    }
+    return "";
+  }
+
+  function threadFor(state, seat) {
+    if (state.view === "live" && LIVE_THREADS[seat.id]) {
+      return LIVE_THREADS[seat.id];
+    }
+    return THREADS[seat.id] || [];
+  }
+
   function renderSeats(els, state, handlers) {
-    const presenceDotClass = Studio.chrome.presenceDotClass;
     els.seatList.replaceChildren();
     for (const seat of state.seats) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = seat.id === state.selectedSeat ? "person on" : "person";
+      button.className = seat.id === state.selectedSeat ? "on" : "";
       button.dataset.seat = seat.id;
-      const dot = document.createElement("i");
-      if (presenceDotClass(seat.presence)) {
-        dot.className = presenceDotClass(seat.presence);
+      if (seat.cutover) {
+        button.title = "in-studio-only";
       }
-      button.append(dot, document.createTextNode(` ${seat.name} `));
-      const badge = document.createElement("span");
-      badge.className = "tag";
-      badge.textContent = seat.cutover ? "in-studio-only" : "connect";
-      button.appendChild(badge);
+      button.appendChild(document.createTextNode(seat.name));
+      const metaText = seatMeta(seat);
+      if (metaText) {
+        const meta = document.createElement("span");
+        meta.className = "meta";
+        meta.textContent = metaText;
+        button.appendChild(meta);
+      }
       button.addEventListener("click", () => {
         if (!seat.cutover) {
           handlers.onConnectSeat(seat);
@@ -69,22 +95,22 @@
 
   function renderThread(els, state, handlers) {
     const seat = selectedSeat(state);
-    els.composerInput.placeholder = `Message ${seat.name}…`;
-    const messages = THREADS[seat.id] || [];
+    els.composerInput.placeholder = "Message…";
+    const messages = threadFor(state, seat);
     els.messages.replaceChildren();
     for (const message of messages) {
       const wrap = document.createElement("div");
-      wrap.className = message.me ? "bubble me" : "bubble";
+      wrap.className = "msg";
       const who = document.createElement("div");
-      who.className = "meta";
+      who.className = "who";
       who.textContent = message.who;
       const body = document.createElement("div");
-      body.className = "text";
+      body.className = "bodytxt";
       body.textContent = message.body;
       wrap.append(who, body);
       els.messages.appendChild(wrap);
     }
-    if (seat.id === "human" && !anyBotConnected(state)) {
+    if (seat.id === "human" && !anyBotConnected(state) && state.view !== "cold") {
       const empty = document.createElement("div");
       empty.className = "empty-cta";
       empty.id = "connect-seat-cta";

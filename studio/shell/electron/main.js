@@ -28,14 +28,14 @@ function createWindow() {
     minWidth: MIN_WIDTH,
     minHeight: MIN_HEIGHT,
     title: "AI Coding Studio",
-    backgroundColor: "#0c0c0e",
+    backgroundColor: "#ffffff",
     show: false,
     titleBarStyle: isMac ? "hiddenInset" : "default",
     ...(isWin
       ? {
           titleBarOverlay: {
-            color: "#141416",
-            symbolColor: "#f2f2f4",
+            color: "#ffffff",
+            symbolColor: "#111111",
             height: 38,
           },
         }

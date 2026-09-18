@@ -1,18 +1,46 @@
 "use strict";
 
 (function attachCodeDrawer(Studio) {
+  const assertNever = Studio.assertNever;
+
   const FILES = [
     {
       id: "shell",
       tab: "StudioShell.tsx",
-      body: "// only here when you asked\nexport function StudioShell() {\n  return <ChatAndBoard />\n}\n",
+      lines: [
+        { kind: "del", text: "- three panes always" },
+        { kind: "add", text: "+ chat | board default" },
+        { kind: "add", text: "+ code on demand" },
+        { kind: "plain", text: "" },
+        { kind: "plain", text: "export function StudioShell() {" },
+        { kind: "plain", text: "  return <ChatAndBoard />" },
+        { kind: "plain", text: "}" },
+      ],
     },
     {
       id: "board",
       tab: "BoardPane.tsx",
-      body: "// gates live on the board — not a Waiting home\nexport function BoardPane() {\n  return <Gates />\n}\n",
+      lines: [
+        { kind: "plain", text: "// gates live on the board — not a Waiting home" },
+        { kind: "plain", text: "export function BoardPane() {" },
+        { kind: "plain", text: "  return <Gates />" },
+        { kind: "plain", text: "}" },
+      ],
     },
   ];
+
+  function lineClass(kind) {
+    switch (kind) {
+      case "add":
+        return "add";
+      case "del":
+        return "del";
+      case "plain":
+        return "";
+      default:
+        return assertNever(kind);
+    }
+  }
 
   function selectedFile(state) {
     return FILES.find((file) => file.id === state.selectedFile) || FILES[0];
@@ -48,7 +76,16 @@
     const name = document.createElement("b");
     name.textContent = current.tab;
     els.editorTab.appendChild(name);
-    els.editorBody.textContent = current.body;
+    els.editorBody.replaceChildren();
+    for (const line of current.lines) {
+      const span = document.createElement("span");
+      const cls = lineClass(line.kind);
+      if (cls) {
+        span.className = cls;
+      }
+      span.textContent = line.text;
+      els.editorBody.append(span, document.createTextNode("\n"));
+    }
   }
 
   Studio.panes = Studio.panes || {};

@@ -12,54 +12,51 @@
   </head>
   <body data-host="preview">
     <div class="frame" role="application" aria-label="AI Coding Studio">
-      <div class="switcher" id="view-switcher" aria-label="Coverage states">
-        brief states
-        <button type="button" id="view-live">Live homebase</button>
-        <button type="button" class="on" id="view-cold">Stranger cold-open</button>
+      <div class="toggle switcher" id="view-switcher" aria-label="Coverage states">
+        state
+        <button type="button" id="view-live">live</button>
+        <button type="button" class="on" id="view-cold">cold open</button>
       </div>
       <header class="bar">
-        <div class="name">Studio</div>
+        <b class="name">Studio</b>
         <div class="modes" id="mode-chip" data-chrome="modes-rail" aria-label="Modes"></div>
-        <div class="icons tray" id="connectors-tray" data-chrome="connectors-tray" aria-label="Connectors"></div>
-        <div class="top-right">
-          <button type="button" class="ghost" id="btn-code" aria-pressed="false">Code</button>
-          <button type="button" class="here" id="presence-btn" data-chrome="presence-bar" aria-expanded="false" aria-controls="presence-list">
-            <span class="dot" aria-hidden="true"></span>
-            <span id="presence-count">0</span>
-          </button>
-          <div class="popover" id="presence-list" hidden role="list"></div>
-        </div>
+        <div class="states" id="connectors-tray" data-chrome="connectors-tray" aria-label="Connectors"></div>
+        <span class="grow"></span>
+        <button type="button" id="btn-code" aria-pressed="false">Code</button>
+        <button type="button" class="here" id="presence-btn" data-chrome="presence-bar" aria-expanded="false" aria-controls="presence-list">
+          <span id="presence-count">0 online</span>
+        </button>
+        <div class="popover" id="presence-list" hidden role="list"></div>
       </header>
 
       <main class="main" id="main">
         <section class="pane chat" data-pane="chat" data-module="chat-pane" id="pane-chat" aria-label="Chat">
-          <div id="chat-live">
-            <div class="people" id="seat-list" aria-label="Seats and rooms"></div>
-            <p class="onboard" id="chat-onboard">Talk to agents here. What’s blocked on you sits on the Board.</p>
+          <div id="chat-live" class="split">
+            <aside class="seats" id="seat-list" aria-label="Seats and rooms"></aside>
             <div class="thread">
+              <p class="onboard" id="chat-onboard">Talk to agents here. What’s blocked on you sits on the Board.</p>
               <div class="msgs" id="messages" aria-live="polite"></div>
               <p class="open-code-hint" id="open-code-hint">
                 Need the repo? <button type="button" id="hint-code">Open code</button>
               </p>
-              <form class="composer" id="composer">
-                <textarea id="composer-input" rows="2" placeholder="Message seat or #room… use @ to address" aria-label="Message"></textarea>
+              <form class="compose" id="composer">
+                <textarea id="composer-input" rows="2" placeholder="Message…" aria-label="Message"></textarea>
                 <button class="send" type="submit">Send</button>
               </form>
             </div>
           </div>
           <div id="chat-cold" class="empty" hidden>
             <h1>Connect a seat to start</h1>
-            <p>Homebase for any AI developer. Hook up GitHub and one agent provider — then your board lights up.</p>
-            <div class="cta">
-              <button class="p" type="button" id="cta-github">Connect GitHub</button>
-              <button class="g" type="button" id="cta-seat">Add Cursor / Claude / Grok</button>
-            </div>
+            <p>Connect GitHub and one agent. Then the board fills in.</p>
+            <button class="primary" type="button" id="cta-github">Connect GitHub</button>
+            <button type="button" id="cta-seat">Add agent</button>
           </div>
         </section>
 
         <section class="pane code-pane" data-pane="code" data-module="code-drawer" id="pane-code" aria-label="Code" hidden>
           <div class="code-h">
-            <span><strong>your-repo</strong> · connect GitHub to bind</span>
+            <b>your-repo</b>
+            <span>connect GitHub to bind</span>
             <button type="button" id="btn-close" aria-label="Close code">Close</button>
           </div>
           <div class="code-body">
@@ -72,12 +69,10 @@
         </section>
 
         <section class="pane board" data-pane="board" data-module="board-pane" id="pane-board" aria-label="Board">
-          <div class="board-h">Needs you</div>
-          <div class="cards">
-            <div id="board-body"></div>
-            <div class="instruments" id="instruments" aria-label="CA map"></div>
-            <div class="watches" id="watches" aria-label="Routines and watches"></div>
-          </div>
+          <h2 class="board-h">Board</h2>
+          <div id="board-body"></div>
+          <div class="instruments" id="instruments" aria-label="CA map"></div>
+          <div class="watches" id="watches" aria-label="Routines and watches"></div>
         </section>
       </main>
     </div>

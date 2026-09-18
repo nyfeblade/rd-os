@@ -6,11 +6,11 @@
   function connectorClass(status) {
     switch (status) {
       case "live":
-        return "live";
+        return "ok";
       case "needs_auth":
-        return "auth";
+        return "warn";
       case "disconnected":
-        return "off";
+        return "bad";
       case "error":
         return "err";
       default:
@@ -18,31 +18,9 @@
     }
   }
 
-  function iconGlyph(id) {
-    switch (id) {
-      case "github":
-        return "GH";
-      case "cursor":
-        return "Cu";
-      case "claude":
-        return "Cl";
-      case "grok":
-        return "Gr";
-      case "linear":
-        return "Li";
-      case "sentry":
-        return "Se";
-      case "vercel":
-        return "Ve";
-      default:
-        return String(id).slice(0, 2).toUpperCase();
-    }
-  }
-
   function renderConnectors(els, state, onConnector) {
     els.connectors.replaceChildren();
-    const live = state.connectors.some((item) => item.status === "live");
-    if (!live) {
+    if (!state.connectors.length) {
       const hint = document.createElement("span");
       hint.className = "tray-empty";
       hint.textContent = "Connect GitHub / an agent provider";
@@ -51,28 +29,18 @@
     for (const connector of state.connectors) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `conn ${connectorClass(connector.status)}`;
+      button.className = connectorClass(connector.status);
       button.dataset.connector = connector.id;
       button.dataset.status = connector.status;
       button.title = `${connector.label} · ${connector.status}`;
       button.setAttribute("aria-label", `${connector.label} ${connector.status}`);
-      button.textContent = iconGlyph(connector.id);
+      button.textContent = connector.label;
       button.addEventListener("click", () => onConnector(connector.id));
       els.connectors.appendChild(button);
     }
-    const add = document.createElement("button");
-    add.type = "button";
-    add.className = "conn";
-    add.dataset.connector = "add";
-    add.textContent = "+";
-    add.title = "Connect GitHub / an agent provider";
-    add.setAttribute("aria-label", "Connect another provider");
-    add.addEventListener("click", () => onConnector("add"));
-    els.connectors.appendChild(add);
   }
 
   Studio.chrome = Studio.chrome || {};
   Studio.chrome.connectorClass = connectorClass;
-  Studio.chrome.iconGlyph = iconGlyph;
   Studio.chrome.renderConnectors = renderConnectors;
 })(globalThis.StudioShell = globalThis.StudioShell || {});

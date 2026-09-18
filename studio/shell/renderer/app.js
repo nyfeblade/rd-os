@@ -44,6 +44,7 @@
     cutoverConfirm: document.getElementById("cutover-confirm"),
     chatLive: document.getElementById("chat-live"),
     chatCold: document.getElementById("chat-cold"),
+    chatOnboard: document.getElementById("chat-onboard"),
     viewLive: document.getElementById("view-live"),
     viewCold: document.getElementById("view-cold"),
     ctaGithub: document.getElementById("cta-github"),
@@ -148,6 +149,9 @@
     els.viewLive.classList.toggle("on", view === "live");
     els.chatCold.hidden = view !== "cold";
     els.chatLive.hidden = view === "cold";
+    if (els.chatOnboard) {
+      els.chatOnboard.hidden = view === "live";
+    }
     if (view === "cold") {
       state.seats = Studio.panes.coldOpenSeats();
       state.selectedSeat = "human";

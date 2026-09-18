@@ -22,21 +22,19 @@
 
   function renderPresence(els, state) {
     const online = onlineMembers(state.seats);
-    els.presenceCount.textContent = String(online.length);
+    els.presenceCount.textContent = `${online.length} online`;
     els.presenceList.replaceChildren();
     for (const member of state.seats) {
       const row = document.createElement("div");
       row.className = "popover-row";
       row.setAttribute("role", "listitem");
-      const dot = document.createElement("i");
-      dot.className = `dot ${presenceDotClass(member.presence)}`;
       const name = document.createElement("span");
       name.textContent = member.name;
       const meta = document.createElement("span");
       meta.className = "meta";
       meta.textContent =
         member.cutover && member.presence === "online" ? "in-studio-only" : member.presence;
-      row.append(dot, name, meta);
+      row.append(name, meta);
       els.presenceList.appendChild(row);
     }
   }

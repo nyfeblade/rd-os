@@ -2,7 +2,7 @@
 
 Homebase for any AI developer: Grok Bot caps **optimized for engineering**, multi-provider, stranger cold-open. Waiting-table-as-home is dead.
 
-Default chrome is **Chat + Board** (chat-forward). **Code is on demand**. Titlebar: **eng/design** chips + **icon connectors tray**. Board cards: Needs you, CA / builders, Watches. Preview can toggle stranger cold-open vs live homebase.
+Default chrome is **Chat + Board**. **Code is on demand**. Light utilitarian look: no purple, glow, or pills. Titlebar is plain **eng / design** text plus a **labeled connectors** row (`●` live, `●` needs auth, `○` off). Board is a table (What / On / Age) plus Agents and Watches rowlines. Preview can toggle stranger cold-open vs live.
 
 This package is Electron so the same stranger path runs on **macOS and Windows**. Linux can use the same commands.
 
@@ -29,9 +29,9 @@ A 1440×900 window titled **AI Coding Studio** should open on Chat + Board with 
 
 ## What should be on screen
 
-1. **Chat** — You plus unconnected Grok / Claude / Cursor seats and an Agents room; **in-studio-only** on cutover seats; thread; composer
-2. **Board** — Agent map + Proof instruments, empty gates until a dump, Approve and Reject when a human gate exists (not a Waiting home)
-3. Toolbar **Code** (off) · **connectors tray** (catalog **P0** only from `studio/connectors/CATALOG.md` when present — GitHub, Cursor, Claude, Grok, Linear, Sentry, Vercel; Slack is P1/`p0_wire`, not a P0 tray row) · presence
+1. **Chat** — sidebar seats (You / Grok / Claude / Cursor / Agents); **in studio** on cutover seats; thread; compose
+2. **Board** — table gates, Agents + Watches rowlines; Approve / Reject / Diff when a human gate exists (not a Waiting home)
+3. Toolbar **Code** (off) · **connectors** (catalog **P0** only from `studio/connectors/CATALOG.md` when present — GitHub, Cursor, Claude, Grok, Linear, Sentry, Vercel; Slack is P1/`p0_wire`, not a P0 tray row) · **N online**
 4. Connecting a seat or provider asks once: *This seat works in Studio only while connected.*
 
 Code opens from the Code button, the chat hint, or Close to put it away.

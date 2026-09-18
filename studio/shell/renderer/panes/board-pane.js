@@ -47,105 +47,141 @@
     return rest ? `${hours}h ${rest}m` : `${hours}h`;
   }
 
-  function card(kind, title, meta, extraClass) {
-    const el = document.createElement("div");
-    el.className = extraClass ? `card ${extraClass}` : "card";
-    const k = document.createElement("div");
-    k.className = "k";
-    k.textContent = kind;
-    const t = document.createElement("div");
-    t.className = "t";
-    t.textContent = title;
-    const m = document.createElement("div");
-    m.className = "m";
-    m.textContent = meta;
-    el.append(k, t, m);
-    return el;
-  }
-
   function sectionHead(title) {
     const head = document.createElement("div");
-    head.className = "board-h";
+    head.className = "section";
     head.textContent = title;
     return head;
   }
 
+  function rowline(title, meta) {
+    const el = document.createElement("div");
+    el.className = "rowline";
+    const name = document.createElement("b");
+    name.textContent = title;
+    el.appendChild(name);
+    if (meta) {
+      el.appendChild(document.createTextNode(" · "));
+      const span = document.createElement("span");
+      span.textContent = meta;
+      el.appendChild(span);
+    }
+    return el;
+  }
+
+  function mutedCell(text) {
+    const td = document.createElement("td");
+    td.textContent = text;
+    td.style.color = "#666";
+    return td;
+  }
+
   function renderInstruments(els, state) {
     els.instruments.replaceChildren();
-    els.instruments.appendChild(sectionHead("CA / builders"));
+    els.instruments.appendChild(sectionHead("Agents"));
+    if (state.view === "live") {
+      const running = rowline("bc-7c385702", "design · running");
+      running.dataset.instrument = "ca";
+      els.instruments.appendChild(running);
+      els.instruments.appendChild(rowline("bc-d0f3", "shell · idle"));
+      return;
+    }
     const item = instrumentFor("ca", state.dump);
-    const el = card("Cloud agent", item.label, `${item.state} · ${item.detail}`);
+    const el = rowline(item.label, `${item.state} · ${item.detail}`);
     el.dataset.instrument = "ca";
     els.instruments.appendChild(el);
-    if (state.view === "live") {
-      els.instruments.appendChild(card("Cloud agent", "shell · idle", "no run — any provider"));
-    }
   }
 
   function renderWatches(els, state) {
     els.watches.replaceChildren();
     els.watches.appendChild(sectionHead("Watches"));
     if (state.view === "live") {
-      els.watches.appendChild(card("Linear", "eng board", "live via connector"));
-      const sentry = card("Sentry", "errors", "disconnected — connect in tray");
-      sentry.style.opacity = "0.65";
-      els.watches.appendChild(sentry);
-      const vercel = card("Vercel", "deploys", "disconnected");
-      vercel.style.opacity = "0.65";
-      els.watches.appendChild(vercel);
+      els.watches.appendChild(rowline("Linear eng board", "live"));
+      els.watches.appendChild(rowline("Sentry", "off"));
+      els.watches.appendChild(rowline("Vercel", "off"));
       return;
     }
     const items = state.dump && state.dump.p0 ? ["nightly proof packet", "merge-gate age"] : [];
     if (!items.length) {
-      els.watches.appendChild(card("Watch", "No watches yet", "Connect a provider to enable"));
+      els.watches.appendChild(rowline("No watches yet", "Connect a provider to enable"));
       return;
     }
     for (const item of items) {
-      els.watches.appendChild(card("Watch", item, "live"));
+      els.watches.appendChild(rowline(item, "live"));
     }
   }
 
   function renderGateTable(els, state, handlers) {
     const dump = state.dump;
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    for (const label of ["What", "On", "Age"]) {
+      const th = document.createElement("th");
+      th.textContent = label;
+      headRow.appendChild(th);
+    }
+    thead.appendChild(headRow);
+    const tbody = document.createElement("tbody");
     const humanGate = dump && dump.p0 && dump.p0.waiting_on === "human";
-    if (!humanGate) {
-      const empty = card("Gates", "Nothing blocked on you", "Connect a provider to see gates");
+
+    if (humanGate) {
+      const need = document.createElement("tr");
+      need.className = "need";
+      const what = document.createElement("td");
+      what.appendChild(document.createTextNode(dump.p0.why || "Merge gate"));
+      const acts = document.createElement("div");
+      acts.className = "actions";
+      const approve = document.createElement("button");
+      approve.type = "button";
+      approve.className = "ok";
+      approve.textContent = "Approve";
+      approve.addEventListener("click", () => handlers.resolveGate("approve"));
+      const reject = document.createElement("button");
+      reject.type = "button";
+      reject.textContent = "Reject";
+      reject.addEventListener("click", () => handlers.resolveGate("reject"));
+      const openDiff = document.createElement("button");
+      openDiff.type = "button";
+      openDiff.textContent = "Diff";
+      openDiff.addEventListener("click", () => handlers.openDiff());
+      acts.append(approve, reject, openDiff);
+      what.appendChild(acts);
+      const on = document.createElement("td");
+      on.textContent = waitingLabel(dump.p0.waiting_on);
+      const age = document.createElement("td");
+      age.textContent = formatAge(dump.p0.age_s);
+      need.append(what, on, age);
+      tbody.appendChild(need);
+    } else {
+      const empty = document.createElement("tr");
       empty.id = "board-empty";
-      els.boardBody.appendChild(empty);
-      return;
+      const cell = document.createElement("td");
+      cell.colSpan = 3;
+      cell.style.color = "#666";
+      cell.textContent = "Nothing blocked on you";
+      empty.appendChild(cell);
+      tbody.appendChild(empty);
     }
 
-    const need = card("Proof gate", "Merge gate", "Needs a human", "need");
-    const row = document.createElement("div");
-    row.className = "row";
-    const approve = document.createElement("button");
-    approve.type = "button";
-    approve.className = "btn p";
-    approve.textContent = "Approve";
-    approve.addEventListener("click", () => handlers.resolveGate("approve"));
-    const reject = document.createElement("button");
-    reject.type = "button";
-    reject.className = "btn g";
-    reject.textContent = "Reject";
-    reject.addEventListener("click", () => handlers.resolveGate("reject"));
-    const openDiff = document.createElement("button");
-    openDiff.type = "button";
-    openDiff.className = "btn g";
-    openDiff.textContent = "Open diff";
-    openDiff.addEventListener("click", () => handlers.openDiff());
-    const age = document.createElement("span");
-    age.className = "age";
-    age.textContent = formatAge(dump.p0.age_s);
-    row.append(approve, reject, openDiff, age);
-    need.appendChild(row);
-    els.boardBody.appendChild(need);
+    if (state.view === "live") {
+      const ci = document.createElement("tr");
+      ci.append(mutedCell("CI · shell"), mutedCell("Proof"), mutedCell("4m"));
+      tbody.appendChild(ci);
+    }
+
+    table.append(thead, tbody);
+    els.boardBody.appendChild(table);
   }
 
   function renderBoard(els, state, handlers) {
     els.boardBody.replaceChildren();
 
     if (!state.dump) {
-      els.boardBody.appendChild(card("Gates", "Can't reach the board stub", "Retry later"));
+      const fail = document.createElement("p");
+      fail.className = "foot";
+      fail.textContent = "Can't reach the board stub";
+      els.boardBody.appendChild(fail);
     } else {
       renderGateTable(els, state, handlers);
     }
@@ -161,7 +197,7 @@
     const codeNote = state.codeOpen ? "Code open on demand" : "Code closed by default";
     const flash = state.flash ? ` · ${state.flash}` : "";
     foot.textContent = `Open gates: ${gates} · in-studio-only on ${cutoverCount} seats · ${codeNote}${flash}`;
-    els.boardBody.appendChild(foot);
+    els.watches.appendChild(foot);
   }
 
   Studio.panes = Studio.panes || {};
