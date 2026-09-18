@@ -6,12 +6,27 @@
 
 | Path | Role |
 | --- | --- |
-| this file | Ingress vs egress, ingest schema sketch, HITL, wire order |
+| this file | Ingress vs egress, ingest schema sketch, HITL, wire order, token-efficiency law |
 | [`CATALOG.md`](CATALOG.md) | Tray SoT — official URLs only |
 | [`DO-NOT-SHIP.md`](DO-NOT-SHIP.md) | Archived / community / legacy `/sse` denylist |
 | [`runtime/`](runtime/) | P0 GitHub + Slack two-way contracts (leave alone unless a later PR extends providers) |
 
 Next fence (not this PR): `studio/connectors/ingress/**` — webhook gateway.
+
+---
+
+## Token efficiency (PRODUCT LAW)
+
+Connectors are expensive context. Studio spends tokens like an engineer, not a chat room. This is a note on this blueprint — **no new fence**.
+
+| Law | Means |
+| --- | --- |
+| **brief-once** | One ingest envelope, one inbox item, one bound thread. Do not re-brief the same webhook into Chat and Board and the seat. |
+| **quiet-when-green** | No tray noise, no CA ping, no Slack/GitHub echo when `need_you` is false. Green CI, idle catalog, successful deploys stay hidden ([VISIBILITY](../design/VISIBILITY.md)). |
+| **no duplicate CA same files** | One Cloud Agent (or Claude/Grok seat) owns a fence. Do not launch a second CA on the same paths. Mode rails already reject `LANE_COLLISION` / `FENCE_OVERLAP`. |
+| **Proof ≠ self-cert** | A green MCP/REST call is not a verdict. `verdict` stays null; `clock_started` stays false. Proof is a Board gate / measured harness (`studio/modes` `no-self-cert`). |
+| **CA / Claude muscle, thin orchestration** | Prefer the seat's own tools (Cloud Agent, Claude Code, official MCP). Studio orchestrates: ingest → inbox → bound reply / HITL. Do not wrap every vendor in a second agent loop. |
+| **HITL + cutover kill cross-app chatter** | Bots do not fan out GitHub ↔ Slack ↔ Linear ↔ Sentry. Hard cutover = in-studio-only. Merge / deploy / DB / public post still HITL. No connector-to-connector relay. |
 
 ---
 
