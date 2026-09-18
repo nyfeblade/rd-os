@@ -1,0 +1,7 @@
+[
+  { "body": "LGTM", "confidence": 0.9 },
+  { "claim": "looks good", "stars": 5 },
+  { "text": "I am 90% sure", "weight": "high" },
+  { "summary": "high confidence, no packet" },
+  { "body": "positive Δ=+0.20", "delta": 0.2 }
+]

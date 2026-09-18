@@ -112,19 +112,19 @@ Capability A/B Δ is **not** M8. Do not add it. If a later experiment wants Δ, 
 
 ## Stranger re-run commands
 
-### Now (this research PR — contract presence, not wedge PASS)
+### Now (wedge-build PR — board + attention + packet, not 14d PASS)
 
-Cold checkout, no npm install. Expect exit 0.
+Cold checkout, Node 18+, no npm install. Expect exit 0.
 
 ```bash
 git clone https://github.com/nyfeblade/rd-os.git
 cd rd-os
-git checkout cursor/exp-2-stack-research-ca29
-chmod +x scripts/stranger-check.sh
+git checkout cursor/exp-2-wedge-build-6b83
+chmod +x scripts/stranger-check.sh scripts/kill14d.sh scripts/proof-layer.sh scripts/wedge-measure.sh
 ./scripts/stranger-check.sh
 ```
 
-`stranger-check.sh` asserts HARD LAW strings exist in **both** `ARCHITECTURE.md` and `MCP_CONTRACT.md`, the four required docs exist, and schema stubs name the machine-time fields. It does **not** certify the 14-day experiment.
+`stranger-check.sh` asserts HARD LAW strings, then opens a local board packet, dumps attention, rejects a weight-only claim, and runs 14d harness stubs (`--skip-m1` so a cold rd-os clone does not require cloning Proof Layer). It does **not** certify the 14-day experiment and does **not** start the clock (`clock_started: false`, `verdict: null`).
 
 ### First instrument (already merged — M1 day-0 evidence)
 
@@ -137,18 +137,18 @@ npm run demo:reject
 
 Expect first line `REJECTED`, `measured_exit: 1`, log path, commit SHA, wall time < 2 minutes.
 
-### Day 0 / 7 / 14 (when implementation lands — not this PR)
+### Day 0 / 7 / 14 (harness stubs — clock not started by this PR)
 
 Commands are frozen here so they cannot be invented at grade time:
 
 ```bash
-# from rd-os, after a future implement PR adds fixtures + rdos shim
+# from rd-os; stubs emit required keys; verdict stays null
 ./scripts/kill14d.sh --arm markdown --day 0 | tee evidence/kill-14d/day0-markdown.json
 ./scripts/kill14d.sh --arm rdos     --day 7 | tee evidence/kill-14d/day7-rdos.json
 ./scripts/kill14d.sh --arm rdos     --day 14 | tee evidence/kill-14d/day14-rdos.json
 ```
 
-`kill14d.sh` is **not** in this PR. Until it exists, M2–M7 are unrun and the wedge is not PASS. A stranger on day 14 must be able to re-run the three tees and get the same integer counts.
+M1 (live `demo:reject`) needs a Proof Layer checkout; omit `--skip-m1` when Eng Proof grades M1. `--skip-m1` is for the rd-os-only stranger path. A stranger on day 14 must be able to re-run the three tees and get the same integer counts. This PR does **not** start the 14-day clock.
 
 Required keys in each JSON:
 
@@ -166,7 +166,7 @@ PASS/FAIL is computed from the numbers in this file, not from a narrative.
 
 Accept as **kill-clarity** only if:
 
-1. A stranger can run `./scripts/stranger-check.sh` on this PR head and get exit 0.
+1. A stranger can run `./scripts/stranger-check.sh` on this PR head and get exit 0 (board + attention + packet + harness stubs).
 2. Every metric above has an integer threshold (no "better", no "faster feel").
 3. CNP v2 FAIL is cited; this file does not claim skill theater works.
 4. `verdict` on the 14-day run stays null until Eng Proof fills it.

@@ -1,6 +1,6 @@
 # R&D OS wedge — architecture (stack research)
 
-**Status:** research + interface design only. No product UI. No MCP server process in this PR.  
+**Status:** smallest runnable wedge — local board/packets + `rdos` CLI + `attention.dump` file + Proof Layer hook + 14d harness stubs. No product UI. No MCP server process. No second CA.  
 **Board:** [Exp-2 R&D OS](https://app.notion.com/p/3dee07d17270817e9d01d8821b3ec2f5)  
 **Vehicle:** this repo (`nyfeblade/rd-os`).  
 **First instrument (merged Exp-1):** [`nyfeblade/agent-proof-layer`](https://github.com/nyfeblade/agent-proof-layer) ([PR #1](https://github.com/nyfeblade/agent-proof-layer/pull/1) merged `de40fcc`).  
@@ -127,14 +127,14 @@ P0 is the only interrupt that may preempt the current experiment. The pane answe
 
 ---
 
-## Kernel objects (this PR: types only)
+## Kernel objects (this PR: local file runtime)
 
 | Object | File | Runtime in this PR |
 | --- | --- | --- |
-| `MachineTime`, `HumanGate`, `Actuals` | `schema/machine-time.ts` | types only |
-| `Experiment`, `FanOut`, `Probe` | `schema/experiment.ts` | types only |
-| MCP tool names + reject codes | `schema/mcp.ts` | types only |
-| Attention dump | `schema/attention.ts` | types only |
+| `MachineTime`, `HumanGate`, `Actuals` | `schema/machine-time.ts` + `src/kernel.js` | `rdos experiment.open` writes `board/experiments/<id>.json` |
+| `Experiment`, `FanOut`, `Probe` | `schema/experiment.ts` + `src/kernel.js` | local board packets; rejects `SINGLE_LANE` / `UNDER_SCOPE` |
+| MCP tool names + reject codes | `schema/mcp.ts` + `bin/rdos.js` | CLI shim `rdos <tool> --in payload.json` — not an MCP server process |
+| Attention dump | `schema/attention.ts` + `src/attention.js` | `rdos attention.dump` → `board/attention.dump.json` |
 
 No server, no UI, no second CA.
 
@@ -152,13 +152,13 @@ Full app UI; parallel CloudAgents; CNP skill re-litigation without a new kill th
 
 ---
 
-## This research experiment (machine-time, not a week)
+## This wedge-build experiment (machine-time, not a week)
 
 | Field | Value |
 | --- | --- |
-| `estimate_ca_hours` | 1.5 |
-| `estimate_proof_min` | 20 |
-| `human_gates[]` | `merge` (playbook: human-owned merges) |
+| `estimate_ca_hours` | 2 |
+| `estimate_proof_min` | 25 |
+| `human_gates[]` | `merge`, `proof_accept` |
 | `actuals` | fill at finish; this CA does not self-cert |
 
 ---
