@@ -1,6 +1,7 @@
 "use strict";
 
 const { reject, ok, isResourceExhausted } = require("./errors");
+const { envTokenProvider, readToken } = require("./token");
 
 const API_ROOT = "https://api.github.com";
 const USER_AGENT = "rd-os-studio-github";
@@ -11,7 +12,32 @@ function parseRepo(spec) {
   if (!match) {
     return null;
   }
-  return { owner: match[1], name: match[2], full_name: `${match[1]}/${match[2]}` };
+  const owner = match[1];
+  const name = match[2];
+  if (owner === "." || owner === ".." || name === "." || name === "..") {
+    return null;
+  }
+  if (owner.includes("\\") || name.includes("\\")) {
+    return null;
+  }
+  return { owner, name, full_name: `${owner}/${name}` };
+}
+
+function cleanPath(raw) {
+  const text = String(raw || "").replace(/^\/+|\/+$/g, "");
+  if (!text) {
+    return "";
+  }
+  const parts = text.split("/");
+  for (const part of parts) {
+    if (!part || part === "." || part === "..") {
+      return null;
+    }
+    if (part.includes("\\")) {
+      return null;
+    }
+  }
+  return parts.join("/");
 }
 
 function mapRepo(raw) {
@@ -77,9 +103,13 @@ function decodeBlob(raw) {
 function createGithubClient(options) {
   const fetchImpl = options && options.fetch ? options.fetch : globalThis.fetch;
   const env = options && options.env ? options.env : process.env;
+  const tokenProvider =
+    options && typeof options.tokenProvider === "function"
+      ? options.tokenProvider
+      : envTokenProvider(env);
 
-  async function request(url) {
-    const token = env.GITHUB_TOKEN ? String(env.GITHUB_TOKEN).trim() : "";
+  async function request(url, init) {
+    const token = await readToken(tokenProvider);
     const headers = {
       Accept: "application/vnd.github+json",
       "User-Agent": USER_AGENT,
@@ -88,11 +118,16 @@ function createGithubClient(options) {
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
+    const method = init && init.method ? String(init.method).toUpperCase() : "GET";
+    const fetchOpts = { method, headers };
+    if (init && init.body != null) {
+      headers["Content-Type"] = "application/json";
+      fetchOpts.body = typeof init.body === "string" ? init.body : JSON.stringify(init.body);
+    }
     const started = Date.now();
     let response;
     try {
-      // One request. ResourceExhausted ⇒ STOP. Do not retry.
-      response = await fetchImpl(url, { headers });
+      response = await fetchImpl(url, fetchOpts);
     } catch (err) {
       return reject("NETWORK_ERROR", err && err.message ? err.message : String(err), {
         wall_ms: Date.now() - started,
@@ -127,7 +162,7 @@ function createGithubClient(options) {
     if (!parsed) {
       return null;
     }
-    const base = `${API_ROOT}/repos/${parsed.owner}/${parsed.name}`;
+    const base = `${API_ROOT}/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.name)}`;
     return suffix ? `${base}${suffix}` : base;
   }
 
@@ -144,7 +179,10 @@ function createGithubClient(options) {
   }
 
   async function tree(dirPath, spec) {
-    const clean = String(dirPath || "").replace(/^\/+|\/+$/g, "");
+    const clean = cleanPath(dirPath);
+    if (clean === null) {
+      return reject("UNKNOWN_PATH", "path is not on the browse tree");
+    }
     const suffix = clean ? `/contents/${clean.split("/").map(encodeURIComponent).join("/")}` : "/contents";
     const url = repoUrl(spec, suffix);
     if (!url) {
@@ -161,8 +199,8 @@ function createGithubClient(options) {
   }
 
   async function blob(filePath, spec) {
-    const clean = String(filePath || "").replace(/^\/+/, "");
-    if (!clean) {
+    const clean = cleanPath(filePath);
+    if (clean === null || !clean) {
       return reject("UNKNOWN_PATH", "file path required");
     }
     const suffix = `/contents/${clean.split("/").map(encodeURIComponent).join("/")}`;
@@ -195,17 +233,23 @@ function createGithubClient(options) {
     return ok(result.data.map(mapPull));
   }
 
+  async function post(url, body) {
+    return request(url, { method: "POST", body });
+  }
+
   return {
     parseRepo,
     repo,
     tree,
     blob,
     pulls,
+    post,
   };
 }
 
 module.exports = {
   API_ROOT,
   parseRepo,
+  cleanPath,
   createGithubClient,
 };
