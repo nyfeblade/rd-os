@@ -5,21 +5,21 @@
 [Studio] [mode: eng ▾] [GitHub● Cursor● Claude○ … +]     ● 3 here
 ```
 - **Modes** chip/select left of connectors  
-- **Connectors tray** — two-way ([CONNECTORS-TWOWAY.md](./CONNECTORS-TWOWAY.md)). Default: `live` | `needs_auth`. Click → connect/auth/error + **inbox filter**. Not display-only  
+- **Connectors tray** — two-way ([CONNECTORS-TWO-WAY.md](./CONNECTORS-TWO-WAY.md)). Default: `live` | `needs_auth`. Click → connect/auth/error + **inbox filter**. Not display-only  
 - **Inbox** — inbound need-you items in Chat (threaded) and/or Board  
 - Presence right  
 
 ## Connectors TWO-WAY (product lock)
-Not ingest-only. See [CONNECTORS-TWOWAY.md](./CONNECTORS-TWOWAY.md).
+Not ingest-only. See [CONNECTORS-TWO-WAY.md](./CONNECTORS-TWO-WAY.md).
 
-| In → Studio | Out → provider |
+| In → Studio | Out ← Studio |
 | --- | --- |
-| Notifications / events (PR review, @mention, CI, Slack ping…) | Human or bot **replies** from Studio |
+| Notifications / events into Chat and/or Board (need-you) | Human reply from bound composer; bot send only with **cutover + human gate** |
 
-1. **Inbox** — Chat thread (seat/room when possible) and/or Board need-you card  
-2. **Reply composer** — same Chat composer (or inline Board); **thread-bound** outbound  
-3. **Bot send** — outbound **only with gates** (Board / policy)  
-4. **Tray** — `live` | `needs_auth` by default; connect/error + inbox entry in detail  
+1. **Inbox** — Chat thread (preferred) and/or Board need-you card  
+2. **Reply composer** — same Chat composer, **bound to the active notification/thread**  
+3. **Bot outbound** — in-studio-only cutover **and** Board Approve/confirm — no silent spam  
+4. **Tray** — `live` | `needs_auth` by default; connect/error + inbox entry  
 
 **P0:** GitHub + Slack.
 
@@ -44,7 +44,7 @@ desktop/ or studio/shell/
   panes/BoardPane.tsx
   panes/CodeDrawer.tsx
 studio/connectors/CATALOG.md    # catalog SoT (eng)
-studio/design/CONNECTORS-TWOWAY.md
+studio/design/CONNECTORS-TWO-WAY.md
 studio/modes/                   # PR#14
 studio/design/                  # this SoT copied in
 ```
@@ -55,6 +55,6 @@ studio/design/                  # this SoT copied in
 2. Tray shows `live` | `needs_auth` (P0 GitHub + Slack at minimum; not a full catalog by default)  
 3. Notification inbox receives ingest from live connectors  
 4. Human reply composer is thread-bound (GitHub issue/PR or Slack thread)  
-5. Bot send through a connector requires a Board/policy gate  
+5. Bot send requires in-studio-only cutover **and** a Board human gate  
 6. Code opens/closes without losing Board  
 7. Empty chat: connect GitHub / an agent CTA  

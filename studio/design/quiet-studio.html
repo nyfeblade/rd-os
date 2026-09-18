@@ -6,308 +6,165 @@
 <title>Studio</title>
 <style>
   :root {
-    --bg: #fff;
-    --ink: #111;
-    --mute: #666;
-    --line: #e8e8e8;
-    --wash: #fafafa;
+    --bg: #fff; --ink: #111; --mute: #666; --line: #e8e8e8; --wash: #fafafa;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
     font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    background: #eee;
-    color: var(--ink);
+    background: #eee; color: var(--ink);
   }
   .app {
-    height: 100%;
-    max-width: 960px;
-    margin: 0 auto;
-    background: var(--bg);
-    border-left: 1px solid var(--line);
-    border-right: 1px solid var(--line);
-    display: flex;
-    flex-direction: column;
+    height: 100%; max-width: 960px; margin: 0 auto; background: var(--bg);
+    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+    display: flex; flex-direction: column;
   }
   .bar {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 12px;
   }
   .bar b { font-size: 13px; font-weight: 600; }
-  .bar .with { color: var(--mute); font-size: 13px; }
-  .bar .grow { flex: 1; }
-  .bar button {
-    font: inherit;
-    font-size: 12px;
-    padding: 3px 8px;
-    border: 1px solid var(--line);
-    background: #fff;
-    cursor: pointer;
+  .tray { display: flex; gap: 8px; align-items: center; color: var(--mute); }
+  .tray button {
+    font: inherit; font-size: 12px; padding: 2px 0; border: 0; background: 0;
+    color: var(--mute); cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
   }
-  .bar button.on { background: #111; color: #fff; border-color: #111; }
-  .bar .warn {
-    font-size: 12px;
-    color: #886600;
-    text-decoration: none;
+  .tray .live { color: var(--ink); text-decoration: none; font-weight: 600; }
+  .tray .auth { color: #886600; }
+  .grow { flex: 1; }
+  .bar .tool {
+    font: inherit; font-size: 12px; padding: 3px 8px;
+    border: 1px solid var(--line); background: #fff; cursor: pointer;
   }
+  .bar .tool.on { background: #111; color: #fff; border-color: #111; }
 
-  .body {
-    flex: 1;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: 1fr 280px;
-  }
+  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 280px; }
   .body.code-open { grid-template-columns: 1fr 340px 260px; }
   .col {
-    min-width: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
+    min-width: 0; min-height: 0; display: flex; flex-direction: column;
     border-right: 1px solid var(--line);
   }
   .col:last-child { border-right: 0; }
   .code { display: none; background: var(--wash); }
   .body.code-open .code { display: flex; }
 
-  .msgs {
-    flex: 1;
-    overflow: auto;
-    padding: 20px 16px;
+  .ctx {
+    padding: 8px 14px; border-bottom: 1px solid var(--line);
+    font-size: 12px; color: var(--mute); background: var(--wash);
   }
-  .msg { margin-bottom: 16px; max-width: 34em; }
+  .ctx b { color: var(--ink); font-weight: 600; }
+  .msgs { flex: 1; overflow: auto; padding: 16px; }
+  .msg { margin-bottom: 14px; max-width: 34em; }
   .msg .who { font-size: 11px; color: #888; margin-bottom: 3px; }
   .msg .txt { font-size: 14px; line-height: 1.5; }
-
+  .msg.inbound { padding: 10px; border: 1px solid var(--line); background: #fffef5; }
   .compose {
-    border-top: 1px solid var(--line);
-    padding: 10px;
-    display: flex;
-    gap: 8px;
+    border-top: 1px solid var(--line); padding: 10px; display: flex; gap: 8px;
   }
   .compose textarea {
-    flex: 1;
-    border: 1px solid var(--line);
-    padding: 8px;
-    font: inherit;
-    font-size: 13px;
-    resize: none;
-    min-height: 52px;
+    flex: 1; border: 1px solid var(--line); padding: 8px; font: inherit; font-size: 13px;
+    resize: none; min-height: 52px;
   }
   .compose button {
-    font: inherit;
-    font-size: 12px;
-    padding: 0 12px;
-    border: 1px solid #111;
-    background: #111;
-    color: #fff;
-    cursor: pointer;
+    font: inherit; font-size: 12px; padding: 0 12px;
+    border: 1px solid #111; background: #111; color: #fff; cursor: pointer;
   }
+  .hint { font-size: 11px; color: #888; padding: 0 10px 8px; }
 
   .board { background: var(--wash); }
   .gate {
-    background: #fff;
-    border-bottom: 1px solid var(--line);
-    padding: 14px;
+    background: #fff; border-bottom: 1px solid var(--line); padding: 14px;
   }
   .gate .label { font-size: 11px; color: #888; margin-bottom: 4px; }
   .gate .title { font-size: 14px; font-weight: 600; }
   .gate .actions { margin-top: 10px; }
   .gate button {
-    font: inherit;
-    font-size: 12px;
-    margin-right: 6px;
-    padding: 5px 10px;
-    border: 1px solid var(--line);
-    background: #fff;
-    cursor: pointer;
+    font: inherit; font-size: 12px; margin-right: 6px; padding: 5px 10px;
+    border: 1px solid var(--line); background: #fff; cursor: pointer;
   }
-  .gate button.ok {
-    background: #111;
-    color: #fff;
-    border-color: #111;
-  }
-  .quiet {
-    padding: 12px 14px;
-    font-size: 12px;
-    color: #888;
-  }
+  .gate button.ok { background: #111; color: #fff; border-color: #111; }
+  .quiet { padding: 12px 14px; font-size: 12px; color: #888; }
 
   .code-h {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--line);
-    background: #fff;
-    font-size: 12px;
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+    border-bottom: 1px solid var(--line); background: #fff; font-size: 12px;
   }
   .code-h button {
-    margin-left: auto;
-    font: inherit;
-    font-size: 12px;
-    border: 1px solid var(--line);
-    background: #fff;
-    padding: 2px 8px;
-    cursor: pointer;
+    margin-left: auto; font: inherit; font-size: 12px;
+    border: 1px solid var(--line); background: #fff; padding: 2px 8px; cursor: pointer;
   }
   pre {
-    margin: 0;
-    flex: 1;
-    overflow: auto;
-    padding: 12px;
-    font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace;
-    background: #fff;
-    color: #222;
-    border-top: 1px solid var(--line);
-  }
-  .add { color: #080; }
-  .del { color: #a00; }
-
-  .empty {
-    flex: 1;
-    padding: 48px 24px;
-  }
-  .empty h1 {
-    margin: 0 0 8px;
-    font-size: 18px;
-    font-weight: 600;
-  }
-  .empty p { margin: 0 0 14px; color: var(--mute); }
-  .empty button {
-    font: inherit;
-    font-size: 12px;
-    padding: 6px 10px;
-    margin-right: 6px;
-    border: 1px solid var(--line);
-    background: #fff;
-    cursor: pointer;
-  }
-  .empty button.ok { background: #111; color: #fff; border-color: #111; }
-  .hidden { display: none !important; }
-  .demo {
-    padding: 6px 12px;
-    font-size: 11px;
-    color: #999;
-    border-bottom: 1px solid var(--line);
-    background: #f7f7f7;
-  }
-  .demo button {
-    font: inherit;
-    font-size: 11px;
-    margin-left: 6px;
-    padding: 1px 6px;
-    border: 1px solid var(--line);
-    background: #fff;
-    cursor: pointer;
+    margin: 0; flex: 1; overflow: auto; padding: 12px;
+    font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; background: #fff;
   }
 </style>
 </head>
 <body>
   <div class="app">
-    <div class="demo">
-      demo
-      <button type="button" id="to-live">working</button>
-      <button type="button" id="to-cold">first open</button>
-    </div>
-
     <header class="bar">
       <b>Studio</b>
-      <span class="with" id="with">Cursor</span>
-      <a class="warn" href="#" id="authWarn" title="needs attention">Claude needs sign-in</a>
+      <!-- tray: live | needs_auth — not read-only -->
+      <div class="tray" aria-label="Connectors">
+        <button type="button" class="live" title="live">GitHub</button>
+        <button type="button" class="auth" title="needs_auth">Slack</button>
+        <button type="button" class="live" title="live">Cursor</button>
+      </div>
       <span class="grow"></span>
-      <button type="button" id="codeBtn">Code</button>
+      <button type="button" class="tool" id="codeBtn">Code</button>
     </header>
 
     <div class="body" id="body">
       <section class="col" aria-label="Chat">
-        <div id="live">
-          <div class="msgs">
-            <div class="msg">
-              <div class="who">Cursor</div>
-              <div class="txt">Diff is ready when you want it. One Proof gate is waiting on you.</div>
-            </div>
-            <div class="msg">
-              <div class="who">You</div>
-              <div class="txt">Take the gate when CI is green.</div>
-            </div>
+        <!-- notification inbox thread — composer bound to it -->
+        <div class="ctx">Replying on <b>GitHub</b> · nyfeblade/rd-os#14 review request</div>
+        <div class="msgs">
+          <div class="msg inbound">
+            <div class="who">GitHub → inbox</div>
+            <div class="txt">@you requested on PR#14 modes — “please confirm Proof gate wording.”</div>
           </div>
-          <div class="compose">
-            <textarea placeholder="Message Cursor…"></textarea>
-            <button type="button">Send</button>
+          <div class="msg">
+            <div class="who">You (draft out)</div>
+            <div class="txt" style="color:#666">Composer below sends the reply to GitHub on this thread.</div>
           </div>
         </div>
-        <div id="cold" class="empty hidden">
-          <h1>Connect GitHub and an agent</h1>
-          <p>Then you’ll see chat and whatever needs you.</p>
-          <button class="ok" type="button">Connect GitHub</button>
-          <button type="button">Add agent</button>
+        <div class="hint">Outbound bound to this notification · Slack needs sign-in in tray</div>
+        <div class="compose">
+          <textarea placeholder="Reply on GitHub…" aria-label="Reply composer"></textarea>
+          <button type="button">Send to GitHub</button>
         </div>
       </section>
 
       <aside class="col code" aria-label="Code">
         <div class="code-h">
           <b>rd-os</b>
-          <span style="color:#888">StudioShell.tsx</span>
           <button type="button" id="codeClose">Close</button>
         </div>
-        <pre><span class="del">- always show code</span>
-<span class="add">+ open only when needed</span>
-
-export function StudioShell() {
-  return &lt;ChatAndBoard /&gt;
-}</pre>
+        <pre>// code on demand only</pre>
       </aside>
 
       <aside class="col board" aria-label="Board">
-        <div class="gate" id="gate">
-          <div class="label">Needs you</div>
-          <div class="title">Accept PR#14 modes</div>
+        <div class="gate">
+          <div class="label">Needs you · also from inbox</div>
+          <div class="title">Bot Slack reply (cutover)</div>
+          <div class="label" style="margin-top:8px">Human gate before bot sends out</div>
           <div class="actions">
-            <button class="ok" type="button">Approve</button>
-            <button type="button">Reject</button>
-            <button type="button" id="openDiff">View diff</button>
+            <button class="ok" type="button">Allow send</button>
+            <button type="button">Deny</button>
           </div>
         </div>
-        <div class="quiet" id="boardQuiet">Nothing else needs you.</div>
+        <div class="quiet">Visibility: only need-you + auth problems.</div>
       </aside>
     </div>
   </div>
   <script>
     const body = document.getElementById('body');
     const codeBtn = document.getElementById('codeBtn');
-    const live = document.getElementById('live');
-    const cold = document.getElementById('cold');
-    const authWarn = document.getElementById('authWarn');
-    const withEl = document.getElementById('with');
-    const gate = document.getElementById('gate');
-    const boardQuiet = document.getElementById('boardQuiet');
     function setCode(on) {
       body.classList.toggle('code-open', on);
       codeBtn.classList.toggle('on', on);
     }
     codeBtn.onclick = () => setCode(!body.classList.contains('code-open'));
     document.getElementById('codeClose').onclick = () => setCode(false);
-    document.getElementById('openDiff').onclick = () => setCode(true);
-    document.getElementById('to-live').onclick = () => {
-      live.classList.remove('hidden');
-      cold.classList.add('hidden');
-      authWarn.classList.remove('hidden');
-      withEl.textContent = 'Cursor';
-      gate.classList.remove('hidden');
-      boardQuiet.textContent = 'Nothing else needs you.';
-    };
-    document.getElementById('to-cold').onclick = () => {
-      cold.classList.remove('hidden');
-      live.classList.add('hidden');
-      authWarn.classList.add('hidden');
-      withEl.textContent = '';
-      gate.classList.add('hidden');
-      boardQuiet.textContent = '';
-      setCode(false);
-    };
   </script>
 </body>
 </html>

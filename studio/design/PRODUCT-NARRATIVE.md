@@ -27,14 +27,14 @@ Eng-optimized **Grok Bot capability set** (every power → eng surface, not a th
 | Desktop/files | **Code drawer** on demand |
 
 ## Connectors TWO-WAY (product lock)
-See [CONNECTORS-TWOWAY.md](./CONNECTORS-TWOWAY.md). Not a one-way ingest tray.
+See [CONNECTORS-TWO-WAY.md](./CONNECTORS-TWO-WAY.md). Not a one-way ingest tray.
 
-- **In → Studio:** notifications / events (PR review, @mention, CI, Slack ping…)  
-- **Out → provider:** human or bot **replies** from Studio (comment, Slack message, …); bot send **with gates**  
-- **Inbox:** lands in **Chat** (threaded with seat/room when possible) and/or **Board** as need-you items  
-- **Reply composer:** same Chat composer (or inline on Board card) — **thread-bound** outbound  
-- **Tray:** `live` | `needs_auth` by default ([VISIBILITY.md](./VISIBILITY.md)); also connect / error + inbox-filter entry — not display-only  
-- **P0:** **GitHub + Slack**. P1+ same two-way pattern when enabled (`studio/connectors/CATALOG.md`)  
+- **In → Studio:** notifications / events into **Chat** and/or **Board** (need-you)  
+- **Out ← Studio:** human replies from the bound Chat composer; **bots** send only with **cutover + human gate**  
+- **Inbox:** Chat thread (preferred) and/or Board card if it needs a gate  
+- **Reply composer:** same Chat composer, **bound to the active notification/thread**  
+- **Tray:** `live` | `needs_auth` (plus `error` | `disconnected` in detail); inbox entry — not display-only  
+- **P0:** **GitHub + Slack**  
 
 ## Modes / rails
 Visible mode chips (eng / design / …). Align with `studio/modes` (PR#14). Encode: research-before-claim, lane fences, no self-cert.
@@ -52,7 +52,7 @@ Life-OS, food, flights, Mac-only, Waiting-as-home, Code always-on, Design launch
 | File | Role |
 | --- | --- |
 | `PRODUCT-NARRATIVE.md` | This coverage brief |
-| `CONNECTORS-TWOWAY.md` | Two-way lock — inbox + outbound reply |
+| `CONNECTORS-TWO-WAY.md` | Canonical two-way lock — inbox + outbound reply |
 | `LAYOUT-LOCK.md` | Code on demand |
 | `SHELL-IA.md` | Pane/tray/drawer IA + fences |
 | `quiet-studio.html` | Mock: Chat\|Board + tray + Code drawer |
