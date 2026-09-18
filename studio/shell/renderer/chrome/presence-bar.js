@@ -23,20 +23,10 @@
   function renderPresence(els, state) {
     const online = onlineMembers(state.seats);
     els.presenceCount.textContent = `${online.length} online`;
+    els.presenceBtn.hidden = true;
+    els.presenceBtn.setAttribute("aria-hidden", "true");
+    els.presenceList.hidden = true;
     els.presenceList.replaceChildren();
-    for (const member of state.seats) {
-      const row = document.createElement("div");
-      row.className = "popover-row";
-      row.setAttribute("role", "listitem");
-      const name = document.createElement("span");
-      name.textContent = member.name;
-      const meta = document.createElement("span");
-      meta.className = "meta";
-      meta.textContent =
-        member.cutover && member.presence === "online" ? "in-studio-only" : member.presence;
-      row.append(name, meta);
-      els.presenceList.appendChild(row);
-    }
   }
 
   Studio.chrome = Studio.chrome || {};

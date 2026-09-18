@@ -26,18 +26,11 @@
     }
   }
 
-  function renderMode(els, state, onMode) {
+  function renderMode(els, state, _onMode) {
     els.modeChip.replaceChildren();
     els.modeChip.dataset.mode = state.mode;
-    for (const mode of MODES) {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = mode === state.mode ? "on" : "";
-      chip.dataset.mode = mode;
-      chip.textContent = modeLabel(mode);
-      chip.addEventListener("click", () => onMode(mode));
-      els.modeChip.appendChild(chip);
-    }
+    els.modeChip.hidden = true;
+    els.modeChip.setAttribute("aria-hidden", "true");
   }
 
   Studio.chrome = Studio.chrome || {};

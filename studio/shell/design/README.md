@@ -8,6 +8,7 @@ Live chrome follows **quiet-studio** + the reconciled spec: **Chat | Board** def
 | `SHELL-IA.md` | Chrome / panes / Code drawer fences |
 | `LAYOUT-LOCK.md` | Chat \| Board default; Code on demand |
 | `STUDIO-SHELL-SPEC.md` | IA, cutover, acceptance (Code not always-on) |
+| `VISIBILITY.md` | Only necessary info by default |
 | `quiet-studio.html` | Visual + layout mock |
 | `three-pane.html` | Historical denser wire — not the live default |
 | `tokens.css` | Dark tokens from design lane |

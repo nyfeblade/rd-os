@@ -18,6 +18,7 @@
   const els = {
     main: document.getElementById("main"),
     modeChip: document.getElementById("mode-chip"),
+    withEl: document.getElementById("with"),
     btnCode: document.getElementById("btn-code"),
     hintCode: document.getElementById("hint-code"),
     btnClose: document.getElementById("btn-close"),
@@ -96,7 +97,17 @@
     renderChrome();
   }
 
+  function renderWith() {
+    const seat = Studio.panes.selectedSeat(state);
+    if (state.view === "cold" || !seat) {
+      els.withEl.textContent = "";
+      return;
+    }
+    els.withEl.textContent = seat.name;
+  }
+
   function renderChrome() {
+    renderWith();
     Studio.chrome.renderMode(els, state, onMode);
     Studio.chrome.renderConnectors(els, state, onConnector);
     Studio.chrome.renderPresence(els, state);

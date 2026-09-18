@@ -1,11 +1,12 @@
 :root {
-  --void: #f3f3f3;
+  --void: #eee;
   --bg: #fff;
   --surface: #fafafa;
+  --wash: #fafafa;
   --elev: #fff;
   --sel: #f0f0f0;
   --hover: #f5f5f5;
-  --line: #e6e6e6;
+  --line: #e8e8e8;
   --ink: #111;
   --mute: #666;
   --faint: #888;
@@ -13,8 +14,8 @@
   --accent-ink: #fff;
   --online: #0a0;
   --good: #0a0;
-  --warn: #c80;
+  --warn: #886600;
   --err: #a00;
-  --human: #fffbe6;
+  --human: #fff;
   --danger: #a00;
 }
