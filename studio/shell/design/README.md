@@ -10,6 +10,7 @@ Live chrome follows **quiet-studio** + the reconciled spec: **Chat | Board** def
 | `STUDIO-SHELL-SPEC.md` | IA, cutover, acceptance (Code not always-on) |
 | `VISIBILITY.md` | Only necessary info by default |
 | `CONNECTORS-TWO-WAY.md` | Bidirectional tray + inbox + gated bot send |
+| `TOKEN-UX.md` | Token meter on Board + seat/thread; unknown omitted |
 | `quiet-studio.html` | Visual + layout mock |
 | `three-pane.html` | Historical denser wire — not the live default |
 | `tokens.css` | Dark tokens from design lane |

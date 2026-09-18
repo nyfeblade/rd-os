@@ -31,8 +31,13 @@
     }
   }
 
-  function problemConnectors(connectors) {
-    return connectors.filter((item) => isConnectorProblem(item.status));
+  function problemConnectors(connectors, inbox) {
+    const rows = connectors.filter((item) => isConnectorProblem(item.status));
+    const falsePings = (inbox || []).filter((item) => item && item.need_you === false);
+    if (!falsePings.length) {
+      return rows;
+    }
+    return rows.filter((row) => !falsePings.some((item) => item.provider === row.id && !isConnectorProblem(row.status)));
   }
 
   function problemLabel(connector) {
@@ -53,7 +58,7 @@
     if (state.view === "cold") {
       return;
     }
-    for (const connector of problemConnectors(state.connectors)) {
+    for (const connector of problemConnectors(state.connectors, state.inbox)) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = `warn ${connectorClass(connector.status)}`;

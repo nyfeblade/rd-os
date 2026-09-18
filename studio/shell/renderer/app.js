@@ -54,6 +54,8 @@
     viewCold: document.getElementById("view-cold"),
     ctaGithub: document.getElementById("cta-github"),
     ctaSeat: document.getElementById("cta-seat"),
+    threadMeter: document.getElementById("thread-meter"),
+    boardMeter: document.getElementById("board-meter"),
   };
 
   const state = {
@@ -73,6 +75,7 @@
     codeOpen: false,
     mode: "eng",
     view: "cold",
+    tokens: { session: null, board: null },
   };
 
   const chatHandlers = {
@@ -132,6 +135,9 @@
     Studio.panes.renderSeats(els, state, chatHandlers);
     Studio.panes.renderThread(els, state, chatHandlers);
     Studio.panes.renderBoard(els, state, boardHandlers);
+    if (Studio.chrome.renderTokenMeters) {
+      Studio.chrome.renderTokenMeters(els, state);
+    }
   }
 
   function ensureWire(rows) {
@@ -174,6 +180,7 @@
       }
       return next;
     });
+    state.tokens = { session: 840, board: 210 };
   }
 
   function clearTwoWay() {
@@ -181,6 +188,7 @@
     state.outbox = [];
     state.boundTo = null;
     state.pendingBotSend = null;
+    state.tokens = { session: null, board: null };
   }
 
   function bindFirstInbox() {

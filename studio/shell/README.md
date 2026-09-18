@@ -4,7 +4,7 @@ Homebase for any AI developer: Grok Bot caps **optimized for engineering**, mult
 
 Default chrome is **Chat + Board**. **Code is on demand**. **Visibility law:** only necessary info — current conversation, human gates, connector problems, Code entry. Full roster, full connector catalog, idle CA map, disconnected watches, and the mode parade stay hidden until needed.
 
-**Connectors are two-way.** Tray states default to `live` | `needs_auth` (problem-only in the bar). Ingest lands in a Chat inbox thread and a Board card when it needs a gate. The same composer replies **bound to** that notification. Bots send only with in-studio-only cutover **and** a human gate — no free-fire. P0 wire: **GitHub + Slack** (UI shell; live API later). Preview can toggle first-open vs working.
+**Connectors are two-way.** Tray states default to `live` | `needs_auth` (problem-only in the bar). Ingest lands in a Chat inbox thread and a Board card when it needs a gate. The same composer replies **bound to** that notification. Bots send only with in-studio-only cutover **and** a human gate — no free-fire. P0 wire: **GitHub + Slack** (UI shell; consume ingress + runtime read-only). Quiet default: `need_you=false` (GitHub ping) never pings the tray. Token meter stub on Board + thread when known; omitted when unknown. Preview can toggle first-open vs working.
 
 This package is Electron so the same stranger path runs on **macOS and Windows**. Linux can use the same commands.
 

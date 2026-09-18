@@ -142,6 +142,12 @@ body[data-host="electron"][data-platform="mac"] .bar {
   margin: 0;
 }
 
+.meter {
+  font-size: 11px;
+  color: #888;
+  padding: 4px 14px;
+}
+
 .msg.inbound {
   padding: 10px;
   border: 1px solid var(--line);

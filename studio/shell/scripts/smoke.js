@@ -7,6 +7,7 @@ const path = require("node:path");
 const root = path.join(__dirname, "..");
 const { CATALOG_REL, catalogPath, catalogPresent, tryReadCatalogP0, tryReadTwoWayWire } = require("../lib/read-catalog");
 const twoWay = require("../lib/two-way");
+const { INGRESS_REL, ingressPresent, tryLoadIngress } = require("../lib/read-ingress");
 const { coldOpenSeats, CONNECT_ACK, DEFAULT_SEAT_IDS, IN_STUDIO_ONLY_LABEL } = require("../lib/cold-open");
 const seats = require("../../seats");
 
@@ -63,6 +64,9 @@ assert.match(html, /id="inbox-ctx"/);
 assert.match(html, /id="compose-hint"/);
 assert.match(html, /Reply composer/);
 assert.match(html, /class="tray"/);
+assert.match(html, /id="thread-meter"/);
+assert.match(html, /id="board-meter"/);
+assert.match(html, /token-meter\.js/);
 assert.match(html, /data-chrome="modes-rail"/);
 assert.match(html, /your-repo/);
 assert.match(html, /code-pane/);
@@ -106,6 +110,8 @@ assert.match(js, /bound_to/);
 assert.match(js, /actor: "bot"/);
 assert.match(js, /actor: "human"/);
 assert.match(js, /id: "slack"/);
+assert.match(js, /tokens:/);
+assert.match(js, /session: null/);
 assert.match(js, /Escape/);
 assert.doesNotMatch(js, /Eng Lead/);
 assert.doesNotMatch(js, /nyfeblade\/rd-os/);
@@ -179,8 +185,15 @@ assert.match(readme, /CATALOG/);
 assert.match(readme, /Visibility law/);
 assert.match(readme, /connector problems/);
 assert.match(readme, /two-way|TWO-WAY|bound/);
+assert.match(readme, /Token meter|token meter/);
+assert.match(readme, /need_you=false|quiet/);
 assert.doesNotMatch(readme, /always visible/);
 
+assert.ok(fs.existsSync(path.join(root, "design", "TOKEN-UX.md")));
+assert.ok(fs.existsSync(path.join(root, "renderer", "chrome", "token-meter.js")));
+assert.match(read("renderer/chrome/token-meter.js"), /unknown|omit|knownTokens/);
+assert.match(read("lib/read-ingress.js"), /tryLoadIngress/);
+assert.doesNotMatch(read("lib/read-ingress.js"), /writeFile|writeFileSync/);
 assert.ok(fs.existsSync(path.join(root, "design", "CONNECTORS-TWO-WAY.md")));
 assert.ok(fs.existsSync(path.join(root, "design", "VISIBILITY.md")));
 assert.match(read("design/CONNECTORS-TWO-WAY.md"), /bidirectional/);
@@ -254,6 +267,15 @@ if (catalogPresent()) {
   const inbox = twoWay.demoInbox();
   assert.ok(inbox.length >= 1, "demo inbox should ingest at least one need-you item");
   assert.ok(inbox.every((item) => item.need_you === true));
+  assert.ok(inbox.every((item) => twoWay.shouldTrayPing(item)));
+  assert.ok(!inbox.some((item) => item.need_you === false), "quiet default: no need_you=false tray ping");
+  if (ingressPresent()) {
+    assert.equal(INGRESS_REL, "studio/connectors/ingress");
+    assert.ok(tryLoadIngress());
+    const quiet = twoWay.quietPingDropped();
+    assert.equal(quiet.dropped, true, "github ping must drop");
+    assert.equal(quiet.items.length, 0, "dropped ping must not enter inbox");
+  }
   const unbound = twoWay.sendReply({
     provider: "github",
     actor: "human",

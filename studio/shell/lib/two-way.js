@@ -8,10 +8,12 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { tryReadTwoWayWire } = require("./read-catalog");
+const { ingressPresent, readIngressFixture, tryLoadIngress } = require("./read-ingress");
 
 const P0_WIRE = ["github", "slack"];
 const TRAY_DEFAULT = ["live", "needs_auth"];
 const DEMO_INGEST = ["github-review-request.json", "github-issue-comment.json"];
+const DEMO_QUIET = ["github-ping-dropped.json"];
 
 function assertNever(value) {
   throw new Error(`unhandled variant: ${value}`);
@@ -83,8 +85,12 @@ function trayStatus(status) {
   }
 }
 
+function shouldTrayPing(item) {
+  return Boolean(item && item.need_you === true);
+}
+
 function visibleInbox(items) {
-  return (items || []).filter((item) => item && (item.need_you === true || item.kind === "auth_failure"));
+  return (items || []).filter((item) => shouldTrayPing(item));
 }
 
 function chatInbox(items) {
@@ -144,7 +150,30 @@ function stubInbox() {
   ];
 }
 
+function ingestViaIngress(names) {
+  const ingress = tryLoadIngress();
+  if (!ingress) {
+    return null;
+  }
+  const inbox = new ingress.Inbox();
+  const reports = [];
+  for (const name of names) {
+    const record = readIngressFixture(name);
+    if (!record || !record.request) {
+      continue;
+    }
+    const request = Object.assign({ fixture: true }, record.request);
+    const result = ingress.ingest(request, { fixture: true, inbox, tray_state: request.tray_state || "live" });
+    reports.push({ name, result });
+  }
+  return { items: visibleInbox(inbox.list()), reports };
+}
+
 function demoInbox() {
+  const fromIngress = ingestViaIngress([...DEMO_INGEST, ...DEMO_QUIET]);
+  if (fromIngress && fromIngress.items.length) {
+    return fromIngress.items;
+  }
   const runtime = tryLoadRuntime();
   if (!runtime) {
     return stubInbox();
@@ -156,11 +185,23 @@ function demoInbox() {
       continue;
     }
     const result = runtime.ingest(record.envelope);
-    if (result && result.ok && !result.dropped && result.item) {
+    if (result && result.ok && !result.dropped && result.item && shouldTrayPing(result.item)) {
       items.push(result.item);
     }
   }
   return items.length ? items : stubInbox();
+}
+
+function quietPingDropped() {
+  const fromIngress = ingestViaIngress(DEMO_QUIET);
+  if (!fromIngress) {
+    return { dropped: true, items: [] };
+  }
+  const ping = fromIngress.reports[0] && fromIngress.reports[0].result;
+  return {
+    dropped: Boolean(ping && ping.dropped),
+    items: fromIngress.items.filter(shouldTrayPing),
+  };
 }
 
 function cutoverFromSeats(seats) {
@@ -236,6 +277,9 @@ module.exports = {
   cutoverFromSeats,
   demoInbox,
   humanGateAllows,
+  ingressPresent,
+  quietPingDropped,
+  shouldTrayPing,
   mergeWireConnectors,
   replyKindFor,
   runtimePresent,
